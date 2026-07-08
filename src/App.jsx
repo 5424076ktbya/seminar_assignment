@@ -320,7 +320,6 @@ export default function App() {
             <StatRow label="総シュート数" valA={statsA.shots} valB={statsB.shots} />
             <StatRow label="枠内シュート数" valA={statsA.onTarget} valB={statsB.onTarget} />
             <StatRow label="キーパス（決定機）" valA={statsA.keyPasses} valB={statsB.keyPasses} />
-            <StatRow label="パス比率（簡易支配率）" valA={`${possessionA}%`} valB={`${possessionB}%`} />
           </div>
         </div>
 
