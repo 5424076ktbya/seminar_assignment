@@ -20,9 +20,7 @@ export default function App() {
   const [hoveredPass, setHoveredPass] = useState(null);
   const [tooltipStyle, setTooltipStyle] = useState({ left: '0px', top: '0px' });
 
-  // ==========================================
-  // 📊 試合全体のスタッツを自動集計するロジック
-  // ==========================================
+  //ロジック
   const teamA = teams[0] || "Team A";
   const teamB = teams[1] || "Team B";
 
@@ -95,7 +93,6 @@ export default function App() {
     </>
   );
 
-  // 📊 スタッツバーを1行描画するためのミニコンポーネント
   const StatRow = ({ label, valA, valB }) => {
     const numA = parseFloat(valA);
     const numB = parseFloat(valB);
@@ -176,7 +173,6 @@ export default function App() {
         )}
       </div>
 
-      {/* マップ並列エリア */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         {/* 左：シュート位置分析 */}
         <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col">
@@ -224,7 +220,6 @@ export default function App() {
                       return null;
                     }}
                   />
-                  {/* ZAxisを削除し、一律の大きさ(size)でプロット */}
                   <Scatter name="ゴール" data={goals} fill="#f43f5e" stroke="#fff" strokeWidth={1} size={120} />
                   <Scatter name="枠外・セーブ" data={misses} fill="#38bdf8" opacity={0.7} stroke="#fff" strokeWidth={1} size={120} />
                 </ScatterChart>
@@ -284,7 +279,7 @@ export default function App() {
       {/* 下部：統計情報エリア */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mt-8">
         
-        {/* 📊 チームスタッツ徹底比較ボード */}
+        {/* スタッツ */}
         <div className="xl:col-span-1 bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
           <div>
             <h2 className="text-xl font-bold mb-4 flex items-center justify-between">
@@ -304,13 +299,13 @@ export default function App() {
           </div>
         </div>
 
-        {/* フィルター用の個人/チームミニスタッツ */}
+     
         <div className="xl:col-span-1 bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
           <div>
             <h2 className="text-xl font-bold mb-4">🔍 選択フィルター内の集計</h2>
             <p className="text-xs text-slate-400 mb-6">上のフィルターで選択されている項目だけの集計値です。</p>
           </div>
-          {/* grid-cols-3 から grid-cols-2 に変更し、総xG枠を削除 */}
+       
           <div className="grid grid-cols-2 gap-3 h-full items-center">
             <div className="bg-slate-900/50 p-3 rounded-xl border border-slate-700/50 text-center">
               <p className="text-[11px] text-slate-400 font-medium">シュート数</p>
