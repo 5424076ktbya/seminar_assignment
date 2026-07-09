@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScatterChart, Scatter, XAxis, YAxis, ZAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { ScatterChart, Scatter, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import shotsData from './data/shots.json';
 import passesData from './data/passes.json';
 
@@ -20,12 +20,6 @@ export default function App() {
   const [hoveredPass, setHoveredPass] = useState(null);
   const [tooltipStyle, setTooltipStyle] = useState({ left: '0px', top: '0px' });
 
-  // データの事前処理
-  const processedShotsData = shotsData.map(shot => ({
-    ...shot,
-    displayXg: shot.xg !== undefined ? shot.xg : (shot.outcome === 'Goal' ? 0.4 : 0.1)
-  }));
-
   // ==========================================
   // 📊 試合全体のスタッツを自動集計するロジック
   // ==========================================
@@ -33,17 +27,15 @@ export default function App() {
   const teamB = teams[1] || "Team B";
 
   const getTeamStats = (teamName) => {
-    const s = processedShotsData.filter(x => x.team === teamName);
+    const s = shotsData.filter(x => x.team === teamName);
     const p = passesData.filter(x => x.team === teamName);
     const goalsCount = s.filter(x => x.outcome.toLowerCase() === 'goal').length;
-    const xgSum = s.reduce((sum, x) => sum + x.displayXg, 0);
     const savedCount = s.filter(x => x.outcome.toLowerCase() === 'saved').length;
     const onTarget = goalsCount + savedCount; // ゴール + セーブされたものは枠内
 
     return {
       shots: s.length,
       goals: goalsCount,
-      xg: xgSum.toFixed(2),
       onTarget: onTarget,
       keyPasses: p.length
     };
@@ -52,13 +44,8 @@ export default function App() {
   const statsA = getTeamStats(teamA);
   const statsB = getTeamStats(teamB);
 
-  // パス比率から簡易支配率を計算 (0本の時は50%)
-  const totalPasses = passesData.length;
-  const possessionA = totalPasses > 0 ? Math.round((statsA.keyPasses / totalPasses) * 100) : 50;
-  const possessionB = 100 - possessionA;
-
   // フィルター用データ
-  const teamShots = processedShotsData.filter(s => s.team === selectedTeam);
+  const teamShots = shotsData.filter(s => s.team === selectedTeam);
   const teamPasses = passesData.filter(p => p.team === selectedTeam);
 
   const players = [...new Set([...teamShots.map(s => s.player), ...teamPasses.map(p => p.player)])].filter(Boolean).sort();
@@ -68,7 +55,6 @@ export default function App() {
 
   const goals = currentShots.filter(s => s.outcome === 'Goal');
   const misses = currentShots.filter(s => s.outcome !== 'Goal');
-  const totalXg = currentShots.reduce((sum, s) => sum + s.displayXg, 0).toFixed(2);
 
   const passTypeCounts = currentPasses.reduce((acc, p) => {
     acc[p.type] = (acc[p.type] || 0) + 1;
@@ -110,7 +96,7 @@ export default function App() {
   );
 
   // 📊 スタッツバーを1行描画するためのミニコンポーネント
-  const StatRow = ({ label, valA, valB, isFloat = false }) => {
+  const StatRow = ({ label, valA, valB }) => {
     const numA = parseFloat(valA);
     const numB = parseFloat(valB);
     const total = numA + numB;
@@ -196,7 +182,6 @@ export default function App() {
         <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col">
           <div className="mb-4">
             <h2 className="text-xl font-bold">⚽ {selectedPlayer ? `${selectedPlayer} のシュート` : 'シュート位置分析'}</h2>
-            <p className="text-xs text-slate-400 mt-1">※点の大きさ＝ゴール期待値（xG）の高さ</p>
           </div>
           
           <div className="relative w-full aspect-[120/80] bg-emerald-800 border-2 border-slate-200/40 rounded-sm overflow-hidden shadow-inner flex-grow">
@@ -206,7 +191,6 @@ export default function App() {
                 <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
                   <XAxis type="number" dataKey="x" domain={[0, 120]} hide />
                   <YAxis type="number" dataKey="y" domain={[0, 80]} hide />
-                  <ZAxis type="number" dataKey="displayXg" domain={[0, 1]} range={[60, 455]} />
                   <Tooltip 
                     cursor={{ strokeDasharray: '3 3' }}
                     content={({ active, payload }) => {
@@ -233,9 +217,6 @@ export default function App() {
                                   {translateOutcome(data.outcome)}
                                 </span>
                               </p>
-                              <p className="flex justify-between border-t border-slate-800/40 pt-1 mt-1 text-amber-300 font-semibold">
-                                <span>ゴール期待値 (xG):</span> <span>{data.displayXg.toFixed(2)}</span>
-                              </p>
                             </div>
                           </div>
                         );
@@ -243,8 +224,9 @@ export default function App() {
                       return null;
                     }}
                   />
-                  <Scatter name="ゴール" data={goals} fill="#f43f5e" stroke="#fff" strokeWidth={1} />
-                  <Scatter name="枠外・セーブ" data={misses} fill="#38bdf8" opacity={0.7} stroke="#fff" strokeWidth={1} />
+                  {/* ZAxisを削除し、一律の大きさ(size)でプロット */}
+                  <Scatter name="ゴール" data={goals} fill="#f43f5e" stroke="#fff" strokeWidth={1} size={120} />
+                  <Scatter name="枠外・セーブ" data={misses} fill="#38bdf8" opacity={0.7} stroke="#fff" strokeWidth={1} size={120} />
                 </ScatterChart>
               </ResponsiveContainer>
             </div>
@@ -302,7 +284,7 @@ export default function App() {
       {/* 下部：統計情報エリア */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mt-8">
         
-        {/* 新設 📊 チームスタッツ徹底比較ボード */}
+        {/* 📊 チームスタッツ徹底比較ボード */}
         <div className="xl:col-span-1 bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
           <div>
             <h2 className="text-xl font-bold mb-4 flex items-center justify-between">
@@ -316,7 +298,6 @@ export default function App() {
             </div>
             
             <StatRow label="ゴール数" valA={statsA.goals} valB={statsB.goals} />
-            <StatRow label="ゴール期待値 (xG)" valA={statsA.xg} valB={statsB.xg} />
             <StatRow label="総シュート数" valA={statsA.shots} valB={statsB.shots} />
             <StatRow label="枠内シュート数" valA={statsA.onTarget} valB={statsB.onTarget} />
             <StatRow label="キーパス（決定機）" valA={statsA.keyPasses} valB={statsB.keyPasses} />
@@ -329,7 +310,8 @@ export default function App() {
             <h2 className="text-xl font-bold mb-4">🔍 選択フィルター内の集計</h2>
             <p className="text-xs text-slate-400 mb-6">上のフィルターで選択されている項目だけの集計値です。</p>
           </div>
-          <div className="grid grid-cols-3 gap-3 h-full items-center">
+          {/* grid-cols-3 から grid-cols-2 に変更し、総xG枠を削除 */}
+          <div className="grid grid-cols-2 gap-3 h-full items-center">
             <div className="bg-slate-900/50 p-3 rounded-xl border border-slate-700/50 text-center">
               <p className="text-[11px] text-slate-400 font-medium">シュート数</p>
               <p className="text-2xl font-extrabold text-emerald-400 mt-1">{currentShots.length}</p>
@@ -337,10 +319,6 @@ export default function App() {
             <div className="bg-slate-900/50 p-3 rounded-xl border border-slate-700/50 text-center">
               <p className="text-[11px] text-slate-400 font-medium">ゴール数</p>
               <p className="text-2xl font-extrabold text-rose-500 mt-1">{goals.length}</p>
-            </div>
-            <div className="bg-slate-900/50 p-3 rounded-xl border border-slate-700/50 text-center border-l-2 border-l-amber-500/50">
-              <p className="text-[11px] text-amber-400 font-bold">総xG</p>
-              <p className="text-2xl font-extrabold text-amber-400 mt-1">{totalXg}</p>
             </div>
           </div>
         </div>
