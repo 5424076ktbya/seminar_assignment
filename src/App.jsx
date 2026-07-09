@@ -180,7 +180,7 @@ export default function App() {
         {/* 左：シュート位置分析 */}
         <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col">
           <div className="mb-4">
-            <h2 className="text-xl font-bold">⚽ {selectedPlayer ? `${selectedPlayer} のシュート` : 'シュート位置分析'}</h2>
+            <h2 className="text-xl font-bold"> {selectedPlayer ? `${selectedPlayer} のシュート` : 'シュート位置分析'}</h2>
           </div>
           
           <div className="relative w-full aspect-[120/80] bg-emerald-800 border-2 border-slate-200/40 rounded-sm overflow-hidden shadow-inner flex-grow">
@@ -237,7 +237,7 @@ export default function App() {
         <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col">
           <div className="mb-4 flex justify-between items-start">
             <div>
-              <h2 className="text-xl font-bold">🎯 {selectedPlayer ? `${selectedPlayer} のパス軌跡` : 'パス軌跡分析'}</h2>
+              <h2 className="text-xl font-bold"> {selectedPlayer ? `${selectedPlayer} のパス軌跡` : 'パス軌跡分析'}</h2>
               <p className="text-xs text-slate-400 mt-1">※矢印にマウスを乗せるとパスの情報を表示します</p>
             </div>
             {selectedPassType && (
@@ -327,7 +327,7 @@ export default function App() {
         {/* 円グラフ(チャンスパス内訳) */}
         <div className="xl:col-span-1 bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
           <div>
-            <h2 className="text-xl font-bold">🎯 チャンスパス内訳</h2>
+            <h2 className="text-xl font-bold"> チャンスパス内訳</h2>
             <p className="text-xs text-slate-400 mt-1 mb-2">※クリックで右マップを絞り込みます</p>
           </div>
           <div className="h-44 w-full flex items-center justify-center">
