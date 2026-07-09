@@ -20,7 +20,6 @@ export default function App() {
   const [hoveredPass, setHoveredPass] = useState(null);
   const [tooltipStyle, setTooltipStyle] = useState({ left: '0px', top: '0px' });
 
-  //ロジック
   const teamA = teams[0] || "Team A";
   const teamB = teams[1] || "Team B";
 
@@ -29,7 +28,7 @@ export default function App() {
     const p = passesData.filter(x => x.team === teamName);
     const goalsCount = s.filter(x => x.outcome.toLowerCase() === 'goal').length;
     const savedCount = s.filter(x => x.outcome.toLowerCase() === 'saved').length;
-    const onTarget = goalsCount + savedCount; // ゴール + セーブされたものは枠内
+    const onTarget = goalsCount + savedCount; // 枠内シュート
 
     return {
       shots: s.length,
@@ -42,7 +41,7 @@ export default function App() {
   const statsA = getTeamStats(teamA);
   const statsB = getTeamStats(teamB);
 
-  // フィルター用データ
+  {/* データ */}
   const teamShots = shotsData.filter(s => s.team === selectedTeam);
   const teamPasses = passesData.filter(p => p.team === selectedTeam);
 
@@ -54,11 +53,13 @@ export default function App() {
   const goals = currentShots.filter(s => s.outcome === 'Goal');
   const misses = currentShots.filter(s => s.outcome !== 'Goal');
 
+  {/* パスの種類ごとに変換 */}
   const passTypeCounts = currentPasses.reduce((acc, p) => {
     acc[p.type] = (acc[p.type] || 0) + 1;
     return acc;
   }, {});
   
+  {/* 配列に変換 */}
   const pieData = Object.keys(passTypeCounts).map(key => ({
     name: key,
     value: passTypeCounts[key],
@@ -82,6 +83,7 @@ export default function App() {
     setTooltipStyle({ left: `${mouseX + 15}px`, top: `${mouseY + 15}px` });
   };
 
+  {/* サッカーコート */}
   const PitchBackground = () => (
     <>
       <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-white/30"></div>
@@ -125,6 +127,7 @@ export default function App() {
           <p className="text-slate-400 mt-1">{teams.join(' vs ')} の試合データを可視化</p>
         </div>
         
+        {/*   チーム変更 */}
         <div className="mt-4 md:mt-0 flex bg-slate-800 p-1 rounded-lg border border-slate-700">
           {teams.map(team => (
             <button
@@ -187,6 +190,7 @@ export default function App() {
                 <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
                   <XAxis type="number" dataKey="x" domain={[0, 120]} hide />
                   <YAxis type="number" dataKey="y" domain={[0, 80]} hide />
+
                   <Tooltip 
                     cursor={{ strokeDasharray: '3 3' }}
                     content={({ active, payload }) => {
@@ -220,6 +224,7 @@ export default function App() {
                       return null;
                     }}
                   />
+                  {/* 点の描画 */}
                   <Scatter name="ゴール" data={goals} fill="#f43f5e" stroke="#fff" strokeWidth={1} size={120} />
                   <Scatter name="枠外・セーブ" data={misses} fill="#38bdf8" opacity={0.7} stroke="#fff" strokeWidth={1} size={120} />
                 </ScatterChart>
@@ -245,6 +250,7 @@ export default function App() {
           <div className="relative w-full aspect-[120/80] bg-emerald-800 border-2 border-slate-200/40 rounded-sm overflow-hidden shadow-inner flex-grow cursor-crosshair" onMouseMove={handleMouseMove}>
             <PitchBackground />
             <svg className="absolute inset-0 w-full h-full" viewBox="0 0 120 80" preserveAspectRatio="none">
+
               <defs>
                 {Object.keys(STRATEGIC_COLORS).map(type => (
                   <marker key={`arrow-${type}`} id={`arrow-${type.replace(' ', '-')}`} viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
@@ -252,6 +258,7 @@ export default function App() {
                   </marker>
                 ))}
               </defs>
+              {/* パス軌跡の描画 */}
               {displayPasses.map((pass, i) => {
                 const passColor = STRATEGIC_COLORS[pass.type] || STRATEGIC_COLORS['Other'];
                 const markerId = `arrow-${(pass.type || 'Other').replace(' ', '-')}`;
@@ -266,6 +273,7 @@ export default function App() {
                 );
               })}
             </svg>
+            {/* ホバーにツール表示 */}
             {hoveredPass && (
               <div className="absolute z-50 bg-slate-900/95 border border-slate-700 p-3 rounded-xl text-xs shadow-2xl backdrop-blur-md w-[200px] pointer-events-none" style={{ left: tooltipStyle.left, top: tooltipStyle.top }}>
                 <p className="font-bold text-sm text-amber-400 mb-2 truncate">🏃‍♂️ {hoveredPass.player || '不明な選手'}</p>
@@ -276,10 +284,8 @@ export default function App() {
         </div>
       </div>
 
-      {/* 下部：統計情報エリア */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mt-8">
-        
-        {/* スタッツ */}
+      {/* スタッツグラフの表示 */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mt-8">        
         <div className="xl:col-span-1 bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
           <div>
             <h2 className="text-xl font-bold mb-4 flex items-center justify-between">
@@ -299,7 +305,7 @@ export default function App() {
           </div>
         </div>
 
-     
+        {/* 選択フィルター内の集計 */}
         <div className="xl:col-span-1 bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
           <div>
             <h2 className="text-xl font-bold mb-4">🔍 選択フィルター内の集計</h2>
@@ -318,7 +324,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* 円グラフ */}
+        {/* 円グラフ(チャンスパス内訳) */}
         <div className="xl:col-span-1 bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
           <div>
             <h2 className="text-xl font-bold">🎯 チャンスパス内訳</h2>
@@ -329,11 +335,13 @@ export default function App() {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie data={pieData} cx="50%" cy="50%" innerRadius={45} outerRadius={60} paddingAngle={5} dataKey="value" onClick={(data) => setSelectedPassType(data.name)} className="cursor-pointer">
+
                     {pieData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} stroke={selectedPassType === entry.name ? '#fff' : 'none'} strokeWidth={2} opacity={selectedPassType && selectedPassType !== entry.name ? 0.3 : 1} />
                     ))}
                   </Pie>
                   <Tooltip />
+                  {/* 凡例 */}
                   <Legend verticalAlign="bottom" height={32} onClick={(data) => setSelectedPassType(data.value)} wrapperStyle={{ cursor: 'pointer', fontSize: '11px' }} />
                 </PieChart>
               </ResponsiveContainer>
