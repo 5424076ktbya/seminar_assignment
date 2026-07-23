@@ -1,357 +1,279 @@
-import React, { useState } from 'react';
-import { ScatterChart, Scatter, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import shotsData from './data/shots.json';
-import passesData from './data/passes.json';
+import React, { useState, useMemo } from 'react';
+import matchesData from './shots_data.json';
 
-const STRATEGIC_COLORS = {
-  'Ground Pass': '#ec4899', 
-  'Cross': '#f59e0b',       
-  'High Pass': '#3b82f6',    
-  'Low Pass': '#10b981',     
-  'Other': '#8b5cf6'         
-};
+function App() {
+  const matches = Array.isArray(matchesData) ? matchesData : [];
 
-export default function App() {
-  const teams = [...new Set(shotsData.map(s => s.team))];
-  const [selectedTeam, setSelectedTeam] = useState(teams[0] || '');
-  const [selectedPassType, setSelectedPassType] = useState(null);
-  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [activeTab, setActiveTab] = useState('homeAway');
 
-  const [hoveredPass, setHoveredPass] = useState(null);
-  const [tooltipStyle, setTooltipStyle] = useState({ left: '0px', top: '0px' });
+  // 条件設定ステート
+  const [minShots, setMinShots] = useState(15);                   // シュート総数
+  const [minPossession, setMinPossession] = useState(60);
+  const [firstGoalMinute, setFirstGoalMinute] = useState(30);
+  const [minHighXg, setMinHighXg] = useState(3);
+  const [maxOpponentPasses, setMaxOpponentPasses] = useState(350);
+  const [minShotAcc, setMinShotAcc] = useState(45);
+  const [minPassAcc, setMinPassAcc] = useState(85);
+  const [homeAwayCondition, setHomeAwayCondition] = useState('home');
 
-  const teamA = teams[0] || "Team A";
-  const teamB = teams[1] || "Team B";
-
-  const getTeamStats = (teamName) => {
-    const s = shotsData.filter(x => x.team === teamName);
-    const p = passesData.filter(x => x.team === teamName);
-    const goalsCount = s.filter(x => x.outcome.toLowerCase() === 'goal').length;
-    const savedCount = s.filter(x => x.outcome.toLowerCase() === 'saved').length;
-    const onTarget = goalsCount + savedCount; // 枠内シュート
-
+  // 集計用汎用関数
+  const analyzeLaw = (filterFn) => {
+    let qualified = 0, win = 0, draw = 0, loss = 0;
+    matches.forEach(m => {
+      ['teamA', 'teamB'].forEach(tKey => {
+        const tName = m[tKey];
+        const stats = m.stats[tName];
+        if (stats && filterFn(stats, m, tName)) {
+          qualified++;
+          if (m.winner === tName) win++;
+          else if (m.winner === null) draw++;
+          else loss++;
+        }
+      });
+    });
+    const total = qualified || 1;
     return {
-      shots: s.length,
-      goals: goalsCount,
-      onTarget: onTarget,
-      keyPasses: p.length
+      total: qualified,
+      winRate: ((win / total) * 100).toFixed(1),
+      drawRate: ((draw / total) * 100).toFixed(1),
+      lossRate: ((loss / total) * 100).toFixed(1)
     };
   };
 
-  const statsA = getTeamStats(teamA);
-  const statsB = getTeamStats(teamB);
+  // 各指標の計算結果
+  const shotsRes = useMemo(() => analyzeLaw(s => s.shots >= minShots), [matches, minShots]);
+  const possessionRes = useMemo(() => analyzeLaw(s => s.possession >= minPossession), [matches, minPossession]);
+  const shotQualityRes = useMemo(() => analyzeLaw(s => s.high_xg_shots >= minHighXg), [matches, minHighXg]);
+  const defenseRes = useMemo(() => analyzeLaw(s => s.opponent_passes <= maxOpponentPasses), [matches, maxOpponentPasses]);
+  const shotAccRes = useMemo(() => analyzeLaw(s => s.shot_accuracy >= minShotAcc), [matches, minShotAcc]);
+  const passAccRes = useMemo(() => analyzeLaw(s => s.pass_accuracy >= minPassAcc), [matches, minPassAcc]);
 
-  {/* データ */}
-  const teamShots = shotsData.filter(s => s.team === selectedTeam);
-  const teamPasses = passesData.filter(p => p.team === selectedTeam);
+  // 先制点時間の集計
+  const firstGoalRes = useMemo(() => {
+    let qualified = 0, win = 0, draw = 0, loss = 0;
+    matches.forEach(m => {
+      if (m.first_goal_team && m.first_goal_minute !== null && m.first_goal_minute <= firstGoalMinute) {
+        qualified++;
+        if (m.winner === m.first_goal_team) win++;
+        else if (m.winner === null) draw++;
+        else loss++;
+      }
+    });
+    const total = qualified || 1;
+    return {
+      total: qualified,
+      winRate: ((win / total) * 100).toFixed(1),
+      drawRate: ((draw / total) * 100).toFixed(1),
+      lossRate: ((loss / total) * 100).toFixed(1)
+    };
+  }, [matches, firstGoalMinute]);
 
-  const players = [...new Set([...teamShots.map(s => s.player), ...teamPasses.map(p => p.player)])].filter(Boolean).sort();
-
-  const currentShots = selectedPlayer ? teamShots.filter(s => s.player === selectedPlayer) : teamShots;
-  const currentPasses = selectedPlayer ? teamPasses.filter(p => p.player === selectedPlayer) : teamPasses;
-
-  const goals = currentShots.filter(s => s.outcome === 'Goal');
-  const misses = currentShots.filter(s => s.outcome !== 'Goal');
-
-  {/* パスの種類ごとに変換 */}
-  const passTypeCounts = currentPasses.reduce((acc, p) => {
-    acc[p.type] = (acc[p.type] || 0) + 1;
-    return acc;
-  }, {});
-  
-  {/* 配列に変換 */}
-  const pieData = Object.keys(passTypeCounts).map(key => ({
-    name: key,
-    value: passTypeCounts[key],
-    color: STRATEGIC_COLORS[key] || STRATEGIC_COLORS['Other']
-  }));
-
-  const displayPasses = selectedPassType ? currentPasses.filter(p => p.type === selectedPassType) : currentPasses;
-
-  const translatePassType = (type) => {
-    if (type === 'Ground Pass') return 'グラウンダーパス';
-    if (type === 'Cross') return 'クロス';
-    if (type === 'High Pass') return 'ハイパス（浮き球）';
-    if (type === 'Low Pass') return 'ローパス';
-    return type;
-  };
-
-  const handleMouseMove = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    setTooltipStyle({ left: `${mouseX + 15}px`, top: `${mouseY + 15}px` });
-  };
-
-  {/* サッカーコート */}
-  const PitchBackground = () => (
-    <>
-      <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-white/30"></div>
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[20%] h-[30%] border-2 border-white/30 rounded-full"></div>
-      <div className="absolute right-0 top-1/4 w-[16.5%] h-1/2 border-2 border-white/40 bg-emerald-800/20"></div>
-      <div className="absolute right-0 top-[37%] w-[5.5%] h-[26%] border-2 border-white/40"></div>
-      <div className="absolute right-[11%] top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-white/70 rounded-full"></div>
-      <div className="absolute -right-1 top-[45%] w-1 h-[10%] bg-white border border-slate-900"></div>
-    </>
-  );
-
-  const StatRow = ({ label, valA, valB }) => {
-    const numA = parseFloat(valA);
-    const numB = parseFloat(valB);
-    const total = numA + numB;
-    const pctA = total > 0 ? (numA / total) * 100 : 50;
-    
-    return (
-      <div className="mb-4">
-        <div className="flex justify-between text-xs font-semibold mb-1">
-          <span className="text-emerald-400 font-bold">{valA}</span>
-          <span className="text-slate-400">{label}</span>
-          <span className="text-cyan-400 font-bold">{valB}</span>
-        </div>
-        <div className="w-full h-2 bg-slate-900 rounded-full overflow-hidden flex">
-          <div className="bg-emerald-500 h-full transition-all duration-500" style={{ width: `${pctA}%` }}></div>
-          <div className="bg-cyan-500 h-full transition-all duration-500" style={{ width: `${100 - pctA}%` }}></div>
-        </div>
-      </div>
-    );
-  };
+  // ホーム / アウェイ分析
+  const homeAwayRes = useMemo(() => {
+    return analyzeLaw(s => {
+      return homeAwayCondition === 'home' ? s.is_home === true : s.is_home === false;
+    });
+  }, [matches, homeAwayCondition]);
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 p-6 font-sans">
+    <div style={{ padding: '30px', backgroundColor: '#0f172a', color: '#f8fafc', minHeight: '100vh', fontFamily: 'sans-serif' }}>
       {/* ヘッダー */}
-      <header className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between border-b border-slate-800 pb-4">
-        <div>
-          <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
-            サッカー試合の可視化 
-          </h1>
-          <p className="text-slate-400 mt-1">{teams.join(' vs ')} の試合データを可視化</p>
-        </div>
-        
-        {/*   チーム変更 */}
-        <div className="mt-4 md:mt-0 flex bg-slate-800 p-1 rounded-lg border border-slate-700">
-          {teams.map(team => (
-            <button
-              key={team}
-              onClick={() => {
-                setSelectedTeam(team);
-                setSelectedPassType(null);
-                setSelectedPlayer(null);
-                setHoveredPass(null);
-              }}
-              className={`px-4 py-2 rounded-md font-medium text-sm transition-all ${
-                selectedTeam === team ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              {team}
-            </button>
-          ))}
-        </div>
-      </header>
+      <div style={{ marginBottom: '25px', borderBottom: '1px solid #334155', paddingBottom: '15px' }}>
+        <h1 style={{ margin: 0, fontSize: '22px', color: '#38bdf8' }}>サッカー試合データ分析ダッシュボード</h1>
+        <p style={{ color: '#94a3b8', fontSize: '13px', marginTop: '6px' }}>
+          対象データ数: 全 {matches.length} 試合
+        </p>
+      </div>
 
-      {/* 選手フィルター */}
-      <div className="mb-6 bg-slate-800/80 p-4 rounded-xl border border-slate-700/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-slate-300">🏃‍♂️ 選手で分析:</span>
-          <select
-            value={selectedPlayer || ''}
-            onChange={(e) => {
-              setSelectedPlayer(e.target.value || null);
-              setSelectedPassType(null);
-            }}
-            className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-200 focus:outline-none focus:border-emerald-500 max-w-xs cursor-pointer"
-          >
-            <option value="">✨ チーム全員を表示</option>
-            {players.map(player => (
-              <option key={player} value={player}>{player}</option>
-            ))}
-          </select>
-        </div>
-        {selectedPlayer && (
+      {/* タブ一覧 */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '25px', flexWrap: 'wrap' }}>
+        {[
+          { id: 'homeAway', label: 'ホーム / アウェイ' },
+          { id: 'shots', label: 'シュート本数' },
+          { id: 'possession', label: 'ボール支配率' },
+          { id: 'firstGoal', label: '先制点時間帯' },
+          { id: 'shotQuality', label: '決定機数 (高xG)' },
+          { id: 'defense', label: '相手パス許容数' },
+          { id: 'shotAcc', label: '枠内シュート率' },
+          { id: 'passAcc', label: 'パス成功率' }
+        ].map(tab => (
           <button
-            onClick={() => setSelectedPlayer(null)}
-            className="text-xs bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 px-3 py-1.5 rounded-lg transition-all"
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            style={{
+              padding: '8px 14px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px',
+              backgroundColor: activeTab === tab.id ? '#0284c7' : '#1e293b', color: '#fff', transition: '0.2s'
+            }}
           >
-            ❌ フィルターを解除して全員に戻す
+            {tab.label}
           </button>
-        )}
+        ))}
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-        {/* 左：シュート位置分析 */}
-        <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col">
-          <div className="mb-4">
-            <h2 className="text-xl font-bold"> {selectedPlayer ? `${selectedPlayer} のシュート` : 'シュート位置分析'}</h2>
-          </div>
+      {/* メインコンテンツ */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '20px' }}>
+        <div style={{ background: '#1e293b', padding: '20px', borderRadius: '8px', border: '1px solid #334155' }}>
           
-          <div className="relative w-full aspect-[120/80] bg-emerald-800 border-2 border-slate-200/40 rounded-sm overflow-hidden shadow-inner flex-grow">
-            <PitchBackground />
-            <div className="absolute inset-0 z-20">
-              <ResponsiveContainer width="100%" height="100%">
-                <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
-                  <XAxis type="number" dataKey="x" domain={[0, 120]} hide />
-                  <YAxis type="number" dataKey="y" domain={[0, 80]} hide />
-
-                  <Tooltip 
-                    cursor={{ strokeDasharray: '3 3' }}
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        const data = payload[0].payload;
-                        const translateOutcome = (outcome) => {
-                          if (!outcome) return outcome;
-                          const lower = outcome.toLowerCase();
-                          if (lower === 'goal') return '⚽ ゴール';
-                          if (lower === 'off t') return '❌ 枠外シュート';
-                          if (lower === 'saved') return '🧤 キーパーセーブ';
-                          if (lower === 'blocked') return '🛡️ ブロック';
-                          if (lower === 'post') return '🥅 ポスト・バー直撃';
-                          return outcome;
-                        };
-                        return (
-                          <div className="bg-slate-900/95 border border-slate-700 p-3 rounded-xl text-xs shadow-2xl backdrop-blur-md min-w-[180px]">
-                            <p className="font-bold text-sm text-emerald-400 mb-1.5">{data.player}</p>
-                            <div className="space-y-1 text-slate-300">
-                              <p className="flex justify-between"><span className="text-slate-500">時間:</span> <span className="font-medium">{data.minute}分</span></p>
-                              <p className="flex justify-between">
-                                <span className="text-slate-500">結果:</span> 
-                                <span className={`font-bold ${data.outcome && data.outcome.toLowerCase() === 'goal' ? 'text-rose-400' : 'text-cyan-400'}`}>
-                                  {translateOutcome(data.outcome)}
-                                </span>
-                              </p>
-                            </div>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
-                  {/* 点の描画 */}
-                  <Scatter name="ゴール" data={goals} fill="#f43f5e" stroke="#fff" strokeWidth={1} size={120} />
-                  <Scatter name="枠外・セーブ" data={misses} fill="#38bdf8" opacity={0.7} stroke="#fff" strokeWidth={1} size={120} />
-                </ScatterChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
-
-        {/* 右：パス軌跡分析 */}
-        <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col">
-          <div className="mb-4 flex justify-between items-start">
+          {/* TAB: ホーム / アウェイ */}
+          {activeTab === 'homeAway' && (
             <div>
-              <h2 className="text-xl font-bold"> {selectedPlayer ? `${selectedPlayer} のパス軌跡` : 'パス軌跡分析'}</h2>
-              <p className="text-xs text-slate-400 mt-1">※矢印にマウスを乗せるとパスの情報を表示します</p>
-            </div>
-            {selectedPassType && (
-              <button onClick={() => setSelectedPassType(null)} className="text-xs bg-slate-700 hover:bg-slate-600 px-2.5 py-1 rounded text-slate-300 transition-all shadow">
-                全パスを表示
-              </button>
-            )}
-          </div>
-          
-          <div className="relative w-full aspect-[120/80] bg-emerald-800 border-2 border-slate-200/40 rounded-sm overflow-hidden shadow-inner flex-grow cursor-crosshair" onMouseMove={handleMouseMove}>
-            <PitchBackground />
-            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 120 80" preserveAspectRatio="none">
-
-              <defs>
-                {Object.keys(STRATEGIC_COLORS).map(type => (
-                  <marker key={`arrow-${type}`} id={`arrow-${type.replace(' ', '-')}`} viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-                    <path d="M 0 1 L 10 5 L 0 9 z" fill={STRATEGIC_COLORS[type]} />
-                  </marker>
-                ))}
-              </defs>
-              {/* パス軌跡の描画 */}
-              {displayPasses.map((pass, i) => {
-                const passColor = STRATEGIC_COLORS[pass.type] || STRATEGIC_COLORS['Other'];
-                const markerId = `arrow-${(pass.type || 'Other').replace(' ', '-')}`;
-                const isHovered = hoveredPass === pass;
-                const anyHovered = hoveredPass !== null;
-                return (
-                  <g key={i} opacity={isHovered ? 1.0 : (anyHovered ? 0.15 : 0.75)} className="transition-opacity duration-150" style={{ pointerEvents: 'auto' }} onMouseEnter={() => setHoveredPass(pass)} onMouseLeave={() => setHoveredPass(null)}>
-                    <line x1={pass.x} y1={pass.y} x2={pass.end_x} y2={pass.end_y} stroke="transparent" strokeWidth="4" className="cursor-pointer" />
-                    <line x1={pass.x} y1={pass.y} x2={pass.end_x} y2={pass.end_y} stroke={passColor} strokeWidth={isHovered ? "1.6" : "1.0"} strokeDasharray={pass.type === 'Cross' ? '1.5 1.5' : 'none'} markerEnd={`url(#${markerId})`} />
-                    <circle cx={pass.x} cy={pass.y} r={isHovered ? "1.0" : "0.7"} fill={passColor} />
-                  </g>
-                );
-              })}
-            </svg>
-            {/* ホバーにツール表示 */}
-            {hoveredPass && (
-              <div className="absolute z-50 bg-slate-900/95 border border-slate-700 p-3 rounded-xl text-xs shadow-2xl backdrop-blur-md w-[200px] pointer-events-none" style={{ left: tooltipStyle.left, top: tooltipStyle.top }}>
-                <p className="font-bold text-sm text-amber-400 mb-2 truncate">🏃‍♂️ {hoveredPass.player || '不明な選手'}</p>
-                <p className="text-slate-300">種類: <span className="font-bold" style={{ color: STRATEGIC_COLORS[hoveredPass.type] }}>{translatePassType(hoveredPass.type)}</span></p>
+              <h3 style={{ fontSize: '16px', margin: '0 0 10px 0' }}>ホーム / アウェイ別の勝率比較</h3>
+              <p style={{ color: '#94a3b8', fontSize: '13px' }}>ホーム開催・アウェイ開催における基本的な勝敗データの傾向を確認します。</p>
+              
+              <div style={{ background: '#0f172a', padding: '15px', borderRadius: '6px', margin: '20px 0' }}>
+                <label style={{ display: 'block', fontSize: '13px', marginBottom: '8px' }}>対象条件の選択:</label>
+                <select
+                  value={homeAwayCondition}
+                  onChange={e => setHomeAwayCondition(e.target.value)}
+                  style={{
+                    width: '100%', padding: '8px', borderRadius: '4px', background: '#1e293b', color: '#38bdf8',
+                    border: '1px solid #475569', fontSize: '13px', cursor: 'pointer'
+                  }}
+                >
+                  <option value="home">ホームでプレーした試合</option>
+                  <option value="away">アウェイでプレーした試合</option>
+                </select>
               </div>
+
+              <ResultBar res={homeAwayRes} />
+            </div>
+          )}
+
+          {/* TAB: シュート本数 */}
+          {activeTab === 'shots' && (
+            <div>
+              <h3 style={{ fontSize: '16px', margin: '0 0 10px 0' }}>シュート総数と勝率の関係</h3>
+              <p style={{ color: '#94a3b8', fontSize: '13px' }}>1試合の中で一定数以上のシュートを放ったチームの勝利確率を集計します。</p>
+              <div style={{ background: '#0f172a', padding: '15px', borderRadius: '6px', margin: '20px 0' }}>
+                <label style={{ fontSize: '13px' }}>シュート本数の閾値: <strong style={{ color: '#38bdf8' }}>{minShots} 本以上</strong></label>
+                <input type="range" min="5" max="30" step="1" value={minShots} onChange={e => setMinShots(Number(e.target.value))} style={{ width: '100%', marginTop: '8px' }} />
+              </div>
+              <ResultBar res={shotsRes} />
+            </div>
+          )}
+
+          {/* TAB: ボール支配率 */}
+          {activeTab === 'possession' && (
+            <div>
+              <h3 style={{ fontSize: '16px', margin: '0 0 10px 0' }}>ボール支配率と勝率の関係</h3>
+              <p style={{ color: '#94a3b8', fontSize: '13px' }}>一定以上のボール支配率を記録したチームの勝敗結果を集計します。</p>
+              <div style={{ background: '#0f172a', padding: '15px', borderRadius: '6px', margin: '20px 0' }}>
+                <label style={{ fontSize: '13px' }}>ボール支配率の閾値: <strong style={{ color: '#38bdf8' }}>{minPossession}% 以上</strong></label>
+                <input type="range" min="30" max="80" step="5" value={minPossession} onChange={e => setMinPossession(Number(e.target.value))} style={{ width: '100%', marginTop: '8px' }} />
+              </div>
+              <ResultBar res={possessionRes} />
+            </div>
+          )}
+
+          {/* TAB: 先制点 */}
+          {activeTab === 'firstGoal' && (
+            <div>
+              <h3 style={{ fontSize: '16px', margin: '0 0 10px 0' }}>先制点と勝利確率</h3>
+              <p style={{ color: '#94a3b8', fontSize: '13px' }}>試合前半の特定時間内に先制点を獲得したチームの勝率を算出します。</p>
+              <div style={{ background: '#0f172a', padding: '15px', borderRadius: '6px', margin: '20px 0' }}>
+                <label style={{ fontSize: '13px' }}>先制点の時間帯: <strong style={{ color: '#38bdf8' }}>前半 {firstGoalMinute} 分以内</strong></label>
+                <input type="range" min="10" max="45" step="5" value={firstGoalMinute} onChange={e => setFirstGoalMinute(Number(e.target.value))} style={{ width: '100%', marginTop: '8px' }} />
+              </div>
+              <ResultBar res={firstGoalRes} />
+            </div>
+          )}
+
+          {/* TAB: 決定機 */}
+          {activeTab === 'shotQuality' && (
+            <div>
+              <h3 style={{ fontSize: '16px', margin: '0 0 10px 0' }}>決定機数（xG 0.15以上）と勝率</h3>
+              <p style={{ color: '#94a3b8', fontSize: '13px' }}>一定以上のゴール期待値を持つシュート機会の構築数と試合結果の相関です。</p>
+              <div style={{ background: '#0f172a', padding: '15px', borderRadius: '6px', margin: '20px 0' }}>
+                <label style={{ fontSize: '13px' }}>決定機の最小本数: <strong style={{ color: '#38bdf8' }}>{minHighXg} 本以上</strong></label>
+                <input type="range" min="1" max="8" step="1" value={minHighXg} onChange={e => setMinHighXg(Number(e.target.value))} style={{ width: '100%', marginTop: '8px' }} />
+              </div>
+              <ResultBar res={shotQualityRes} />
+            </div>
+          )}
+
+          {/* TAB: 守備強度 */}
+          {activeTab === 'defense' && (
+            <div>
+              <h3 style={{ fontSize: '16px', margin: '0 0 10px 0' }}>相手パス試行数の制限（守備強度）</h3>
+              <p style={{ color: '#94a3b8', fontSize: '13px' }}>相手チームのパス数を一定以下に抑制した試合の勝率を集計します。</p>
+              <div style={{ background: '#0f172a', padding: '15px', borderRadius: '6px', margin: '20px 0' }}>
+                <label style={{ fontSize: '13px' }}>相手パス許容数の上限: <strong style={{ color: '#38bdf8' }}>{maxOpponentPasses} 本以下</strong></label>
+                <input type="range" min="200" max="600" step="25" value={maxOpponentPasses} onChange={e => setMaxOpponentPasses(Number(e.target.value))} style={{ width: '100%', marginTop: '8px' }} />
+              </div>
+              <ResultBar res={defenseRes} />
+            </div>
+          )}
+
+          {/* TAB: 枠内シュート率 */}
+          {activeTab === 'shotAcc' && (
+            <div>
+              <h3 style={{ fontSize: '16px', margin: '0 0 10px 0' }}>枠内シュート率（シュート精度）</h3>
+              <p style={{ color: '#94a3b8', fontSize: '13px' }}>総シュート数のうち、枠内に飛んだ割合が一定値以上のチームの勝率です。</p>
+              <div style={{ background: '#0f172a', padding: '15px', borderRadius: '6px', margin: '20px 0' }}>
+                <label style={{ fontSize: '13px' }}>枠内シュート率の下限: <strong style={{ color: '#38bdf8' }}>{minShotAcc}% 以上</strong></label>
+                <input type="range" min="20" max="70" step="5" value={minShotAcc} onChange={e => setMinShotAcc(Number(e.target.value))} style={{ width: '100%', marginTop: '8px' }} />
+              </div>
+              <ResultBar res={shotAccRes} />
+            </div>
+          )}
+
+          {/* TAB: パス成功率 */}
+          {activeTab === 'passAcc' && (
+            <div>
+              <h3 style={{ fontSize: '16px', margin: '0 0 10px 0' }}>パス成功率と勝率</h3>
+              <p style={{ color: '#94a3b8', fontSize: '13px' }}>ビルドアップおよび全体パスの精度が勝敗に与える影響を集計します。</p>
+              <div style={{ background: '#0f172a', padding: '15px', borderRadius: '6px', margin: '20px 0' }}>
+                <label style={{ fontSize: '13px' }}>パス成功率の下限: <strong style={{ color: '#38bdf8' }}>{minPassAcc}% 以上</strong></label>
+                <input type="range" min="70" max="92" step="1" value={minPassAcc} onChange={e => setMinPassAcc(Number(e.target.value))} style={{ width: '100%', marginTop: '8px' }} />
+              </div>
+              <ResultBar res={passAccRes} />
+            </div>
+          )}
+
+        </div>
+
+        {/* 右側：要約パネル */}
+        <div style={{ background: '#0f172a', padding: '20px', borderRadius: '8px', border: '1px solid #334155' }}>
+          <h3 style={{ color: '#38bdf8', marginTop: 0, fontSize: '15px' }}>分析要約</h3>
+          
+          <div style={{ fontSize: '13px', lineHeight: '1.6', color: '#cbd5e1' }}>
+            {activeTab === 'homeAway' && (
+              <p>
+                {homeAwayCondition === 'home' ? 'ホーム' : 'アウェイ'}チームの勝率は <strong>{homeAwayRes.winRate}%</strong> です。（該当数: {homeAwayRes.total} 件）
+              </p>
             )}
+            {activeTab === 'shots' && <p>シュートを {minShots} 本以上打ったチームの勝率は <strong>{shotsRes.winRate}%</strong> です。（該当数: {shotsRes.total} 件）</p>}
+            {activeTab === 'possession' && <p>ボール支配率 {minPossession}% 以上を記録したチームの勝率は <strong>{possessionRes.winRate}%</strong> です。（該当数: {possessionRes.total} 件）</p>}
+            {activeTab === 'firstGoal' && <p>前半 {firstGoalMinute} 分までに先制したチームの勝率は <strong>{firstGoalRes.winRate}%</strong> です。（該当数: {firstGoalRes.total} 件）</p>}
+            {activeTab === 'shotQuality' && <p>決定機を {minHighXg} 本以上作ったチームの勝率は <strong>{shotQualityRes.winRate}%</strong> です。（該当数: {shotQualityRes.total} 件）</p>}
+            {activeTab === 'defense' && <p>相手パス数を {maxOpponentPasses} 本以下に抑えたチームの勝率は <strong>{defenseRes.winRate}%</strong> です。（該当数: {defenseRes.total} 件）</p>}
+            {activeTab === 'shotAcc' && <p>枠内シュート率 {minShotAcc}% 以上を記録したチームの勝率は <strong>{shotAccRes.winRate}%</strong> です。（該当数: {shotAccRes.total} 件）</p>}
+            {activeTab === 'passAcc' && <p>パス成功率 {minPassAcc}% 以上を記録したチームの勝率は <strong>{passAccRes.winRate}%</strong> です。（該当数: {passAccRes.total} 件）</p>}
           </div>
         </div>
-      </div>
-
-      {/* スタッツグラフの表示 */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mt-8">        
-        <div className="xl:col-span-1 bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
-          <div>
-            <h2 className="text-xl font-bold mb-4 flex items-center justify-between">
-              <span>📊 チームスタッツ比較</span>
-              <span className="text-xs font-normal text-slate-400">（試合全体）</span>
-            </h2>
-            <div className="flex justify-between items-center text-center font-bold text-sm mb-6 border-b border-slate-700 pb-3">
-              <span className="text-emerald-400 w-1/3 truncate text-left">{teamA}</span>
-              <span className="text-slate-500 w-1/3">VS</span>
-              <span className="text-cyan-400 w-1/3 truncate text-right">{teamB}</span>
-            </div>
-            
-            <StatRow label="ゴール数" valA={statsA.goals} valB={statsB.goals} />
-            <StatRow label="総シュート数" valA={statsA.shots} valB={statsB.shots} />
-            <StatRow label="枠内シュート数" valA={statsA.onTarget} valB={statsB.onTarget} />
-            <StatRow label="キーパス（決定機）" valA={statsA.keyPasses} valB={statsB.keyPasses} />
-          </div>
-        </div>
-
-        {/* 選択フィルター内の集計 */}
-        <div className="xl:col-span-1 bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
-          <div>
-            <h2 className="text-xl font-bold mb-4">🔍 選択フィルター内の集計</h2>
-            <p className="text-xs text-slate-400 mb-6">上のフィルターで選択されている項目だけの集計値です。</p>
-          </div>
-       
-          <div className="grid grid-cols-2 gap-3 h-full items-center">
-            <div className="bg-slate-900/50 p-3 rounded-xl border border-slate-700/50 text-center">
-              <p className="text-[11px] text-slate-400 font-medium">シュート数</p>
-              <p className="text-2xl font-extrabold text-emerald-400 mt-1">{currentShots.length}</p>
-            </div>
-            <div className="bg-slate-900/50 p-3 rounded-xl border border-slate-700/50 text-center">
-              <p className="text-[11px] text-slate-400 font-medium">ゴール数</p>
-              <p className="text-2xl font-extrabold text-rose-500 mt-1">{goals.length}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* 円グラフ(チャンスパス内訳) */}
-        <div className="xl:col-span-1 bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
-          <div>
-            <h2 className="text-xl font-bold"> チャンスパス内訳</h2>
-            <p className="text-xs text-slate-400 mt-1 mb-2">※クリックで右マップを絞り込みます</p>
-          </div>
-          <div className="h-44 w-full flex items-center justify-center">
-            {pieData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={45} outerRadius={60} paddingAngle={5} dataKey="value" onClick={(data) => setSelectedPassType(data.name)} className="cursor-pointer">
-
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} stroke={selectedPassType === entry.name ? '#fff' : 'none'} strokeWidth={2} opacity={selectedPassType && selectedPassType !== entry.name ? 0.3 : 1} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  {/* 凡例 */}
-                  <Legend verticalAlign="bottom" height={32} onClick={(data) => setSelectedPassType(data.value)} wrapperStyle={{ cursor: 'pointer', fontSize: '11px' }} />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <p className="text-slate-400 text-sm">チャンスメイクデータはありません</p>
-            )}
-          </div>
-        </div>
-
       </div>
     </div>
   );
 }
+
+// 集計バーコンポーネント
+function ResultBar({ res }) {
+  return (
+    <div style={{ marginTop: '20px' }}>
+      <div style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '8px' }}>該当件数: {res.total} 件</div>
+      <div style={{ display: 'flex', height: '32px', borderRadius: '6px', overflow: 'hidden', border: '1px solid #475569' }}>
+        <div style={{ width: `${res.winRate}%`, background: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '12px' }}>
+          勝利 {res.winRate}%
+        </div>
+        <div style={{ width: `${res.drawRate}%`, background: '#ca8a04', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '12px', color: '#000' }}>
+          引分 {res.drawRate}%
+        </div>
+        <div style={{ width: `${res.lossRate}%`, background: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '12px' }}>
+          敗北 {res.lossRate}%
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default App;
