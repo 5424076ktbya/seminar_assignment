@@ -1,16 +1,43 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, Component } from 'react';
 import matchesData from './shots_data.json';
 
-function App() {
+// クラッシュ防止用のエラーバウンダリ
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error("React Error Boundary Caught:", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '20px', color: '#ef4444', backgroundColor: '#0f172a', minHeight: '100vh', fontFamily: 'sans-serif' }}>
+          <h2>⚠️ 描画エラーが発生しました</h2>
+          <p style={{ color: '#cbd5e1' }}>データまたは処理ロジックでエラーが検出されました。</p>
+          <pre style={{ background: '#1e293b', padding: '15px', borderRadius: '6px', overflow: 'auto', color: '#f8fafc' }}>
+            {this.state.error && this.state.error.toString()}
+          </pre>
+          <button onClick={() => window.location.reload()} style={{ padding: '8px 16px', background: '#0284c7', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', marginTop: '10px' }}>
+            ページを再読み込み
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function MainApp() {
   const matches = Array.isArray(matchesData) ? matchesData : [];
 
-  // 表示モード（'single': 単一条件, 'multi': 複数条件）
   const [mode, setMode] = useState('single');
-
-  // 単一モード用ステート
   const [activeTab, setActiveTab] = useState('homeAway');
 
-  // 各指標の閾値ステート（単一モード用）
   const [minShots, setMinShots] = useState(15);
   const [minPossession, setMinPossession] = useState(60);
   const [firstGoalMinute, setFirstGoalMinute] = useState(30);
@@ -20,7 +47,6 @@ function App() {
   const [minPassAcc, setMinPassAcc] = useState(85);
   const [homeAwayCondition, setHomeAwayCondition] = useState('home');
 
-  // 指標マスター定義
   const METRICS = [
     { id: 'homeAway', name: 'ホーム / アウェイ', unit: '戦' },
     { id: 'shots', name: 'シュート本数', min: 5, max: 30, step: 1, default: 15, unit: '本以上' },
@@ -32,13 +58,11 @@ function App() {
     { id: 'passAcc', name: 'パス成功率', min: 70, max: 92, step: 1, default: 85, unit: '% 以上' }
   ];
 
-  // 複数条件用（動的条件配列）
   const [conditions, setConditions] = useState([
     { id: Date.now(), metric: 'possession', value: 60, homeAway: 'home' },
     { id: Date.now() + 1, metric: 'shotAcc', value: 45, homeAway: 'home' }
   ]);
 
-  // 条件の追加
   const addCondition = () => {
     setConditions([
       ...conditions,
@@ -46,13 +70,11 @@ function App() {
     ]);
   };
 
-  // 条件の削除
   const removeCondition = (id) => {
     if (conditions.length <= 1) return;
     setConditions(conditions.filter(c => c.id !== id));
   };
 
-  // 条件の更新
   const updateCondition = (id, field, val) => {
     setConditions(conditions.map(c => {
       if (c.id === id) {
@@ -69,72 +91,58 @@ function App() {
     }));
   };
 
-  // 集計用汎用関数
-  const analyzeLaw = (filterFn) => {
-    let qualified = 0, win = 0, draw = 0, loss = 0;
-    matches.forEach(m => {
-      ['teamA', 'teamB'].forEach(tKey => {
-        const tName = m[tKey];
-        const stats = m.stats[tName];
-        if (stats && filterFn(stats, m, tName)) {
-          qualified++;
-          if (m.winner === tName) win++;
-          else if (m.winner === null) draw++;
-          else loss++;
-        }
-      });
-    });
-    const total = qualified || 1;
-    return {
-      total: qualified,
-      winRate: ((win / total) * 100).toFixed(1),
-      drawRate: ((draw / total) * 100).toFixed(1),
-      lossRate: ((loss / total) * 100).toFixed(1)
-    };
-  };
-
-  // 単一検証の計算結果
-  const homeAwayRes = useMemo(() => analyzeLaw(s => homeAwayCondition === 'home' ? s.is_home === true : s.is_home === false), [matches, homeAwayCondition]);
-  const shotsRes = useMemo(() => analyzeLaw(s => s.shots >= minShots), [matches, minShots]);
-  const possessionRes = useMemo(() => analyzeLaw(s => s.possession >= minPossession), [matches, minPossession]);
-  const shotQualityRes = useMemo(() => analyzeLaw(s => s.high_xg_shots >= minHighXg), [matches, minHighXg]);
-  const defenseRes = useMemo(() => analyzeLaw(s => s.opponent_passes <= maxOpponentPasses), [matches, maxOpponentPasses]);
-  const shotAccRes = useMemo(() => analyzeLaw(s => s.shot_accuracy >= minShotAcc), [matches, minShotAcc]);
-  const passAccRes = useMemo(() => analyzeLaw(s => s.pass_accuracy >= minPassAcc), [matches, minPassAcc]);
-  const firstGoalRes = useMemo(() => {
-    let qualified = 0, win = 0, draw = 0, loss = 0;
-    matches.forEach(m => {
-      if (m.first_goal_team && m.first_goal_minute !== null && m.first_goal_minute <= firstGoalMinute) {
-        qualified++;
-        if (m.winner === m.first_goal_team) win++;
-        else if (m.winner === null) draw++;
-        else loss++;
-      }
-    });
-    const total = qualified || 1;
-    return {
-      total: qualified,
-      winRate: ((win / total) * 100).toFixed(1),
-      drawRate: ((draw / total) * 100).toFixed(1),
-      lossRate: ((loss / total) * 100).toFixed(1)
-    };
-  }, [matches, firstGoalMinute]);
-
-  // 単一条件判定の共通ロジック
+  // 安全な判定ロジック
   const checkSingleCond = (stats, match, teamName, cond) => {
+    if (!stats || !match) return false;
     const { metric, value, homeAway } = cond;
-    if (metric === 'shots') return stats.shots >= value;
-    if (metric === 'possession') return stats.possession >= value;
-    if (metric === 'firstGoal') return match.first_goal_team === teamName && match.first_goal_minute !== null && match.first_goal_minute <= value;
-    if (metric === 'highXg') return stats.high_xg_shots >= value;
-    if (metric === 'defense') return stats.opponent_passes <= value;
-    if (metric === 'shotAcc') return stats.shot_accuracy >= value;
-    if (metric === 'passAcc') return stats.pass_accuracy >= value;
+    if (metric === 'shots') return Number(stats.shots ?? 0) >= value;
+    if (metric === 'possession') return Number(stats.possession ?? 0) >= value;
+    if (metric === 'firstGoal') return match.first_goal_team === teamName && match.first_goal_minute !== null && match.first_goal_minute !== undefined && Number(match.first_goal_minute) <= value;
+    if (metric === 'highXg') return Number(stats.high_xg_shots ?? 0) >= value;
+    if (metric === 'defense') return Number(stats.opponent_passes ?? 999) <= value;
+    if (metric === 'shotAcc') return Number(stats.shot_accuracy ?? 0) >= value;
+    if (metric === 'passAcc') return Number(stats.pass_accuracy ?? 0) >= value;
     if (metric === 'homeAway') return homeAway === 'home' ? stats.is_home === true : stats.is_home === false;
     return true;
   };
 
-  // 複数条件の計算結果
+  const analyzeLaw = (filterFn) => {
+    let qualified = 0, win = 0, draw = 0, loss = 0;
+    matches.forEach(m => {
+      if (!m || !m.stats) return;
+      ['teamA', 'teamB'].forEach(tKey => {
+        const tName = m[tKey];
+        if (!tName) return;
+        const stats = m.stats[tName];
+        if (stats && filterFn(stats, m, tName)) {
+          qualified++;
+          if (m.winner === tName) win++;
+          else if (m.winner === null || m.winner === undefined) draw++;
+          else loss++;
+        }
+      });
+    });
+    const total = qualified;
+    if (total === 0) {
+      return { total: 0, winRate: "0.0", drawRate: "0.0", lossRate: "0.0" };
+    }
+    return {
+      total: qualified,
+      winRate: ((win / total) * 100).toFixed(1),
+      drawRate: ((draw / total) * 100).toFixed(1),
+      lossRate: ((loss / total) * 100).toFixed(1)
+    };
+  };
+
+  const homeAwayRes = useMemo(() => analyzeLaw((s, m, t) => checkSingleCond(s, m, t, { metric: 'homeAway', homeAway: homeAwayCondition })), [matches, homeAwayCondition]);
+  const shotsRes = useMemo(() => analyzeLaw((s, m, t) => checkSingleCond(s, m, t, { metric: 'shots', value: minShots })), [matches, minShots]);
+  const possessionRes = useMemo(() => analyzeLaw((s, m, t) => checkSingleCond(s, m, t, { metric: 'possession', value: minPossession })), [matches, minPossession]);
+  const shotQualityRes = useMemo(() => analyzeLaw((s, m, t) => checkSingleCond(s, m, t, { metric: 'highXg', value: minHighXg })), [matches, minHighXg]);
+  const defenseRes = useMemo(() => analyzeLaw((s, m, t) => checkSingleCond(s, m, t, { metric: 'defense', value: maxOpponentPasses })), [matches, maxOpponentPasses]);
+  const shotAccRes = useMemo(() => analyzeLaw((s, m, t) => checkSingleCond(s, m, t, { metric: 'shotAcc', value: minShotAcc })), [matches, minShotAcc]);
+  const passAccRes = useMemo(() => analyzeLaw((s, m, t) => checkSingleCond(s, m, t, { metric: 'passAcc', value: minPassAcc })), [matches, minPassAcc]);
+  const firstGoalRes = useMemo(() => analyzeLaw((s, m, t) => checkSingleCond(s, m, t, { metric: 'firstGoal', value: firstGoalMinute })), [matches, firstGoalMinute]);
+
   const multiResult = useMemo(() => {
     return analyzeLaw((stats, match, teamName) => {
       return conditions.every(c => checkSingleCond(stats, match, teamName, c));
@@ -145,8 +153,6 @@ function App() {
 
   return (
     <div style={{ padding: '30px', backgroundColor: '#0f172a', color: '#f8fafc', minHeight: '100vh', fontFamily: 'sans-serif' }}>
-      
-      {/* ヘッダー */}
       <div style={{ marginBottom: '20px', borderBottom: '1px solid #334155', paddingBottom: '15px' }}>
         <h1 style={{ margin: 0, fontSize: '22px', color: '#38bdf8' }}>サッカー試合データ勝率分析</h1>
         <p style={{ color: '#94a3b8', fontSize: '13px', marginTop: '6px' }}>
@@ -154,7 +160,6 @@ function App() {
         </p>
       </div>
 
-      {/* モード切替タブ */}
       <div style={{ display: 'flex', gap: '10px', marginBottom: '25px', background: '#0f172a', border: '1px solid #334155', padding: '4px', borderRadius: '8px', width: 'fit-content' }}>
         <button
           onClick={() => setMode('single')}
@@ -176,7 +181,6 @@ function App() {
         </button>
       </div>
 
-      {/* ================= モード 1: 単一条件 ================= */}
       {mode === 'single' && (
         <div>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
@@ -185,7 +189,7 @@ function App() {
               { id: 'shots', label: 'シュート本数' },
               { id: 'possession', label: 'ボール支配率' },
               { id: 'firstGoal', label: '先制点時間帯' },
-              { id: 'shotQuality', label: '決定機数 (高xG)' },
+              { id: 'highXg', label: '決定機数 (高xG)' },
               { id: 'defense', label: '相手パス許容数' },
               { id: 'shotAcc', label: '枠内シュート率' },
               { id: 'passAcc', label: 'パス成功率' }
@@ -205,7 +209,6 @@ function App() {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '20px' }}>
             <div style={{ background: '#1e293b', padding: '20px', borderRadius: '8px', border: '1px solid #334155' }}>
-              
               {activeTab === 'homeAway' && (
                 <div>
                   <h3 style={{ fontSize: '16px', margin: '0 0 10px 0' }}>ホーム / アウェイ別の勝率</h3>
@@ -252,9 +255,9 @@ function App() {
                 </div>
               )}
 
-              {activeTab === 'shotQuality' && (
+              {activeTab === 'highXg' && (
                 <div>
-                  <h3 style={{ fontSize: '16px', margin: '0 0 10px 0' }}>決定機数（xG 0.15以上）と勝率</h3>
+                  <h3 style={{ fontSize: '16px', margin: '0 0 10px 0' }}>決定機数（高xG）と勝率</h3>
                   <div style={{ background: '#0f172a', padding: '15px', borderRadius: '6px', margin: '20px 0' }}>
                     <label style={{ fontSize: '13px' }}>決定機の最小本数: <strong style={{ color: '#38bdf8' }}>{minHighXg} 本以上</strong></label>
                     <input type="range" min="1" max="8" step="1" value={minHighXg} onChange={e => setMinHighXg(Number(e.target.value))} style={{ width: '100%', marginTop: '8px' }} />
@@ -295,26 +298,21 @@ function App() {
                   <ResultBar res={passAccRes} />
                 </div>
               )}
-
             </div>
 
             <div style={{ background: '#0f172a', padding: '20px', borderRadius: '8px', border: '1px solid #334155' }}>
               <h3 style={{ color: '#38bdf8', marginTop: 0, fontSize: '15px' }}>要約</h3>
               <p style={{ fontSize: '13px', lineHeight: '1.6', color: '#cbd5e1' }}>
-                選択中の単一条件を満たした試合における勝利・引き分け・敗北の割合を示しています。
+                選択中の条件を満たした試合における勝利・引き分け・敗北の割合を示しています。
               </p>
             </div>
           </div>
         </div>
       )}
 
-      {/* ================= モード 2: 複数条件 ================= */}
       {mode === 'multi' && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '20px' }}>
-          
           <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            
-            {/* 条件カード一覧 */}
             {conditions.map((cond, index) => {
               const info = getMetricInfo(cond.metric);
               return (
@@ -370,7 +368,6 @@ function App() {
               );
             })}
 
-            {/* 条件追加ボタン */}
             <button
               onClick={addCondition}
               style={{
@@ -381,14 +378,11 @@ function App() {
               ＋ 条件を追加する
             </button>
 
-            {/* 結果バー */}
             <div style={{ background: '#1e293b', padding: '20px', borderRadius: '8px', border: '1px solid #334155', marginTop: '10px' }}>
               <ResultBar res={multiResult} />
             </div>
-
           </div>
 
-          {/* 右側：サマリー */}
           <div style={{ background: '#0f172a', padding: '20px', borderRadius: '8px', border: '1px solid #334155', height: 'fit-content' }}>
             <h3 style={{ color: '#38bdf8', marginTop: 0, fontSize: '15px' }}>要約</h3>
             <div style={{ fontSize: '13px', lineHeight: '1.6', color: '#cbd5e1' }}>
@@ -412,32 +406,52 @@ function App() {
               </p>
             </div>
           </div>
-
         </div>
       )}
-
     </div>
   );
 }
 
-// 集計バーコンポーネント
 function ResultBar({ res }) {
+  if (!res || res.total === 0) {
+    return (
+      <div>
+        <div style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '8px' }}>該当件数: 0 件</div>
+        <div style={{ background: '#334155', padding: '12px', borderRadius: '6px', textAlign: 'center', color: '#94a3b8', fontSize: '12px' }}>
+          条件を満たす試合データがありません（スライダーを下げて調整してください）
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '8px' }}>該当件数: {res.total} 件</div>
       <div style={{ display: 'flex', height: '32px', borderRadius: '6px', overflow: 'hidden', border: '1px solid #475569' }}>
-        <div style={{ width: `${res.winRate}%`, background: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '12px' }}>
-          勝利 {res.winRate}%
-        </div>
-        <div style={{ width: `${res.drawRate}%`, background: '#ca8a04', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '12px', color: '#000' }}>
-          引分 {res.drawRate}%
-        </div>
-        <div style={{ width: `${res.lossRate}%`, background: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '12px' }}>
-          敗北 {res.lossRate}%
-        </div>
+        {Number(res.winRate) > 0 && (
+          <div style={{ width: `${res.winRate}%`, background: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '12px' }}>
+            勝利 {res.winRate}%
+          </div>
+        )}
+        {Number(res.drawRate) > 0 && (
+          <div style={{ width: `${res.drawRate}%`, background: '#ca8a04', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '12px', color: '#000' }}>
+            引分 {res.drawRate}%
+          </div>
+        )}
+        {Number(res.lossRate) > 0 && (
+          <div style={{ width: `${res.lossRate}%`, background: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '12px' }}>
+            敗北 {res.lossRate}%
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <MainApp />
+    </ErrorBoundary>
+  );
+}
