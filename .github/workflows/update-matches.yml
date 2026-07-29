@@ -1,0 +1,35 @@
+name: Auto Update Upcoming Matches
+
+on:
+  schedule:
+    # 毎日午前0時(UTC) ＝ 日本時間 午前9時に自動実行
+    - cron: '0 0 * * *'
+  workflow_dispatch: # GitHub画面から手動実行も可能にする
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install understatapi
+
+      - name: Run script to fetch matches
+        run: python get_upcoming.py
+
+      - name: Commit and push if changed
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/upcoming_matches.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto update upcoming matches [skip ci]" && git push)
