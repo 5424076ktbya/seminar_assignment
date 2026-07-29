@@ -1,5 +1,6 @@
 import React, { useState, useMemo, Component } from 'react';
 import matchesData from './shots_data.json';
+import UpcomingMatches from './components/UpcomingMatches'; // 今週の試合予想コンポーネントを追加
 
 // クラッシュ防止用のエラーバウンダリ
 class ErrorBoundary extends Component {
@@ -408,6 +409,9 @@ function MainApp() {
           </div>
         </div>
       )}
+
+      {/* ★ここに今週の試合予想コンポーネントを配置 */}
+      <UpcomingMatches />
     </div>
   );
 }
