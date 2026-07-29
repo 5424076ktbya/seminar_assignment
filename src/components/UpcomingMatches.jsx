@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, onValue, runTransaction } from 'firebase/database';
+import { getDatabase, ref, onValue, runTransaction, get } from 'firebase/database';
+import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from 'firebase/auth';
 
 import upcomingData from '../upcoming_matches.json';
 import demoData from '../demo_matches.json';
@@ -19,39 +20,74 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
 
 export default function UpcomingMatches() {
   const [activeTab, setActiveTab] = useState('upcoming');
   const [voteCounts, setVoteCounts] = useState({});
   const [userVotes, setUserVotes] = useState({});
+  const [currentUser, setCurrentUser] = useState(null);
 
-  // ② & ③ フィルター・検索・並び替え用の状態
   const [selectedLeague, setSelectedLeague] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('date_asc'); // 'date_asc', 'date_desc', 'votes_desc'
+  const [sortBy, setSortBy] = useState('date_asc');
 
   const rawData = activeTab === 'upcoming' 
     ? (upcomingData.length > 0 ? upcomingData : []) 
     : demoData;
 
   useEffect(() => {
-    const savedVotes = JSON.parse(localStorage.getItem('userMatchVotes') || '{}');
-    setUserVotes(savedVotes);
+    // Googleログイン状態の監視
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+      if (user) {
+        // ログイン中のユーザーの投票履歴を取得
+        const userVotesRef = ref(db, `user_votes/${user.uid}`);
+        get(userVotesRef).then((snapshot) => {
+          if (snapshot.exists()) {
+            setUserVotes(snapshot.val());
+          }
+        });
+      } else {
+        setUserVotes({});
+      }
+    });
 
+    // 試合ごとの総投票数をリアルタイム監視
     const votesRef = ref(db, 'match_votes');
-    const unsubscribe = onValue(votesRef, (snapshot) => {
+    const unsubscribeVotes = onValue(votesRef, (snapshot) => {
       setVoteCounts(snapshot.val() || {});
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribeAuth();
+      unsubscribeVotes();
+    };
   }, []);
 
+  // ログイン・ログアウト機能
+  const handleLogin = () => {
+    signInWithPopup(auth, provider).catch((error) => {
+      console.error("ログインエラー:", error);
+    });
+  };
+
+  const handleLogout = () => {
+    signOut(auth);
+  };
+
   const handleVote = (matchId, choice) => {
+    if (!currentUser) {
+      alert("投票するにはGoogleログインが必要です。画面上部のボタンからログインしてください。");
+      return;
+    }
+
     const previousChoice = userVotes[matchId];
     const isCancel = previousChoice === choice;
 
+    // 試合全体のカウント更新
     const matchVoteRef = ref(db, `match_votes/${matchId}`);
-
     runTransaction(matchVoteRef, (currentData) => {
       if (!currentData) currentData = { home: 0, draw: 0, away: 0 };
       if (previousChoice && currentData[previousChoice] > 0) {
@@ -63,6 +99,7 @@ export default function UpcomingMatches() {
       return currentData;
     });
 
+    // ユーザー個人の投票状態をFirebaseに保存
     const newUserVotes = { ...userVotes };
     if (isCancel) {
       delete newUserVotes[matchId];
@@ -71,7 +108,9 @@ export default function UpcomingMatches() {
     }
 
     setUserVotes(newUserVotes);
-    localStorage.setItem('userMatchVotes', JSON.stringify(newUserVotes));
+    
+    const userVotesRef = ref(db, `user_votes/${currentUser.uid}`);
+    runTransaction(userVotesRef, () => newUserVotes);
   };
 
   const checkIsCloseMatch = (votes) => {
@@ -82,12 +121,9 @@ export default function UpcomingMatches() {
     return Math.abs(homeRate - awayRate) <= 20 && homeRate >= 25 && awayRate >= 25;
   };
 
-  // フィルタリングと並び替え処理
   const processedData = rawData
     .filter(m => {
-      // リーグフィルター
       if (selectedLeague !== 'ALL' && m.league !== selectedLeague) return false;
-      // チーム名検索（大文字小文字を区別しない）
       if (searchQuery.trim() !== '') {
         const query = searchQuery.toLowerCase();
         const home = m.home_team.toLowerCase();
@@ -97,7 +133,6 @@ export default function UpcomingMatches() {
       return true;
     })
     .sort((a, b) => {
-      // ソート処理
       if (sortBy === 'date_asc') {
         return new Date(a.datetime) - new Date(b.datetime);
       } else if (sortBy === 'date_desc') {
@@ -137,7 +172,6 @@ export default function UpcomingMatches() {
           position: 'relative'
         }}
       >
-        {/* ① 投票済みバッジの表示 */}
         {userChoice && (
           <div style={{
             position: 'absolute',
@@ -218,19 +252,35 @@ export default function UpcomingMatches() {
   return (
     <div style={{ marginTop: '30px', padding: '20px', background: '#121212', borderRadius: '8px', color: '#e0e0e0' }}>
       
+      {/* ログインステータスバー */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#1a1a1a', padding: '10px 16px', borderRadius: '6px', marginBottom: '20px' }}>
+        <div style={{ fontSize: '0.85rem' }}>
+          {currentUser ? (
+            <span>ログイン中: <strong>{currentUser.displayName}</strong> さん</span>
+          ) : (
+            <span style={{ color: '#aaa' }}>投票するにはGoogleログインが必要です</span>
+          )}
+        </div>
+        {currentUser ? (
+          <button onClick={handleLogout} style={{ background: '#444', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>
+            ログアウト
+          </button>
+        ) : (
+          <button onClick={handleLogin} style={{ background: '#4285f4', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
+            Googleでログイン
+          </button>
+        )}
+      </div>
+
       {/* タブ切替 */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
         <button
           onClick={() => setActiveTab('upcoming')}
           style={{
-            flex: 1,
-            padding: '10px',
-            borderRadius: '4px',
-            border: 'none',
+            flex: 1, padding: '10px', borderRadius: '4px', border: 'none',
             background: activeTab === 'upcoming' ? '#333' : '#1e1e1e',
             color: activeTab === 'upcoming' ? '#fff' : '#888',
-            fontWeight: activeTab === 'upcoming' ? 'bold' : 'normal',
-            cursor: 'pointer'
+            fontWeight: activeTab === 'upcoming' ? 'bold' : 'normal', cursor: 'pointer'
           }}
         >
           直近1か月の試合 ({upcomingData.length})
@@ -239,14 +289,10 @@ export default function UpcomingMatches() {
         <button
           onClick={() => setActiveTab('demo')}
           style={{
-            flex: 1,
-            padding: '10px',
-            borderRadius: '4px',
-            border: 'none',
+            flex: 1, padding: '10px', borderRadius: '4px', border: 'none',
             background: activeTab === 'demo' ? '#333' : '#1e1e1e',
             color: activeTab === 'demo' ? '#fff' : '#888',
-            fontWeight: activeTab === 'demo' ? 'bold' : 'normal',
-            cursor: 'pointer'
+            fontWeight: activeTab === 'demo' ? 'bold' : 'normal', cursor: 'pointer'
           }}
         >
           デモ用データ ({demoData.length})
@@ -267,38 +313,20 @@ export default function UpcomingMatches() {
         )}
       </div>
 
-      {/* ② & ③ 検索・フィルター・ソートバー */}
+      {/* 検索・フィルター・ソートバー */}
       <div style={{ background: '#1a1a1a', padding: '12px', borderRadius: '6px', marginBottom: '20px', display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
-        {/* チーム名検索 */}
         <input
           type="text"
           placeholder="チーム名で検索..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          style={{
-            flex: 1,
-            minWidth: '150px',
-            padding: '6px 10px',
-            borderRadius: '4px',
-            border: '1px solid #333',
-            background: '#2a2a2a',
-            color: '#fff',
-            fontSize: '0.85rem'
-          }}
+          style={{ flex: 1, minWidth: '150px', padding: '6px 10px', borderRadius: '4px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', fontSize: '0.85rem' }}
         />
 
-        {/* リーグフィルター */}
         <select
           value={selectedLeague}
           onChange={(e) => setSelectedLeague(e.target.value)}
-          style={{
-            padding: '6px 10px',
-            borderRadius: '4px',
-            border: '1px solid #333',
-            background: '#2a2a2a',
-            color: '#fff',
-            fontSize: '0.85rem'
-          }}
+          style={{ padding: '6px 10px', borderRadius: '4px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', fontSize: '0.85rem' }}
         >
           <option value="ALL">全リーグ</option>
           <option value="EPL">プレミアリーグ (EPL)</option>
@@ -308,18 +336,10 @@ export default function UpcomingMatches() {
           <option value="Ligue_1">リーグ・アン</option>
         </select>
 
-        {/* ソート順 */}
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
-          style={{
-            padding: '6px 10px',
-            borderRadius: '4px',
-            border: '1px solid #333',
-            background: '#2a2a2a',
-            color: '#fff',
-            fontSize: '0.85rem'
-          }}
+          style={{ padding: '6px 10px', borderRadius: '4px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', fontSize: '0.85rem' }}
         >
           <option value="date_asc">日時順 (昇順)</option>
           <option value="date_desc">日時順 (降順)</option>
