@@ -25,7 +25,12 @@ export default function UpcomingMatches() {
   const [voteCounts, setVoteCounts] = useState({});
   const [userVotes, setUserVotes] = useState({});
 
-  const currentData = activeTab === 'upcoming' 
+  // ② & ③ フィルター・検索・並び替え用の状態
+  const [selectedLeague, setSelectedLeague] = useState('ALL');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('date_asc'); // 'date_asc', 'date_desc', 'votes_desc'
+
+  const rawData = activeTab === 'upcoming' 
     ? (upcomingData.length > 0 ? upcomingData : []) 
     : demoData;
 
@@ -77,7 +82,35 @@ export default function UpcomingMatches() {
     return Math.abs(homeRate - awayRate) <= 20 && homeRate >= 25 && awayRate >= 25;
   };
 
-  const hotMatches = currentData.filter(m => {
+  // フィルタリングと並び替え処理
+  const processedData = rawData
+    .filter(m => {
+      // リーグフィルター
+      if (selectedLeague !== 'ALL' && m.league !== selectedLeague) return false;
+      // チーム名検索（大文字小文字を区別しない）
+      if (searchQuery.trim() !== '') {
+        const query = searchQuery.toLowerCase();
+        const home = m.home_team.toLowerCase();
+        const away = m.away_team.toLowerCase();
+        if (!home.includes(query) && !away.includes(query)) return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      // ソート処理
+      if (sortBy === 'date_asc') {
+        return new Date(a.datetime) - new Date(b.datetime);
+      } else if (sortBy === 'date_desc') {
+        return new Date(b.datetime) - new Date(a.datetime);
+      } else if (sortBy === 'votes_desc') {
+        const votesA = voteCounts[a.id] ? (voteCounts[a.id].home + voteCounts[a.id].draw + voteCounts[a.id].away) : 0;
+        const votesB = voteCounts[b.id] ? (voteCounts[b.id].home + voteCounts[b.id].draw + voteCounts[b.id].away) : 0;
+        return votesB - votesA;
+      }
+      return 0;
+    });
+
+  const hotMatches = rawData.filter(m => {
     const votes = voteCounts[m.id] || { home: 0, draw: 0, away: 0 };
     return checkIsCloseMatch(votes);
   });
@@ -97,12 +130,30 @@ export default function UpcomingMatches() {
         key={m.id} 
         style={{
           background: isHighlight ? '#25282a' : '#1e1e1e',
-          border: isHighlight ? '1px solid #ffb74d' : '1px solid #333',
+          border: isHighlight ? '1px solid #ffb74d' : (userChoice ? '1px solid #2e7d32' : '1px solid #333'),
           borderRadius: '6px',
           padding: '16px',
-          marginBottom: '12px'
+          marginBottom: '12px',
+          position: 'relative'
         }}
       >
+        {/* ① 投票済みバッジの表示 */}
+        {userChoice && (
+          <div style={{
+            position: 'absolute',
+            top: '12px',
+            right: '12px',
+            background: '#2e7d32',
+            color: '#fff',
+            fontSize: '0.7rem',
+            padding: '2px 8px',
+            borderRadius: '10px',
+            fontWeight: 'bold'
+          }}>
+            投票済み
+          </div>
+        )}
+
         <div style={{ fontSize: '0.8rem', color: '#888', marginBottom: '8px' }}>
           {m.league} | {new Date(m.datetime).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
         </div>
@@ -117,33 +168,36 @@ export default function UpcomingMatches() {
           <button
             onClick={() => handleVote(m.id, 'home')}
             style={{
-              flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid #444',
+              flex: 1, padding: '8px', borderRadius: '4px', border: userChoice === 'home' ? '1px solid #66bb6a' : '1px solid #444',
               background: userChoice === 'home' ? '#2e7d32' : '#2a2a2a',
-              color: '#fff', cursor: 'pointer', fontSize: '0.85rem'
+              color: '#fff', cursor: 'pointer', fontSize: '0.85rem', fontWeight: userChoice === 'home' ? 'bold' : 'normal'
             }}
           >
+            {userChoice === 'home' && "✓ "}
             {m.home_team} ({homePct}%)
           </button>
 
           <button
             onClick={() => handleVote(m.id, 'draw')}
             style={{
-              width: '90px', padding: '8px', borderRadius: '4px', border: '1px solid #444',
+              width: '90px', padding: '8px', borderRadius: '4px', border: userChoice === 'draw' ? '1px solid #ffb74d' : '1px solid #444',
               background: userChoice === 'draw' ? '#ef6c00' : '#2a2a2a',
-              color: '#fff', cursor: 'pointer', fontSize: '0.85rem'
+              color: '#fff', cursor: 'pointer', fontSize: '0.85rem', fontWeight: userChoice === 'draw' ? 'bold' : 'normal'
             }}
           >
+            {userChoice === 'draw' && "✓ "}
             引き分け ({drawPct}%)
           </button>
 
           <button
             onClick={() => handleVote(m.id, 'away')}
             style={{
-              flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid #444',
+              flex: 1, padding: '8px', borderRadius: '4px', border: userChoice === 'away' ? '1px solid #42a5f5' : '1px solid #444',
               background: userChoice === 'away' ? '#1565c0' : '#2a2a2a',
-              color: '#fff', cursor: 'pointer', fontSize: '0.85rem'
+              color: '#fff', cursor: 'pointer', fontSize: '0.85rem', fontWeight: userChoice === 'away' ? 'bold' : 'normal'
             }}
           >
+            {userChoice === 'away' && "✓ "}
             {m.away_team} ({awayPct}%)
           </button>
         </div>
@@ -213,10 +267,70 @@ export default function UpcomingMatches() {
         )}
       </div>
 
+      {/* ② & ③ 検索・フィルター・ソートバー */}
+      <div style={{ background: '#1a1a1a', padding: '12px', borderRadius: '6px', marginBottom: '20px', display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
+        {/* チーム名検索 */}
+        <input
+          type="text"
+          placeholder="チーム名で検索..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{
+            flex: 1,
+            minWidth: '150px',
+            padding: '6px 10px',
+            borderRadius: '4px',
+            border: '1px solid #333',
+            background: '#2a2a2a',
+            color: '#fff',
+            fontSize: '0.85rem'
+          }}
+        />
+
+        {/* リーグフィルター */}
+        <select
+          value={selectedLeague}
+          onChange={(e) => setSelectedLeague(e.target.value)}
+          style={{
+            padding: '6px 10px',
+            borderRadius: '4px',
+            border: '1px solid #333',
+            background: '#2a2a2a',
+            color: '#fff',
+            fontSize: '0.85rem'
+          }}
+        >
+          <option value="ALL">全リーグ</option>
+          <option value="EPL">プレミアリーグ (EPL)</option>
+          <option value="La_Liga">ラ・リーガ</option>
+          <option value="Bundesliga">ブンデスリーガ</option>
+          <option value="Serie_A">セリエA</option>
+          <option value="Ligue_1">リーグ・アン</option>
+        </select>
+
+        {/* ソート順 */}
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          style={{
+            padding: '6px 10px',
+            borderRadius: '4px',
+            border: '1px solid #333',
+            background: '#2a2a2a',
+            color: '#fff',
+            fontSize: '0.85rem'
+          }}
+        >
+          <option value="date_asc">日時順 (昇順)</option>
+          <option value="date_desc">日時順 (降順)</option>
+          <option value="votes_desc">投票数が多い順</option>
+        </select>
+      </div>
+
       {/* 試合一覧 */}
       <div>
         <h3 style={{ borderBottom: '1px solid #333', paddingBottom: '8px', fontSize: '1rem' }}>
-          試合一覧 / 勝敗予想
+          試合一覧 / 勝敗予想 ({processedData.length}件表示中)
         </h3>
         <p style={{ color: '#777', fontSize: '0.8rem', marginBottom: '16px' }}>
           {activeTab === 'upcoming' 
@@ -224,11 +338,11 @@ export default function UpcomingMatches() {
             : "動作確認用のデモ試合データです。"}
         </p>
 
-        {currentData.length > 0 ? (
-          currentData.map(m => renderMatchCard(m, false))
+        {processedData.length > 0 ? (
+          processedData.map(m => renderMatchCard(m, false))
         ) : (
           <p style={{ color: '#666', textAlign: 'center', padding: '20px 0', fontSize: '0.85rem' }}>
-            現在、表示可能な試合データはありません。
+            条件に一致する試合データが見つかりませんでした。
           </p>
         )}
       </div>
