@@ -1,0 +1,42 @@
+[
+  {
+    "id": "j1_sample_1",
+    "league": "J1 League",
+    "datetime": "2026-08-01 19:00",
+    "home_team": "鹿島アントラーズ",
+    "away_team": "横浜F・マリノス",
+    "result": null
+  },
+  {
+    "id": "j1_sample_2",
+    "league": "J1 League",
+    "datetime": "2026-08-01 19:00",
+    "home_team": "川崎フロンターレ",
+    "away_team": "FC東京",
+    "result": null
+  },
+  {
+    "id": "j1_sample_3",
+    "league": "J1 League",
+    "datetime": "2026-08-02 18:00",
+    "home_team": "ヴィッセル神戸",
+    "away_team": "ガンバ大阪",
+    "result": null
+  },
+  {
+    "id": "j1_sample_4",
+    "league": "J1 League",
+    "datetime": "2026-07-25 19:00",
+    "home_team": "サンフレッチェ広島",
+    "away_team": "名古屋グランパス",
+    "result": "home"
+  },
+  {
+    "id": "j1_sample_5",
+    "league": "J1 League",
+    "datetime": "2026-07-25 19:00",
+    "home_team": "浦和レッズ",
+    "away_team": "セレッソ大阪",
+    "result": "draw"
+  }
+]
