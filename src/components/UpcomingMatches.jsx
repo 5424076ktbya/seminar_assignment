@@ -3,7 +3,6 @@ import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, onValue, runTransaction, get } from 'firebase/database';
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from 'firebase/auth';
 
-// 各データファイルの読み込み
 import upcomingData from '../upcoming_matches.json';
 import demoData from '../demo_matches.json';
 import jleagueData from '../jleague_matches.json';
@@ -25,10 +24,9 @@ const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 export default function UpcomingMatches() {
-  // 1. メインタブ ('jleague' | 'europe') -> デフォルトを現在シーズン中のJリーグに設定
-  const [regionTab, setRegionTab] = useState('jleague');
-  // 2. 欧州用サブタブ ('upcoming' | 'demo')
+  const [regionTab, setRegionTab] = useState('jleague'); // 'jleague' | 'europe'
   const [europeSubTab, setEuropeSubTab] = useState('upcoming');
+  const [pickupFilter, setPickupFilter] = useState('most_voted'); // most_voted | close_match | one_sided
 
   const [voteCounts, setVoteCounts] = useState({});
   const [userVotes, setUserVotes] = useState({});
@@ -38,7 +36,6 @@ export default function UpcomingMatches() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('date_asc');
 
-  // 現在選択されているカテゴリに応じたソースデータを取得
   const getRawData = () => {
     if (regionTab === 'jleague') {
       return jleagueData || [];
@@ -55,9 +52,7 @@ export default function UpcomingMatches() {
       if (user) {
         const userVotesRef = ref(db, `user_votes/${user.uid}`);
         get(userVotesRef).then((snapshot) => {
-          if (snapshot.exists()) {
-            setUserVotes(snapshot.val());
-          }
+          if (snapshot.exists()) setUserVotes(snapshot.val());
         });
       } else {
         setUserVotes({});
@@ -66,12 +61,7 @@ export default function UpcomingMatches() {
 
     const votesRef = ref(db, 'match_votes');
     const unsubscribeVotes = onValue(votesRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        setVoteCounts(data);
-      } else {
-        setVoteCounts({});
-      }
+      setVoteCounts(snapshot.val() || {});
     });
 
     return () => {
@@ -80,24 +70,16 @@ export default function UpcomingMatches() {
     };
   }, []);
 
-  // 通算的中率の計算（Jリーグ・欧州すべてのデータを照合）
   const calculateUserStats = () => {
     let totalFinishedVotes = 0;
     let correctVotes = 0;
-
-    const allMatches = [
-      ...(upcomingData || []),
-      ...(demoData || []),
-      ...(jleagueData || [])
-    ];
+    const allMatches = [...(upcomingData || []), ...(demoData || []), ...(jleagueData || [])];
 
     allMatches.forEach(match => {
       const userChoice = userVotes[match.id];
       if (userChoice && match.result) {
         totalFinishedVotes += 1;
-        if (userChoice === match.result) {
-          correctVotes += 1;
-        }
+        if (userChoice === match.result) correctVotes += 1;
       }
     });
 
@@ -110,13 +92,8 @@ export default function UpcomingMatches() {
 
   const stats = calculateUserStats();
 
-  const handleLogin = () => {
-    signInWithPopup(auth, provider).catch(error => console.error("Login failed:", error));
-  };
-
-  const handleLogout = () => {
-    signOut(auth).catch(error => console.error("Logout failed:", error));
-  };
+  const handleLogin = () => signInWithPopup(auth, provider);
+  const handleLogout = () => signOut(auth);
 
   const handleVote = (matchId, choice, isFinished) => {
     if (!currentUser) {
@@ -133,9 +110,7 @@ export default function UpcomingMatches() {
 
     const matchVoteRef = ref(db, `match_votes/${matchId}`);
     runTransaction(matchVoteRef, (currentData) => {
-      if (!currentData) {
-        currentData = { home: 0, draw: 0, away: 0 };
-      }
+      if (!currentData) currentData = { home: 0, draw: 0, away: 0 };
       if (previousChoice && currentData[previousChoice] > 0) {
         currentData[previousChoice] -= 1;
       }
@@ -146,18 +121,44 @@ export default function UpcomingMatches() {
     });
 
     const newUserVotes = { ...userVotes };
-    if (isCancel) {
-      delete newUserVotes[matchId];
-    } else {
-      newUserVotes[matchId] = choice;
-    }
-    setUserVotes(newUserVotes);
+    if (isCancel) delete newUserVotes[matchId];
+    else newUserVotes[matchId] = choice;
 
+    setUserVotes(newUserVotes);
     const userVotesRef = ref(db, `user_votes/${currentUser.uid}`);
     runTransaction(userVotesRef, () => newUserVotes);
   };
 
-  // フィルター・ソート処理
+  // 連動タブに応じた未終了試合からピックアップ計算
+  const getFeaturedMatches = () => {
+    const currentTargetMatches = getRawData();
+
+    const calculated = currentTargetMatches
+      .filter(m => !m.result) // 未終了の試合のみ
+      .map(m => {
+        const v = voteCounts[m.id] || { home: 0, draw: 0, away: 0 };
+        const total = v.home + v.draw + v.away;
+        
+        const homePct = total ? (v.home / total) * 100 : 0;
+        const awayPct = total ? (v.away / total) * 100 : 0;
+        const diff = Math.abs(homePct - awayPct);
+
+        return { ...m, totalVotes: total, diff };
+      })
+      .filter(m => m.totalVotes > 0); // 投票数が1票以上の試合のみ
+
+    if (pickupFilter === 'most_voted') {
+      return calculated.sort((a, b) => b.totalVotes - a.totalVotes).slice(0, 2);
+    } else if (pickupFilter === 'close_match') {
+      return calculated.sort((a, b) => a.diff - b.diff).slice(0, 2);
+    } else if (pickupFilter === 'one_sided') {
+      return calculated.sort((a, b) => b.diff - a.diff).slice(0, 2);
+    }
+    return [];
+  };
+
+  const featuredMatches = getFeaturedMatches();
+
   const processedData = rawData
     .filter(m => {
       if (selectedLeague !== 'ALL' && m.league !== selectedLeague) return false;
@@ -177,7 +178,7 @@ export default function UpcomingMatches() {
       return 0;
     });
 
-  const renderMatchCard = (m) => {
+  const renderMatchCard = (m, isFeatured = false) => {
     const votes = voteCounts[m.id] || { home: 0, draw: 0, away: 0 };
     const totalVotes = votes.home + votes.draw + votes.away;
 
@@ -193,23 +194,30 @@ export default function UpcomingMatches() {
       <div 
         key={m.id} 
         style={{ 
-          background: '#1e1e1e', 
-          border: isFinished 
-            ? (isHit ? '1px solid #4caf50' : '1px solid #f44336') 
-            : (userChoice ? '1px solid #2196f3' : '1px solid #333'),
-          borderRadius: '6px', 
+          background: isFeatured ? '#22221e' : '#1e1e1e', 
+          border: isFeatured 
+            ? '1px solid #d4a373' 
+            : (isFinished ? (isHit ? '1px solid #4caf50' : '1px solid #333') : (userChoice ? '1px solid #2196f3' : '1px solid #333')),
+          borderRadius: '8px', 
           padding: '16px', 
           marginBottom: '12px',
           position: 'relative'
         }}
       >
+        {/* ステータスバッジ */}
         <div style={{ position: 'absolute', top: '12px', right: '12px', display: 'flex', gap: '6px' }}>
+          {isFeatured && (
+            <span style={{ background: '#d4a373', color: '#000', fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', fontWeight: 'bold' }}>
+              PICK UP
+            </span>
+          )}
+
           {isFinished ? (
-            <span style={{ background: '#444', color: '#aaa', fontSize: '0.7rem', padding: '2px 8px', borderRadius: '10px' }}>
+            <span style={{ background: '#333', color: '#aaa', fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', border: '1px solid #444' }}>
               試合終了
             </span>
           ) : (
-            <span style={{ background: '#1b5e20', color: '#81c784', fontSize: '0.7rem', padding: '2px 8px', borderRadius: '10px' }}>
+            <span style={{ background: '#1b5e20', color: '#81c784', fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px' }}>
               受付中
             </span>
           )}
@@ -220,36 +228,62 @@ export default function UpcomingMatches() {
               color: '#fff', 
               fontSize: '0.7rem', 
               padding: '2px 8px', 
-              borderRadius: '10px',
+              borderRadius: '4px',
               fontWeight: 'bold'
             }}>
-              {isFinished ? (isHit ? '🎯 的中！' : '❌ 不的中') : '投票済み'}
+              {isFinished ? (isHit ? '的中' : '不的中') : '投票済み'}
             </span>
           )}
         </div>
 
-        <div style={{ fontSize: '0.8rem', color: '#888', marginBottom: '8px' }}>
-          {m.league} | {m.datetime}
+        {/* リーグ名 & 開催日時 */}
+        <div style={{ fontSize: '0.8rem', color: '#888', marginBottom: '12px' }}>
+          {m.league} | {m.datetime} <span style={{ marginLeft: '10px', color: '#aaa' }}>（総投票数: {totalVotes}票）</span>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '1rem', fontWeight: 'bold' }}>
-          <span style={{ flex: 1, textAlign: 'right', color: m.result === 'home' ? '#ffb74d' : '#fff' }}>
-            {m.result === 'home' && "👑 "}{m.home_team}
-          </span>
-          <span style={{ margin: '0 15px', color: '#888', fontSize: '0.8rem' }}>VS</span>
-          <span style={{ flex: 1, textAlign: 'left', color: m.result === 'away' ? '#ffb74d' : '#fff' }}>
-            {m.away_team}{m.result === 'away' && " 👑"}
-          </span>
+        {/* 対戦カード */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '1.05rem', fontWeight: 'bold', padding: '4px 0' }}>
+          
+          {/* HOME チーム */}
+          <div style={{ flex: 1, textAlign: 'right', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px' }}>
+            {m.result === 'home' && (
+              <span style={{ background: '#4caf50', color: '#000', fontSize: '0.65rem', padding: '2px 6px', borderRadius: '3px', fontWeight: '900' }}>WIN</span>
+            )}
+            <span style={{ color: m.result === 'home' ? '#81c784' : (m.result ? '#666' : '#fff') }}>
+              {m.home_team}
+            </span>
+          </div>
+
+          <span style={{ margin: '0 16px', color: '#555', fontSize: '0.85rem', fontWeight: 'normal' }}>VS</span>
+
+          {/* AWAY チーム */}
+          <div style={{ flex: 1, textAlign: 'left', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: '8px' }}>
+            <span style={{ color: m.result === 'away' ? '#81c784' : (m.result ? '#666' : '#fff') }}>
+              {m.away_team}
+            </span>
+            {m.result === 'away' && (
+              <span style={{ background: '#4caf50', color: '#000', fontSize: '0.65rem', padding: '2px 6px', borderRadius: '3px', fontWeight: '900' }}>WIN</span>
+            )}
+          </div>
+
         </div>
 
+        {/* 引き分け判定 */}
+        {m.result === 'draw' && (
+          <div style={{ textAlign: 'center', marginTop: '6px' }}>
+            <span style={{ background: '#ef6c00', color: '#fff', fontSize: '0.65rem', padding: '2px 8px', borderRadius: '3px', fontWeight: 'bold' }}>DRAW（引き分け）</span>
+          </div>
+        )}
+
+        {/* 投票ボタンエリア */}
         <div style={{ display: 'flex', gap: '8px', marginTop: '14px' }}>
           <button 
             onClick={() => handleVote(m.id, 'home', isFinished)}
             disabled={isFinished}
             style={{ 
               flex: 1, padding: '8px', borderRadius: '4px', 
-              border: userChoice === 'home' ? '2px solid #66bb6a' : '1px solid #444', 
-              background: userChoice === 'home' ? '#2e7d32' : '#2a2a2a', 
+              border: userChoice === 'home' ? '2px solid #66bb6a' : (m.result === 'home' ? '1px solid #4caf50' : '1px solid #333'), 
+              background: userChoice === 'home' ? '#2e7d32' : (m.result === 'home' ? '#1b381e' : '#2a2a2a'), 
               color: '#fff', cursor: isFinished ? 'not-allowed' : 'pointer' 
             }}
           >
@@ -261,8 +295,8 @@ export default function UpcomingMatches() {
             disabled={isFinished}
             style={{ 
               width: '90px', padding: '8px', borderRadius: '4px', 
-              border: userChoice === 'draw' ? '2px solid #ffb74d' : '1px solid #444', 
-              background: userChoice === 'draw' ? '#ef6c00' : '#2a2a2a', 
+              border: userChoice === 'draw' ? '2px solid #ffb74d' : (m.result === 'draw' ? '1px solid #ef6c00' : '1px solid #333'), 
+              background: userChoice === 'draw' ? '#ef6c00' : (m.result === 'draw' ? '#3d2506' : '#2a2a2a'), 
               color: '#fff', cursor: isFinished ? 'not-allowed' : 'pointer' 
             }}
           >
@@ -274,8 +308,8 @@ export default function UpcomingMatches() {
             disabled={isFinished}
             style={{ 
               flex: 1, padding: '8px', borderRadius: '4px', 
-              border: userChoice === 'away' ? '2px solid #42a5f5' : '1px solid #444', 
-              background: userChoice === 'away' ? '#1565c0' : '#2a2a2a', 
+              border: userChoice === 'away' ? '2px solid #42a5f5' : (m.result === 'away' ? '1px solid #4caf50' : '1px solid #333'), 
+              background: userChoice === 'away' ? '#1565c0' : (m.result === 'away' ? '#1b381e' : '#2a2a2a'), 
               color: '#fff', cursor: isFinished ? 'not-allowed' : 'pointer' 
             }}
           >
@@ -324,6 +358,91 @@ export default function UpcomingMatches() {
         )}
       </div>
 
+      {/* 注目の試合 Pick Up エリア */}
+      <div style={{ marginBottom: '25px', background: '#181818', padding: '16px', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
+        
+        {/* ヘッダー＆連動タブ */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <h3 style={{ fontSize: '1.05rem', color: '#d4a373', margin: 0, fontWeight: 'bold' }}>
+              注目の試合
+            </h3>
+
+            {/* 連動する地域切り替えサブタブ */}
+            <div style={{ display: 'flex', gap: '4px', background: '#252525', padding: '3px', borderRadius: '6px' }}>
+              <button
+                onClick={() => { setRegionTab('jleague'); setSelectedLeague('ALL'); }}
+                style={{
+                  padding: '4px 12px', borderRadius: '4px', border: 'none', fontSize: '0.75rem',
+                  background: regionTab === 'jleague' ? '#1565c0' : 'transparent',
+                  color: regionTab === 'jleague' ? '#fff' : '#aaa',
+                  fontWeight: 'bold', cursor: 'pointer'
+                }}
+              >
+                Jリーグ
+              </button>
+              <button
+                onClick={() => { setRegionTab('europe'); setSelectedLeague('ALL'); }}
+                style={{
+                  padding: '4px 12px', borderRadius: '4px', border: 'none', fontSize: '0.75rem',
+                  background: regionTab === 'europe' ? '#1565c0' : 'transparent',
+                  color: regionTab === 'europe' ? '#fff' : '#aaa',
+                  fontWeight: 'bold', cursor: 'pointer'
+                }}
+              >
+                欧州5大
+              </button>
+            </div>
+          </div>
+          
+          {/* 条件切り替えボタン */}
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <button
+              onClick={() => setPickupFilter('most_voted')}
+              style={{
+                padding: '4px 10px', borderRadius: '4px', border: 'none', fontSize: '0.75rem',
+                background: pickupFilter === 'most_voted' ? '#d4a373' : '#2a2a2a',
+                color: pickupFilter === 'most_voted' ? '#000' : '#aaa',
+                fontWeight: 'bold', cursor: 'pointer'
+              }}
+            >
+              投票数が多い
+            </button>
+            <button
+              onClick={() => setPickupFilter('close_match')}
+              style={{
+                padding: '4px 10px', borderRadius: '4px', border: 'none', fontSize: '0.75rem',
+                background: pickupFilter === 'close_match' ? '#d4a373' : '#2a2a2a',
+                color: pickupFilter === 'close_match' ? '#000' : '#aaa',
+                fontWeight: 'bold', cursor: 'pointer'
+              }}
+            >
+              予想が拮抗
+            </button>
+            <button
+              onClick={() => setPickupFilter('one_sided')}
+              style={{
+                padding: '4px 10px', borderRadius: '4px', border: 'none', fontSize: '0.75rem',
+                background: pickupFilter === 'one_sided' ? '#d4a373' : '#2a2a2a',
+                color: pickupFilter === 'one_sided' ? '#000' : '#aaa',
+                fontWeight: 'bold', cursor: 'pointer'
+              }}
+            >
+              予想に差がある
+            </button>
+          </div>
+        </div>
+
+        {/* 1票以上ある試合があれば表示、無ければメッセージ表示 */}
+        {featuredMatches.length > 0 ? (
+          featuredMatches.map(m => renderMatchCard(m, true))
+        ) : (
+          <div style={{ fontSize: '0.85rem', color: '#666', textAlign: 'center', padding: '16px 0' }}>
+            現在対象の試合（1票以上の投票がある試合）がありません
+          </div>
+        )}
+      </div>
+
       {/* 【メインタブ】 Jリーグ vs 欧州5大リーグ */}
       <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
         <button
@@ -335,7 +454,7 @@ export default function UpcomingMatches() {
             fontWeight: 'bold', cursor: 'pointer', fontSize: '1rem'
           }}
         >
-          🇯🇵 Jリーグ (J1)
+          Jリーグ (J1)
         </button>
 
         <button
@@ -347,7 +466,7 @@ export default function UpcomingMatches() {
             fontWeight: 'bold', cursor: 'pointer', fontSize: '1rem'
           }}
         >
-          🇪🇺 欧州5大リーグ
+          欧州5大リーグ
         </button>
       </div>
 
@@ -391,7 +510,7 @@ export default function UpcomingMatches() {
       {/* 試合一覧表示エリア */}
       <div>
         <h3 style={{ borderBottom: '1px solid #333', paddingBottom: '8px', fontSize: '1rem', color: '#bbb' }}>
-          {regionTab === 'jleague' ? '🇯🇵 J1リーグ 試合一覧' : (europeSubTab === 'upcoming' ? '🇪🇺 欧州 直近試合' : '🇪🇺 欧州 デモデータ')} ({processedData.length}件)
+          {regionTab === 'jleague' ? 'J1リーグ 試合一覧' : (europeSubTab === 'upcoming' ? '欧州 直近試合' : '欧州 デモデータ')} ({processedData.length}件)
         </h3>
 
         {processedData.length > 0 ? (
