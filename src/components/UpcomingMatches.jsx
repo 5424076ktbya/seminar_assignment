@@ -42,7 +42,6 @@ export default function UpcomingMatches() {
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
       if (user) {
-        // ログイン中のユーザーの投票履歴を取得
         const userVotesRef = ref(db, `user_votes/${user.uid}`);
         get(userVotesRef).then((snapshot) => {
           if (snapshot.exists()) {
@@ -66,27 +65,56 @@ export default function UpcomingMatches() {
     };
   }, []);
 
-  // ログイン・ログアウト機能
-  const handleLogin = () => {
-    signInWithPopup(auth, provider).catch((error) => {
-      console.error("ログインエラー:", error);
+  // 的中率＆勝敗データの計算
+  const calculateUserStats = () => {
+    let totalFinishedVotes = 0;
+    let correctVotes = 0;
+
+    // 全データ（本番＆デモ）から試合結果のあるものを照合
+    const allMatches = [...upcomingData, ...demoData];
+
+    allMatches.forEach(match => {
+      const userChoice = userVotes[match.id];
+      // ユーザーが投票していて、かつ試合結果(result)が存在する場合
+      if (userChoice && match.result) {
+        totalFinishedVotes += 1;
+        if (userChoice === match.result) {
+          correctVotes += 1;
+        }
+      }
     });
+
+    const winRate = totalFinishedVotes > 0 
+      ? ((correctVotes / totalFinishedVotes) * 100).toFixed(1) 
+      : 0;
+
+    return { totalFinishedVotes, correctVotes, winRate };
+  };
+
+  const stats = calculateUserStats();
+
+  const handleLogin = () => {
+    signInWithPopup(auth, provider).catch((error) => console.error("ログインエラー:", error));
   };
 
   const handleLogout = () => {
     signOut(auth);
   };
 
-  const handleVote = (matchId, choice) => {
+  const handleVote = (matchId, choice, isFinished) => {
     if (!currentUser) {
-      alert("投票するにはGoogleログインが必要です。画面上部のボタンからログインしてください。");
+      alert("投票するにはGoogleログインが必要です。");
+      return;
+    }
+
+    if (isFinished) {
+      alert("この試合は既に終了しているため、投票変更はできません。");
       return;
     }
 
     const previousChoice = userVotes[matchId];
     const isCancel = previousChoice === choice;
 
-    // 試合全体のカウント更新
     const matchVoteRef = ref(db, `match_votes/${matchId}`);
     runTransaction(matchVoteRef, (currentData) => {
       if (!currentData) currentData = { home: 0, draw: 0, away: 0 };
@@ -99,7 +127,6 @@ export default function UpcomingMatches() {
       return currentData;
     });
 
-    // ユーザー個人の投票状態をFirebaseに保存
     const newUserVotes = { ...userVotes };
     if (isCancel) {
       delete newUserVotes[matchId];
@@ -159,52 +186,67 @@ export default function UpcomingMatches() {
     const awayPct = totalVotes ? Math.round((votes.away / totalVotes) * 100) : 0;
 
     const userChoice = userVotes[m.id];
+    const isFinished = !!m.result;
+    const isHit = isFinished && userChoice && userChoice === m.result;
 
     return (
       <div 
         key={m.id} 
         style={{
           background: isHighlight ? '#25282a' : '#1e1e1e',
-          border: isHighlight ? '1px solid #ffb74d' : (userChoice ? '1px solid #2e7d32' : '1px solid #333'),
+          border: isHighlight ? '1px solid #ffb74d' : (isFinished ? (isHit ? '1px solid #4caf50' : '1px solid #f44336') : (userChoice ? '1px solid #2196f3' : '1px solid #333')),
           borderRadius: '6px',
           padding: '16px',
           marginBottom: '12px',
           position: 'relative'
         }}
       >
-        {userChoice && (
-          <div style={{
-            position: 'absolute',
-            top: '12px',
-            right: '12px',
-            background: '#2e7d32',
-            color: '#fff',
-            fontSize: '0.7rem',
-            padding: '2px 8px',
-            borderRadius: '10px',
-            fontWeight: 'bold'
-          }}>
-            投票済み
-          </div>
-        )}
+        {/* ステータスバッジ */}
+        <div style={{ position: 'absolute', top: '12px', right: '12px', display: 'flex', gap: '6px' }}>
+          {isFinished ? (
+            <span style={{ background: '#444', color: '#aaa', fontSize: '0.7rem', padding: '2px 8px', borderRadius: '10px' }}>
+              試合終了
+            </span>
+          ) : (
+            <span style={{ background: '#1b5e20', color: '#81c784', fontSize: '0.7rem', padding: '2px 8px', borderRadius: '10px' }}>
+              受付中
+            </span>
+          )}
+
+          {userChoice && (
+            <span style={{
+              background: isFinished ? (isHit ? '#2e7d32' : '#c62828') : '#1565c0',
+              color: '#fff', fontSize: '0.7rem', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold'
+            }}>
+              {isFinished ? (isHit ? '🎯 的中！' : '❌ 不的中') : '投票済み'}
+            </span>
+          )}
+        </div>
 
         <div style={{ fontSize: '0.8rem', color: '#888', marginBottom: '8px' }}>
           {m.league} | {new Date(m.datetime).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '1rem', fontWeight: 'bold' }}>
-          <span style={{ flex: 1, textAlign: 'right' }}>{m.home_team}</span>
+          <span style={{ flex: 1, textAlign: 'right', color: m.result === 'home' ? '#ffb74d' : '#fff' }}>
+            {m.result === 'home' && "👑 "}{m.home_team}
+          </span>
           <span style={{ margin: '0 15px', color: '#888', fontSize: '0.8rem', fontWeight: 'normal' }}>VS</span>
-          <span style={{ flex: 1, textAlign: 'left' }}>{m.away_team}</span>
+          <span style={{ flex: 1, textAlign: 'left', color: m.result === 'away' ? '#ffb74d' : '#fff' }}>
+            {m.away_team}{m.result === 'away' && " 👑"}
+          </span>
         </div>
 
         <div style={{ display: 'flex', gap: '8px', marginTop: '14px' }}>
           <button
-            onClick={() => handleVote(m.id, 'home')}
+            onClick={() => handleVote(m.id, 'home', isFinished)}
+            disabled={isFinished}
             style={{
-              flex: 1, padding: '8px', borderRadius: '4px', border: userChoice === 'home' ? '1px solid #66bb6a' : '1px solid #444',
+              flex: 1, padding: '8px', borderRadius: '4px',
+              border: userChoice === 'home' ? '2px solid #66bb6a' : '1px solid #444',
               background: userChoice === 'home' ? '#2e7d32' : '#2a2a2a',
-              color: '#fff', cursor: 'pointer', fontSize: '0.85rem', fontWeight: userChoice === 'home' ? 'bold' : 'normal'
+              color: '#fff', cursor: isFinished ? 'not-allowed' : 'pointer', fontSize: '0.85rem',
+              opacity: isFinished && userChoice !== 'home' ? 0.5 : 1
             }}
           >
             {userChoice === 'home' && "✓ "}
@@ -212,11 +254,14 @@ export default function UpcomingMatches() {
           </button>
 
           <button
-            onClick={() => handleVote(m.id, 'draw')}
+            onClick={() => handleVote(m.id, 'draw', isFinished)}
+            disabled={isFinished}
             style={{
-              width: '90px', padding: '8px', borderRadius: '4px', border: userChoice === 'draw' ? '1px solid #ffb74d' : '1px solid #444',
+              width: '100px', padding: '8px', borderRadius: '4px',
+              border: userChoice === 'draw' ? '2px solid #ffb74d' : '1px solid #444',
               background: userChoice === 'draw' ? '#ef6c00' : '#2a2a2a',
-              color: '#fff', cursor: 'pointer', fontSize: '0.85rem', fontWeight: userChoice === 'draw' ? 'bold' : 'normal'
+              color: '#fff', cursor: isFinished ? 'not-allowed' : 'pointer', fontSize: '0.85rem',
+              opacity: isFinished && userChoice !== 'draw' ? 0.5 : 1
             }}
           >
             {userChoice === 'draw' && "✓ "}
@@ -224,11 +269,14 @@ export default function UpcomingMatches() {
           </button>
 
           <button
-            onClick={() => handleVote(m.id, 'away')}
+            onClick={() => handleVote(m.id, 'away', isFinished)}
+            disabled={isFinished}
             style={{
-              flex: 1, padding: '8px', borderRadius: '4px', border: userChoice === 'away' ? '1px solid #42a5f5' : '1px solid #444',
+              flex: 1, padding: '8px', borderRadius: '4px',
+              border: userChoice === 'away' ? '2px solid #42a5f5' : '1px solid #444',
               background: userChoice === 'away' ? '#1565c0' : '#2a2a2a',
-              color: '#fff', cursor: 'pointer', fontSize: '0.85rem', fontWeight: userChoice === 'away' ? 'bold' : 'normal'
+              color: '#fff', cursor: isFinished ? 'not-allowed' : 'pointer', fontSize: '0.85rem',
+              opacity: isFinished && userChoice !== 'away' ? 0.5 : 1
             }}
           >
             {userChoice === 'away' && "✓ "}
@@ -243,7 +291,7 @@ export default function UpcomingMatches() {
         </div>
 
         <div style={{ fontSize: '0.75rem', color: '#777', textAlign: 'right', marginTop: '6px' }}>
-          総投票数: {totalVotes}票 {userChoice && " (再クリックで解除)"}
+          総投票数: {totalVotes}票 {!isFinished && userChoice && " (再クリックで解除)"}
         </div>
       </div>
     );
@@ -252,23 +300,42 @@ export default function UpcomingMatches() {
   return (
     <div style={{ marginTop: '30px', padding: '20px', background: '#121212', borderRadius: '8px', color: '#e0e0e0' }}>
       
-      {/* ログインステータスバー */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#1a1a1a', padding: '10px 16px', borderRadius: '6px', marginBottom: '20px' }}>
-        <div style={{ fontSize: '0.85rem' }}>
+      {/* ログイン＆的中率ステータスバー */}
+      <div style={{ background: '#1a1a1a', padding: '16px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #333' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            {currentUser ? (
+              <div>
+                <span style={{ fontSize: '1rem', fontWeight: 'bold' }}>{currentUser.displayName}</span>
+                <span style={{ fontSize: '0.8rem', color: '#aaa', marginLeft: '8px' }}>さんの予想成績</span>
+              </div>
+            ) : (
+              <span style={{ color: '#aaa', fontSize: '0.9rem' }}>ログインすると予想履歴と的中率が保存されます</span>
+            )}
+          </div>
           {currentUser ? (
-            <span>ログイン中: <strong>{currentUser.displayName}</strong> さん</span>
+            <button onClick={handleLogout} style={{ background: '#333', color: '#aaa', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>
+              ログアウト
+            </button>
           ) : (
-            <span style={{ color: '#aaa' }}>投票するにはGoogleログインが必要です</span>
+            <button onClick={handleLogin} style={{ background: '#4285f4', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}>
+              Googleでログイン
+            </button>
           )}
         </div>
-        {currentUser ? (
-          <button onClick={handleLogout} style={{ background: '#444', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>
-            ログアウト
-          </button>
-        ) : (
-          <button onClick={handleLogin} style={{ background: '#4285f4', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
-            Googleでログイン
-          </button>
+
+        {/* ログイン時のみ的中率ダッシュボードを表示 */}
+        {currentUser && (
+          <div style={{ display: 'flex', gap: '16px', marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #2a2a2a' }}>
+            <div style={{ flex: 1, background: '#252525', padding: '10px', borderRadius: '6px', textAlign: 'center' }}>
+              <div style={{ fontSize: '0.75rem', color: '#888' }}>通算的中率</div>
+              <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#4caf50' }}>{stats.winRate}%</div>
+            </div>
+            <div style={{ flex: 1, background: '#252525', padding: '10px', borderRadius: '6px', textAlign: 'center' }}>
+              <div style={{ fontSize: '0.75rem', color: '#888' }}>的中数 / 終了試合</div>
+              <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#ffb74d' }}>{stats.correctVotes} / {stats.totalFinishedVotes}</div>
+            </div>
+          </div>
         )}
       </div>
 
@@ -295,7 +362,7 @@ export default function UpcomingMatches() {
             fontWeight: activeTab === 'demo' ? 'bold' : 'normal', cursor: 'pointer'
           }}
         >
-          デモ用データ ({demoData.length})
+          デモ用データ（結果あり） ({demoData.length})
         </button>
       </div>
 
@@ -352,11 +419,6 @@ export default function UpcomingMatches() {
         <h3 style={{ borderBottom: '1px solid #333', paddingBottom: '8px', fontSize: '1rem' }}>
           試合一覧 / 勝敗予想 ({processedData.length}件表示中)
         </h3>
-        <p style={{ color: '#777', fontSize: '0.8rem', marginBottom: '16px' }}>
-          {activeTab === 'upcoming' 
-            ? "直近1か月以内に開催予定の試合一覧です。" 
-            : "動作確認用のデモ試合データです。"}
-        </p>
 
         {processedData.length > 0 ? (
           processedData.map(m => renderMatchCard(m, false))
