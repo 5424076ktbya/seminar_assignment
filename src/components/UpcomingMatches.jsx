@@ -24,9 +24,9 @@ const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 export default function UpcomingMatches() {
-  const [regionTab, setRegionTab] = useState('jleague'); // 'jleague' | 'europe'
+  const [regionTab, setRegionTab] = useState('jleague');
   const [europeSubTab, setEuropeSubTab] = useState('upcoming');
-  const [pickupFilter, setPickupFilter] = useState('most_voted'); // most_voted | close_match | one_sided
+  const [pickupFilter, setPickupFilter] = useState('most_voted');
 
   const [voteCounts, setVoteCounts] = useState({});
   const [userVotes, setUserVotes] = useState({});
@@ -35,6 +35,9 @@ export default function UpcomingMatches() {
   const [selectedLeague, setSelectedLeague] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('date_asc');
+  
+  // 履歴表示モーダル/アコーディオンの開閉状態
+  const [showHistory, setShowHistory] = useState(false);
 
   const getRawData = () => {
     if (regionTab === 'jleague') {
@@ -45,6 +48,7 @@ export default function UpcomingMatches() {
   };
 
   const rawData = getRawData();
+  const allMatches = [...(upcomingData || []), ...(demoData || []), ...(jleagueData || [])];
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
@@ -73,7 +77,6 @@ export default function UpcomingMatches() {
   const calculateUserStats = () => {
     let totalFinishedVotes = 0;
     let correctVotes = 0;
-    const allMatches = [...(upcomingData || []), ...(demoData || []), ...(jleagueData || [])];
 
     allMatches.forEach(match => {
       const userChoice = userVotes[match.id];
@@ -91,6 +94,13 @@ export default function UpcomingMatches() {
   };
 
   const stats = calculateUserStats();
+
+  // ユーザーの予想履歴リストを取得
+  const getUserHistoryMatches = () => {
+    return allMatches.filter(m => !!userVotes[m.id]);
+  };
+
+  const historyMatches = getUserHistoryMatches();
 
   const handleLogin = () => signInWithPopup(auth, provider);
   const handleLogout = () => signOut(auth);
@@ -129,12 +139,11 @@ export default function UpcomingMatches() {
     runTransaction(userVotesRef, () => newUserVotes);
   };
 
-  // 連動タブに応じた未終了試合からピックアップ計算
   const getFeaturedMatches = () => {
     const currentTargetMatches = getRawData();
 
     const calculated = currentTargetMatches
-      .filter(m => !m.result) // 未終了の試合のみ
+      .filter(m => !m.result)
       .map(m => {
         const v = voteCounts[m.id] || { home: 0, draw: 0, away: 0 };
         const total = v.home + v.draw + v.away;
@@ -145,7 +154,7 @@ export default function UpcomingMatches() {
 
         return { ...m, totalVotes: total, diff };
       })
-      .filter(m => m.totalVotes > 0); // 投票数が1票以上の試合のみ
+      .filter(m => m.totalVotes > 0);
 
     if (pickupFilter === 'most_voted') {
       return calculated.sort((a, b) => b.totalVotes - a.totalVotes).slice(0, 2);
@@ -204,7 +213,6 @@ export default function UpcomingMatches() {
           position: 'relative'
         }}
       >
-        {/* ステータスバッジ */}
         <div style={{ position: 'absolute', top: '12px', right: '12px', display: 'flex', gap: '6px' }}>
           {isFeatured && (
             <span style={{ background: '#d4a373', color: '#000', fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', fontWeight: 'bold' }}>
@@ -236,15 +244,11 @@ export default function UpcomingMatches() {
           )}
         </div>
 
-        {/* リーグ名 & 開催日時 */}
         <div style={{ fontSize: '0.8rem', color: '#888', marginBottom: '12px' }}>
           {m.league} | {m.datetime} <span style={{ marginLeft: '10px', color: '#aaa' }}>（総投票数: {totalVotes}票）</span>
         </div>
 
-        {/* 対戦カード */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '1.05rem', fontWeight: 'bold', padding: '4px 0' }}>
-          
-          {/* HOME チーム */}
           <div style={{ flex: 1, textAlign: 'right', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px' }}>
             {m.result === 'home' && (
               <span style={{ background: '#4caf50', color: '#000', fontSize: '0.65rem', padding: '2px 6px', borderRadius: '3px', fontWeight: '900' }}>WIN</span>
@@ -256,7 +260,6 @@ export default function UpcomingMatches() {
 
           <span style={{ margin: '0 16px', color: '#555', fontSize: '0.85rem', fontWeight: 'normal' }}>VS</span>
 
-          {/* AWAY チーム */}
           <div style={{ flex: 1, textAlign: 'left', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: '8px' }}>
             <span style={{ color: m.result === 'away' ? '#81c784' : (m.result ? '#666' : '#fff') }}>
               {m.away_team}
@@ -265,17 +268,14 @@ export default function UpcomingMatches() {
               <span style={{ background: '#4caf50', color: '#000', fontSize: '0.65rem', padding: '2px 6px', borderRadius: '3px', fontWeight: '900' }}>WIN</span>
             )}
           </div>
-
         </div>
 
-        {/* 引き分け判定 */}
         {m.result === 'draw' && (
           <div style={{ textAlign: 'center', marginTop: '6px' }}>
             <span style={{ background: '#ef6c00', color: '#fff', fontSize: '0.65rem', padding: '2px 8px', borderRadius: '3px', fontWeight: 'bold' }}>DRAW（引き分け）</span>
           </div>
         )}
 
-        {/* 投票ボタンエリア */}
         <div style={{ display: 'flex', gap: '8px', marginTop: '14px' }}>
           <button 
             onClick={() => handleVote(m.id, 'home', isFinished)}
@@ -345,30 +345,102 @@ export default function UpcomingMatches() {
         </div>
 
         {currentUser && (
-          <div style={{ display: 'flex', gap: '16px', marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #2a2a2a' }}>
-            <div style={{ flex: 1, background: '#252525', padding: '10px', borderRadius: '6px', textAlign: 'center' }}>
-              <div style={{ fontSize: '0.75rem', color: '#888' }}>通算的中率</div>
-              <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#4caf50' }}>{stats.winRate}%</div>
+          <>
+            <div style={{ display: 'flex', gap: '16px', marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #2a2a2a' }}>
+              <div style={{ flex: 1, background: '#252525', padding: '10px', borderRadius: '6px', textAlign: 'center' }}>
+                <div style={{ fontSize: '0.75rem', color: '#888' }}>通算的中率</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#4caf50' }}>{stats.winRate}%</div>
+              </div>
+              <div style={{ flex: 1, background: '#252525', padding: '10px', borderRadius: '6px', textAlign: 'center' }}>
+                <div style={{ fontSize: '0.75rem', color: '#888' }}>的中数 / 終了試合</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#ffb74d' }}>{stats.correctVotes} / {stats.totalFinishedVotes}</div>
+              </div>
             </div>
-            <div style={{ flex: 1, background: '#252525', padding: '10px', borderRadius: '6px', textAlign: 'center' }}>
-              <div style={{ fontSize: '0.75rem', color: '#888' }}>的中数 / 終了試合</div>
-              <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#ffb74d' }}>{stats.correctVotes} / {stats.totalFinishedVotes}</div>
+
+            {/* 予想履歴アコーディオンの開閉ボタン */}
+            <div style={{ marginTop: '12px', textAlign: 'center' }}>
+              <button
+                onClick={() => setShowHistory(!showHistory)}
+                style={{
+                  background: '#2a2a2a', color: '#2196f3', border: '1px solid #333',
+                  padding: '8px 16px', borderRadius: '20px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold'
+                }}
+              >
+                {showHistory ? '▲ 自分の予想履歴を閉じる' : `▼ 自分の予想履歴を見る (${historyMatches.length}件)`}
+              </button>
             </div>
-          </div>
+
+            {/* 予想履歴リストエリア */}
+            {showHistory && (
+              <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px dashed #333' }}>
+                <h4 style={{ margin: '0 0 12px 0', fontSize: '0.95rem', color: '#2196f3' }}>📋 予想した試合の履歴</h4>
+                {historyMatches.length > 0 ? (
+                  historyMatches.map(m => {
+                    const userChoice = userVotes[m.id];
+                    const isFinished = !!m.result;
+                    const isHit = isFinished && userChoice === m.result;
+                    
+                    let choiceText = '引き分け';
+                    if (userChoice === 'home') choiceText = `${m.home_team} 勝利`;
+                    if (userChoice === 'away') choiceText = `${m.away_team} 勝利`;
+
+                    return (
+                      <div 
+                        key={`history-${m.id}`}
+                        style={{
+                          background: '#222', padding: '10px 14px', borderRadius: '6px', marginBottom: '8px',
+                          display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #333'
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontSize: '0.75rem', color: '#888' }}>{m.league} | {m.datetime}</div>
+                          <div style={{ fontSize: '0.9rem', fontWeight: 'bold', marginTop: '2px' }}>
+                            {m.home_team} vs {m.away_team}
+                          </div>
+                          <div style={{ fontSize: '0.8rem', color: '#42a5f5', marginTop: '2px' }}>
+                            あなたの予想: <strong>{choiceText}</strong>
+                          </div>
+                        </div>
+
+                        <div>
+                          {isFinished ? (
+                            isHit ? (
+                              <span style={{ background: '#2e7d32', color: '#fff', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '4px', fontWeight: 'bold' }}>
+                                的中 
+                              </span>
+                            ) : (
+                              <span style={{ background: '#c62828', color: '#fff', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '4px', fontWeight: 'bold' }}>
+                                不的中 
+                              </span>
+                            )
+                          ) : (
+                            <span style={{ background: '#1565c0', color: '#fff', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '4px' }}>
+                              受付中 
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div style={{ fontSize: '0.85rem', color: '#666', textAlign: 'center', padding: '10px 0' }}>
+                    まだ予想した試合がありません
+                  </div>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
 
       {/* 注目の試合 Pick Up エリア */}
       <div style={{ marginBottom: '25px', background: '#181818', padding: '16px', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
-        
-        {/* ヘッダー＆連動タブ */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <h3 style={{ fontSize: '1.05rem', color: '#d4a373', margin: 0, fontWeight: 'bold' }}>
-              注目の試合
+              注目の試合 
             </h3>
 
-            {/* 連動する地域切り替えサブタブ */}
             <div style={{ display: 'flex', gap: '4px', background: '#252525', padding: '3px', borderRadius: '6px' }}>
               <button
                 onClick={() => { setRegionTab('jleague'); setSelectedLeague('ALL'); }}
@@ -395,7 +467,6 @@ export default function UpcomingMatches() {
             </div>
           </div>
           
-          {/* 条件切り替えボタン */}
           <div style={{ display: 'flex', gap: '6px' }}>
             <button
               onClick={() => setPickupFilter('most_voted')}
@@ -433,7 +504,6 @@ export default function UpcomingMatches() {
           </div>
         </div>
 
-        {/* 1票以上ある試合があれば表示、無ければメッセージ表示 */}
         {featuredMatches.length > 0 ? (
           featuredMatches.map(m => renderMatchCard(m, true))
         ) : (
@@ -470,7 +540,6 @@ export default function UpcomingMatches() {
         </button>
       </div>
 
-      {/* 欧州タブ選択時のみ表示するサブ切り替えボタン */}
       {regionTab === 'europe' && (
         <div style={{ display: 'flex', gap: '8px', marginBottom: '15px' }}>
           <button
