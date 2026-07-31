@@ -4,7 +4,6 @@ import { getDatabase, ref, onValue, runTransaction, get } from 'firebase/databas
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from 'firebase/auth';
 
 import upcomingData from '../upcoming_matches.json';
-import demoData from '../demo_matches.json';
 import jleagueData from '../jleague_matches.json';
 
 const firebaseConfig = {
@@ -25,7 +24,6 @@ const provider = new GoogleAuthProvider();
 
 export default function UpcomingMatches() {
   const [regionTab, setRegionTab] = useState('jleague');
-  const [europeSubTab, setEuropeSubTab] = useState('upcoming');
   const [pickupFilter, setPickupFilter] = useState('most_voted');
 
   const [voteCounts, setVoteCounts] = useState({});
@@ -39,16 +37,17 @@ export default function UpcomingMatches() {
   // 履歴表示モーダル/アコーディオンの開閉状態
   const [showHistory, setShowHistory] = useState(false);
 
+  // データ取得関数（デモデータ削除済）
   const getRawData = () => {
     if (regionTab === 'jleague') {
       return jleagueData || [];
     } else {
-      return europeSubTab === 'upcoming' ? (upcomingData || []) : (demoData || []);
+      return upcomingData || [];
     }
   };
 
   const rawData = getRawData();
-  const allMatches = [...(upcomingData || []), ...(demoData || []), ...(jleagueData || [])];
+  const allMatches = [...(upcomingData || []), ...(jleagueData || [])];
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
@@ -95,7 +94,6 @@ export default function UpcomingMatches() {
 
   const stats = calculateUserStats();
 
-  // ユーザーの予想履歴リストを取得
   const getUserHistoryMatches = () => {
     return allMatches.filter(m => !!userVotes[m.id]);
   };
@@ -357,7 +355,6 @@ export default function UpcomingMatches() {
               </div>
             </div>
 
-            {/* 予想履歴アコーディオンの開閉ボタン */}
             <div style={{ marginTop: '12px', textAlign: 'center' }}>
               <button
                 onClick={() => setShowHistory(!showHistory)}
@@ -370,7 +367,6 @@ export default function UpcomingMatches() {
               </button>
             </div>
 
-            {/* 予想履歴リストエリア */}
             {showHistory && (
               <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px dashed #333' }}>
                 <h4 style={{ margin: '0 0 12px 0', fontSize: '0.95rem', color: '#2196f3' }}>📋 予想した試合の履歴</h4>
@@ -540,28 +536,31 @@ export default function UpcomingMatches() {
         </button>
       </div>
 
+      {/* 💡【新規追加】欧州5大リーグの各リーグ別切り替えタブ（デモ用タブから変更） */}
       {regionTab === 'europe' && (
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '15px' }}>
-          <button
-            onClick={() => setEuropeSubTab('upcoming')}
-            style={{
-              flex: 1, padding: '8px', borderRadius: '4px', border: 'none',
-              background: europeSubTab === 'upcoming' ? '#333' : '#1a1a1a',
-              color: europeSubTab === 'upcoming' ? '#fff' : '#777', cursor: 'pointer'
-            }}
-          >
-            直近の試合 ({upcomingData ? upcomingData.length : 0})
-          </button>
-          <button
-            onClick={() => setEuropeSubTab('demo')}
-            style={{
-              flex: 1, padding: '8px', borderRadius: '4px', border: 'none',
-              background: europeSubTab === 'demo' ? '#333' : '#1a1a1a',
-              color: europeSubTab === 'demo' ? '#fff' : '#777', cursor: 'pointer'
-            }}
-          >
-            デモ用データ ({demoData ? demoData.length : 0})
-          </button>
+        <div style={{ display: 'flex', gap: '6px', marginBottom: '15px', flexWrap: 'wrap' }}>
+          {[
+            { id: 'ALL', name: 'すべて' },
+            { id: 'EPL', name: 'プレミア (EPL)' },
+            { id: 'La_Liga', name: 'ラ・リーガ' },
+            { id: 'Bundesliga', name: 'ブンデス' },
+            { id: 'Serie_A', name: 'セリエA' },
+            { id: 'Ligue_1', name: 'リーグ・アン' },
+          ].map(league => (
+            <button
+              key={league.id}
+              onClick={() => setSelectedLeague(league.id)}
+              style={{
+                padding: '6px 12px', borderRadius: '20px', border: 'none', fontSize: '0.8rem',
+                background: selectedLeague === league.id ? '#2196f3' : '#2a2a2a',
+                color: selectedLeague === league.id ? '#fff' : '#aaa',
+                fontWeight: selectedLeague === league.id ? 'bold' : 'normal',
+                cursor: 'pointer'
+              }}
+            >
+              {league.name}
+            </button>
+          ))}
         </div>
       )}
 
@@ -579,16 +578,14 @@ export default function UpcomingMatches() {
       {/* 試合一覧表示エリア */}
       <div>
         <h3 style={{ borderBottom: '1px solid #333', paddingBottom: '8px', fontSize: '1rem', color: '#bbb' }}>
-          {regionTab === 'jleague' ? 'J1リーグ 試合一覧' : (europeSubTab === 'upcoming' ? '欧州 直近試合' : '欧州 デモデータ')} ({processedData.length}件)
+          {regionTab === 'jleague' ? 'J1リーグ 試合一覧' : `欧州 直近試合 (${selectedLeague === 'ALL' ? '全リーグ' : selectedLeague})`} ({processedData.length}件)
         </h3>
 
         {processedData.length > 0 ? (
           processedData.map(m => renderMatchCard(m))
         ) : (
           <p style={{ color: '#666', textAlign: 'center', padding: '30px 0' }}>
-            {regionTab === 'europe' && europeSubTab === 'upcoming' 
-              ? '現在、欧州リーグはオフシーズンのため直近の試合データがありません。「デモ用データ」または「Jリーグ」タブをお試しください。'
-              : '該当する試合データがありません。'}
+            該当する試合データがありません。
           </p>
         )}
       </div>

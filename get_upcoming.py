@@ -1,62 +1,46 @@
 import json
+import os
 from datetime import datetime, timezone, timedelta
 from understatapi import UnderstatClient
 
 understat = UnderstatClient()
 leagues = ['EPL', 'La_Liga', 'Bundesliga', 'Serie_A', 'Ligue_1']
 
-# --- 1. 直近1か月以内の試合（本番用データ） ---
-print("1. 直近1か月以内の試合日程を取得中...")
+print("🌐 欧州5大リーグの直近1週間（今週）の試合日程を取得中...")
 upcoming_matches = []
 now_utc = datetime.now(timezone.utc)
-one_month_later = now_utc + timedelta(days=30)
+one_week_later = now_utc + timedelta(days=7)
+current_season = 2026
 
 for league in leagues:
     try:
-        # 正しい呼び出し順: league(リーグ名).get_match_data(シーズン)
-        matches = understat.league(league).get_match_data(2026)
+        matches = understat.league(league).get_match_data(current_season)
         for m in matches:
             if not m.get('isResult') and m.get('datetime'):
                 match_time = datetime.fromisoformat(m['datetime'].replace('Z', '+00:00'))
-                if now_utc < match_time <= one_month_later:
+                
+                # 直近1週間以内の試合のみ
+                if now_utc <= match_time <= one_week_later:
+                    jst_time = match_time.astimezone(timezone(timedelta(hours=9)))
+                    weekdays = ['（月）', '（火）', '（水）', '（木）', '（金）', '（土）', '（日）']
+                    w_str = weekdays[jst_time.weekday()]
+                    dt_display = f"{jst_time.strftime('%Y年 %m/%d')}{w_str} {jst_time.strftime('%H:%M')}"
+
                     upcoming_matches.append({
                         "id": str(m['id']),
-                        "league": league,
-                        "datetime": m['datetime'],
+                        "league": league, # 'EPL', 'La_Liga' などの識別子
+                        "datetime": dt_display,
                         "home_team": m['h']['title'],
                         "away_team": m['a']['title']
                     })
     except Exception as e:
-        pass
+        print(f"⚠️ [{league}] 取得スキップ: {e}")
 
+# 日時順にソート
 upcoming_matches.sort(key=lambda x: x['datetime'])
+
+os.makedirs("src", exist_ok=True)
 with open('src/upcoming_matches.json', 'w', encoding='utf-8') as f:
     json.dump(upcoming_matches, f, ensure_ascii=False, indent=2)
 
-print(f"-> 本番用(直近1か月): {len(upcoming_matches)} 試合を保存")
-
-
-# --- 2. 前シーズンの試合（デモ・テスト用データ） ---
-print("2. デモ用(前シーズン)の試合日程を取得中...")
-demo_matches = []
-
-for league in leagues:
-    try:
-        # 正しい呼び出し順: league(リーグ名).get_match_data(シーズン)
-        matches = understat.league(league).get_match_data(2025)
-        for m in matches[:10]: # 各リーグ10試合ずつピックアップ
-            demo_matches.append({
-                "id": f"demo_{m['id']}", # IDが被らないようprefix付与
-                "league": league,
-                "datetime": m['datetime'],
-                "home_team": m['h']['title'],
-                "away_team": m['a']['title']
-            })
-    except Exception as e:
-        print(f"[{league}] エラー: {e}")
-
-demo_matches.sort(key=lambda x: x['datetime'])
-with open('src/demo_matches.json', 'w', encoding='utf-8') as f:
-    json.dump(demo_matches, f, ensure_ascii=False, indent=2)
-
-print(f"-> デモ用(前シーズン): {len(demo_matches)} 試合を保存")
+print(f"✅ 直近1週間の欧州試合: {len(upcoming_matches)} 件を src/upcoming_matches.json に保存しました！")
