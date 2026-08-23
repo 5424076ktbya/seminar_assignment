@@ -155,7 +155,7 @@ function MainApp() {
   return (
     <div style={{ padding: '30px', backgroundColor: '#0f172a', color: '#f8fafc', minHeight: '100vh', fontFamily: 'sans-serif' }}>
       <div style={{ marginBottom: '20px', borderBottom: '1px solid #334155', paddingBottom: '15px' }}>
-        <h1 style={{ margin: 0, fontSize: '22px', color: '#38bdf8' }}>サッカー試合データ勝率分析</h1>
+        <h1 style={{ margin: 0, fontSize: '22px', color: '#38bdf8' }}>サッカー試合データ勝率予想・分析</h1>
         <p style={{ color: '#94a3b8', fontSize: '13px', marginTop: '6px' }}>
           対象データ数: 全 {matches.length} 試合
         </p>
