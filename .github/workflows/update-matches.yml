@@ -2,20 +2,22 @@ name: Auto Update Upcoming Matches
 
 on:
   schedule:
-    # 毎日午前0時(UTC) ＝ 日本時間 午前9時に自動実行
+    # 毎日 日本時間 午前9時
     - cron: '0 0 * * *'
-  workflow_dispatch: # GitHub画面から手動実行も可能にする
+
+  workflow_dispatch:
 
 jobs:
   update-data:
     runs-on: ubuntu-latest
 
     steps:
+
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
@@ -25,11 +27,19 @@ jobs:
           pip install understatapi
 
       - name: Run script to fetch matches
-        run: python get_upcoming.py
+        run: |
+          python get_upcoming.py
 
       - name: Commit and push if changed
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
           git add src/upcoming_matches.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto update upcoming matches [skip ci]" && git push)
+
+          if git diff --cached --quiet; then
+            echo "変更なし"
+          else
+            git commit -m "auto: 欧州5大リーグ試合データの自動更新"
+            git push
+          fi
