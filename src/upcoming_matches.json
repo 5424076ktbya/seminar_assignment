@@ -1,1 +1,142 @@
-[]
+[
+  {
+    "id": "31186",
+    "league": "EPL",
+    "datetime": "2026年 08/23（日） 22:00",
+    "home_team": "Brighton",
+    "away_team": "Aston Villa"
+  },
+  {
+    "id": "31187",
+    "league": "EPL",
+    "datetime": "2026年 08/23（日） 22:00",
+    "home_team": "Manchester City",
+    "away_team": "Bournemouth"
+  },
+  {
+    "id": "31946",
+    "league": "Ligue_1",
+    "datetime": "2026年 08/23（日） 22:00",
+    "home_team": "Angers",
+    "away_team": "Lille"
+  },
+  {
+    "id": "30781",
+    "league": "La_Liga",
+    "datetime": "2026年 08/24（月） 00:00",
+    "home_team": "Atletico Madrid",
+    "away_team": "Villarreal"
+  },
+  {
+    "id": "31947",
+    "league": "Ligue_1",
+    "datetime": "2026年 08/24（月） 00:15",
+    "home_team": "Le Havre",
+    "away_team": "Monaco"
+  },
+  {
+    "id": "31188",
+    "league": "EPL",
+    "datetime": "2026年 08/24（月） 00:30",
+    "home_team": "Newcastle United",
+    "away_team": "Liverpool"
+  },
+  {
+    "id": "31564",
+    "league": "Serie_A",
+    "datetime": "2026年 08/24（月） 01:30",
+    "home_team": "Frosinone",
+    "away_team": "Juventus"
+  },
+  {
+    "id": "31565",
+    "league": "Serie_A",
+    "datetime": "2026年 08/24（月） 01:30",
+    "home_team": "Venezia",
+    "away_team": "Lecce"
+  },
+  {
+    "id": "30782",
+    "league": "La_Liga",
+    "datetime": "2026年 08/24（月） 02:30",
+    "home_team": "Getafe",
+    "away_team": "Racing Santander"
+  },
+  {
+    "id": "31566",
+    "league": "Serie_A",
+    "datetime": "2026年 08/24（月） 03:45",
+    "home_team": "Torino",
+    "away_team": "AC Milan"
+  },
+  {
+    "id": "31567",
+    "league": "Serie_A",
+    "datetime": "2026年 08/24（月） 03:45",
+    "home_team": "Atalanta",
+    "away_team": "Sassuolo"
+  },
+  {
+    "id": "31948",
+    "league": "Ligue_1",
+    "datetime": "2026年 08/24（月） 03:45",
+    "home_team": "Paris Saint Germain",
+    "away_team": "Rennes"
+  },
+  {
+    "id": "30783",
+    "league": "La_Liga",
+    "datetime": "2026年 08/24（月） 04:30",
+    "home_team": "Elche",
+    "away_team": "Barcelona"
+  },
+  {
+    "id": "31568",
+    "league": "Serie_A",
+    "datetime": "2026年 08/25（火） 01:30",
+    "home_team": "Bologna",
+    "away_team": "Lazio"
+  },
+  {
+    "id": "30784",
+    "league": "La_Liga",
+    "datetime": "2026年 08/25（火） 02:30",
+    "home_team": "Osasuna",
+    "away_team": "Levante"
+  },
+  {
+    "id": "31569",
+    "league": "Serie_A",
+    "datetime": "2026年 08/25（火） 03:45",
+    "home_team": "Roma",
+    "away_team": "Fiorentina"
+  },
+  {
+    "id": "31189",
+    "league": "EPL",
+    "datetime": "2026年 08/25（火） 04:00",
+    "home_team": "Fulham",
+    "away_team": "Chelsea"
+  },
+  {
+    "id": "30785",
+    "league": "La_Liga",
+    "datetime": "2026年 08/25（火） 04:30",
+    "home_team": "Malaga",
+    "away_team": "Deportivo La Coruna"
+  },
+  {
+    "id": "30786",
+    "league": "La_Liga",
+    "datetime": "2026年 08/26（水） 04:00",
+    "home_team": "Valencia",
+    "away_team": "Real Betis"
+  },
+  {
+    "id": "30787",
+    "league": "La_Liga",
+    "datetime": "2026年 08/27（木） 04:00",
+    "home_team": "Real Madrid",
+    "away_team": "Real Sociedad"
+  }
+]
