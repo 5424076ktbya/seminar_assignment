@@ -1,82 +1,134 @@
 [
   {
-    "id": "j1_auto_1",
+    "id": "/match/j1/2026/082301/",
     "league": "J1 League",
-    "datetime": "2026年 08/28（金） 19:25",
-    "home_team": "横浜F・マリノス",
-    "away_team": "鹿島アントラーズ",
-    "result": null
-  },
-  {
-    "id": "j1_auto_2",
-    "league": "J1 League",
-    "datetime": "2026年 08/28（金） 19:30",
-    "home_team": "ガンバ大阪",
+    "date": "2026-08-23",
+    "datetime": "2026-08-23 19:30",
+    "home_team": "ＦＣ町田ゼルビア",
     "away_team": "浦和レッズ",
-    "result": null
+    "home_score": null,
+    "away_score": null,
+    "result": null,
+    "url": "https://www.jleague.jp/match/j1/2026/082301/"
   },
   {
-    "id": "j1_auto_3",
+    "id": "/match/j1/2026/082901/",
     "league": "J1 League",
-    "datetime": "2026年 08/29（土） 19:00",
-    "home_team": "柏レイソル",
-    "away_team": "水戸ホーリーホック",
-    "result": null
+    "date": "2026-08-29",
+    "datetime": "2026-08-29 18:00",
+    "home_team": "水戸ホーリーホック",
+    "away_team": "ＦＣ町田ゼルビア",
+    "home_score": null,
+    "away_score": null,
+    "result": null,
+    "url": "https://www.jleague.jp/match/j1/2026/082901/"
   },
   {
-    "id": "j1_auto_4",
+    "id": "/match/j1/2026/082902/",
     "league": "J1 League",
-    "datetime": "2026年 08/29（土） 19:00",
-    "home_team": "FC東京",
-    "away_team": "FC町田ゼルビア",
-    "result": null
+    "date": "2026-08-29",
+    "datetime": "2026-08-29 18:00",
+    "home_team": "ガンバ大阪",
+    "away_team": "サンフレッチェ広島",
+    "home_score": null,
+    "away_score": null,
+    "result": null,
+    "url": "https://www.jleague.jp/match/j1/2026/082902/"
   },
   {
-    "id": "j1_auto_5",
+    "id": "/match/j1/2026/082903/",
     "league": "J1 League",
-    "datetime": "2026年 08/29（土） 19:00",
-    "home_team": "名古屋グランパス",
-    "away_team": "清水エスパルス",
-    "result": null
+    "date": "2026-08-29",
+    "datetime": "2026-08-29 18:30",
+    "home_team": "清水エスパルス",
+    "away_team": "柏レイソル",
+    "home_score": null,
+    "away_score": null,
+    "result": null,
+    "url": "https://www.jleague.jp/match/j1/2026/082903/"
   },
   {
-    "id": "j1_auto_6",
+    "id": "/match/j1/2026/082904/",
     "league": "J1 League",
-    "datetime": "2026年 08/29（土） 19:00",
-    "home_team": "セレッソ大阪",
-    "away_team": "ファジアーノ岡山",
-    "result": null
+    "date": "2026-08-29",
+    "datetime": "2026-08-29 18:30",
+    "home_team": "Ｖ・ファーレン長崎",
+    "away_team": "ＦＣ東京",
+    "home_score": null,
+    "away_score": null,
+    "result": null,
+    "url": "https://www.jleague.jp/match/j1/2026/082904/"
   },
   {
-    "id": "j1_auto_7",
+    "id": "/match/j1/2026/082905/",
     "league": "J1 League",
-    "datetime": "2026年 08/29（土） 19:00",
-    "home_team": "アビスパ福岡",
-    "away_team": "ヴィッセル神戸",
-    "result": null
+    "date": "2026-08-29",
+    "datetime": "2026-08-29 19:00",
+    "home_team": "浦和レッズ",
+    "away_team": "横浜Ｆ・マリノス",
+    "home_score": null,
+    "away_score": null,
+    "result": null,
+    "url": "https://www.jleague.jp/match/j1/2026/082905/"
   },
   {
-    "id": "j1_auto_8",
+    "id": "/match/j1/2026/082906/",
     "league": "J1 League",
-    "datetime": "2026年 08/29（土） 19:15",
-    "home_team": "サンフレッチェ広島",
-    "away_team": "ジェフユナイテッド千葉",
-    "result": null
-  },
-  {
-    "id": "j1_auto_9",
-    "league": "J1 League",
-    "datetime": "2026年 08/30（日） 18:00",
+    "date": "2026-08-29",
+    "datetime": "2026-08-29 19:00",
     "home_team": "東京ヴェルディ",
-    "away_team": "川崎フロンターレ",
-    "result": null
+    "away_team": "鹿島アントラーズ",
+    "home_score": null,
+    "away_score": null,
+    "result": null,
+    "url": "https://www.jleague.jp/match/j1/2026/082906/"
   },
   {
-    "id": "j1_auto_10",
+    "id": "/match/j1/2026/082907/",
     "league": "J1 League",
-    "datetime": "2026年 08/30（日） 19:00",
-    "home_team": "V・ファーレン長崎",
-    "away_team": "京都サンガF.C.",
-    "result": null
+    "date": "2026-08-29",
+    "datetime": "2026-08-29 19:00",
+    "home_team": "川崎フロンターレ",
+    "away_team": "ジェフユナイテッド千葉",
+    "home_score": null,
+    "away_score": null,
+    "result": null,
+    "url": "https://www.jleague.jp/match/j1/2026/082907/"
+  },
+  {
+    "id": "/match/j1/2026/082908/",
+    "league": "J1 League",
+    "date": "2026-08-29",
+    "datetime": "2026-08-29 19:00",
+    "home_team": "名古屋グランパス",
+    "away_team": "ファジアーノ岡山",
+    "home_score": null,
+    "away_score": null,
+    "result": null,
+    "url": "https://www.jleague.jp/match/j1/2026/082908/"
+  },
+  {
+    "id": "/match/j1/2026/082909/",
+    "league": "J1 League",
+    "date": "2026-08-29",
+    "datetime": "2026-08-29 19:00",
+    "home_team": "京都サンガF.C.",
+    "away_team": "アビスパ福岡",
+    "home_score": null,
+    "away_score": null,
+    "result": null,
+    "url": "https://www.jleague.jp/match/j1/2026/082909/"
+  },
+  {
+    "id": "/match/j1/2026/082910/",
+    "league": "J1 League",
+    "date": "2026-08-29",
+    "datetime": "2026-08-29 19:00",
+    "home_team": "ヴィッセル神戸",
+    "away_team": "セレッソ大阪",
+    "home_score": null,
+    "away_score": null,
+    "result": null,
+    "url": "https://www.jleague.jp/match/j1/2026/082910/"
   }
 ]
