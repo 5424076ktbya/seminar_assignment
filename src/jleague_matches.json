@@ -120,6 +120,30 @@
     "url": "https://www.jleague.jp/match/j1/2026/082910/"
   },
   {
+    "id": "/match/j1/2026/090216/",
+    "league": "J1 League",
+    "date": "2026-09-02",
+    "datetime": "2026-09-02 19:00",
+    "home_team": "水戸ホーリーホック",
+    "away_team": "鹿島アントラーズ",
+    "home_score": null,
+    "away_score": null,
+    "result": null,
+    "url": "https://www.jleague.jp/match/j1/2026/090216/"
+  },
+  {
+    "id": "/match/j1/2026/090217/",
+    "league": "J1 League",
+    "date": "2026-09-02",
+    "datetime": "2026-09-02 19:00",
+    "home_team": "ジェフユナイテッド千葉",
+    "away_team": "ファジアーノ岡山",
+    "home_score": null,
+    "away_score": null,
+    "result": null,
+    "url": "https://www.jleague.jp/match/j1/2026/090217/"
+  },
+  {
     "id": "/match/j1/2026/090218/",
     "league": "J1 League",
     "date": "2026-09-02",
@@ -214,29 +238,5 @@
     "away_score": null,
     "result": null,
     "url": "https://www.jleague.jp/match/j1/2026/090225/"
-  },
-  {
-    "id": "/match/j1/2026/090216/",
-    "league": "J1 League",
-    "date": "2026-09-02",
-    "datetime": "2026-09-02 19:00",
-    "home_team": "水戸ホーリーホック",
-    "away_team": "鹿島アントラーズ",
-    "home_score": null,
-    "away_score": null,
-    "result": null,
-    "url": "https://www.jleague.jp/match/j1/2026/090216/"
-  },
-  {
-    "id": "/match/j1/2026/090217/",
-    "league": "J1 League",
-    "date": "2026-09-02",
-    "datetime": "2026-09-02 19:00",
-    "home_team": "ジェフユナイテッド千葉",
-    "away_team": "ファジアーノ岡山",
-    "home_score": null,
-    "away_score": null,
-    "result": null,
-    "url": "https://www.jleague.jp/match/j1/2026/090217/"
   }
 ]
