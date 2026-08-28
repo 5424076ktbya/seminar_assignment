@@ -1,19 +1,5 @@
 [
   {
-    "id": "30788",
-    "league": "La_Liga",
-    "datetime": "2026年 08/28（金） 03:30",
-    "home_team": "Celta Vigo",
-    "away_team": "Osasuna"
-  },
-  {
-    "id": "30789",
-    "league": "La_Liga",
-    "datetime": "2026年 08/28（金） 04:00",
-    "home_team": "Barcelona",
-    "away_team": "Athletic Club"
-  },
-  {
     "id": "30790",
     "league": "La_Liga",
     "datetime": "2026年 08/29（土） 02:00",
@@ -285,5 +271,19 @@
     "datetime": "2026年 09/01（火） 04:30",
     "home_team": "Barcelona",
     "away_team": "Rayo Vallecano"
+  },
+  {
+    "id": "31958",
+    "league": "Ligue_1",
+    "datetime": "2026年 09/04（金） 03:45",
+    "home_team": "Toulouse",
+    "away_team": "Lille"
+  },
+  {
+    "id": "30800",
+    "league": "La_Liga",
+    "datetime": "2026年 09/04（金） 04:00",
+    "home_team": "Real Sociedad",
+    "away_team": "Celta Vigo"
   }
 ]
