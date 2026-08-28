@@ -1,6 +1,7 @@
 import React, { useState, useMemo, Component } from 'react';
 import matchesData from './shots_data.json';
 import UpcomingMatches from './components/UpcomingMatches'; // 今週の試合予想コンポーネントを追加
+import LegalModal from './components/LegalModal';
 
 // クラッシュ防止用のエラーバウンダリ
 class ErrorBoundary extends Component {
@@ -35,6 +36,7 @@ class ErrorBoundary extends Component {
 
 function MainApp() {
   const matches = Array.isArray(matchesData) ? matchesData : [];
+  const [legalModal, setLegalModal] = useState(null);
 
   const [mode, setMode] = useState('single');
   const [activeTab, setActiveTab] = useState('homeAway');
@@ -412,6 +414,16 @@ function MainApp() {
 
       {/* ★ここに今週の試合予想コンポーネントを配置 */}
       <UpcomingMatches />
+
+      <footer style={{ marginTop: '28px', paddingTop: '18px', borderTop: '1px solid #334155', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '12px', color: '#94a3b8', fontSize: '12px' }}>
+        <span>© 2026 サッカー試合データ勝率予想・分析</span>
+        <nav aria-label="法的情報" style={{ display: 'flex', gap: '16px' }}>
+          <a href="/privacy-policy.html" onClick={(event) => { event.preventDefault(); setLegalModal('privacy'); }} style={{ color: '#7dd3fc' }}>プライバシーポリシー</a>
+          <a href="/terms.html" onClick={(event) => { event.preventDefault(); setLegalModal('terms'); }} style={{ color: '#7dd3fc' }}>利用規約</a>
+        </nav>
+      </footer>
+
+      <LegalModal type={legalModal} onClose={() => setLegalModal(null)} />
     </div>
   );
 }

@@ -1,26 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, onValue, set, remove } from 'firebase/database';
-import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from 'firebase/auth';
+import { ref, onValue, set, remove } from 'firebase/database';
+import { signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, deleteUser } from 'firebase/auth';
 
 import upcomingData from '../upcoming_matches.json';
 import jleagueData from '../jleague_matches.json';
+import { auth, db } from '../firebase';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAEaRhiu8LK12zguD0BAHprxbxAyLzZv_4",
-  authDomain: "soccer-predict-59a84.firebaseapp.com",
-  databaseURL: "https://soccer-predict-59a84-default-rtdb.firebaseio.com",
-  projectId: "soccer-predict-59a84",
-  storageBucket: "soccer-predict-59a84.firebasestorage.app",
-  messagingSenderId: "307448711261",
-  appId: "1:307448711261:web:901df3dd88cc88c789e5b4",
-  measurementId: "G-502M75QKZW"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
+provider.setCustomParameters({ prompt: 'select_account' });
+
+function GoogleIcon() {
+  return (
+    <svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18">
+      <path fill="#4285F4" d="M17.64 9.205c0-.638-.057-1.252-.164-1.841H9v3.482h4.844a4.14 4.14 0 0 1-1.797 2.715v2.259h2.909c1.702-1.567 2.684-3.875 2.684-6.615Z" />
+      <path fill="#34A853" d="M9 18c2.43 0 4.468-.806 5.956-2.18l-2.909-2.259c-.806.54-1.835.859-3.047.859-2.344 0-4.328-1.585-5.037-3.714H.956v2.333A9 9 0 0 0 9 18Z" />
+      <path fill="#FBBC05" d="M3.963 10.706A5.41 5.41 0 0 1 3.681 9c0-.592.102-1.167.282-1.706V4.961H.956A9 9 0 0 0 0 9c0 1.452.347 2.827.956 4.039l3.007-2.333Z" />
+      <path fill="#EA4335" d="M9 3.58c1.321 0 2.507.454 3.441 1.346l2.581-2.581C13.464.892 11.426 0 9 0A9 9 0 0 0 .956 4.961l3.007 2.333C4.672 5.165 6.656 3.58 9 3.58Z" />
+    </svg>
+  );
+}
 
 // Firebase Realtime Database のキーとして安全な試合IDに変換
 const getFirebaseMatchId = (matchId) => {
@@ -97,6 +95,12 @@ export default function UpcomingMatches() {
   }, []);
 
   useEffect(() => {
+    if (!currentUser) {
+      setVoteCounts({});
+      setUserVotes({});
+      return undefined;
+    }
+
     const votesRef = ref(db, 'match_votes');
 
     const unsubscribeVotes = onValue(votesRef, (snapshot) => {
@@ -126,6 +130,10 @@ export default function UpcomingMatches() {
 
       setVoteCounts(counts);
       setUserVotes(currentUser ? myVotes : {});
+    }, (error) => {
+      console.error('投票データの取得に失敗しました:', error);
+      setVoteCounts({});
+      setUserVotes({});
     });
 
     return () => {
@@ -160,8 +168,46 @@ export default function UpcomingMatches() {
 
   const historyMatches = getUserHistoryMatches();
 
-  const handleLogin = () => signInWithPopup(auth, provider);
-  const handleLogout = () => signOut(auth);
+  const handleLogin = async () => {
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      if (error.code !== 'auth/popup-closed-by-user') {
+        console.error('Googleログインに失敗しました:', error);
+        alert('Googleログインに失敗しました。時間をおいてもう一度お試しください。');
+      }
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error('ログアウトに失敗しました:', error);
+      alert('ログアウトに失敗しました。');
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!currentUser) return;
+    const confirmed = window.confirm('投票履歴と本サイトの認証アカウントを完全に削除します。この操作は取り消せません。よろしいですか？');
+    if (!confirmed) return;
+
+    try {
+      await Promise.all(Object.keys(userVotes).map((matchId) =>
+        remove(ref(db, `match_votes/${matchId}/${currentUser.uid}`))
+      ));
+      await deleteUser(currentUser);
+      alert('投票履歴とアカウントを削除しました。');
+    } catch (error) {
+      console.error('アカウント削除に失敗しました:', error);
+      if (error.code === 'auth/requires-recent-login') {
+        alert('安全のため再ログインが必要です。一度ログアウトして再ログイン後、もう一度削除してください。');
+      } else {
+        alert('削除に失敗しました。時間をおいてもう一度お試しください。');
+      }
+    }
+  };
 
   const handleVote = async (matchId, choice, isFinished) => {
     if (!currentUser) {
@@ -400,11 +446,18 @@ export default function UpcomingMatches() {
               ログアウト
             </button>
           ) : (
-            <button onClick={handleLogin} style={{ background: '#4285f4', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+            <button onClick={handleLogin} style={{ background: '#fff', color: '#1f1f1f', border: '1px solid #747775', padding: '9px 14px', borderRadius: '4px', cursor: 'pointer', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
+              <GoogleIcon />
               Googleでログイン
             </button>
           )}
         </div>
+
+        {!currentUser && (
+          <p style={{ color: '#888', fontSize: '0.75rem', margin: '10px 0 0', lineHeight: 1.5 }}>
+            ログインすると、本人識別用のUIDと投票内容をFirebaseに保存します。パスワードは本サイトへ送信されません。
+          </p>
+        )}
 
         {currentUser && (
           <>
@@ -428,6 +481,12 @@ export default function UpcomingMatches() {
                 }}
               >
                 {showHistory ? '▲ 自分の予想履歴を閉じる' : `▼ 自分の予想履歴を見る (${historyMatches.length}件)`}
+              </button>
+            </div>
+
+            <div style={{ marginTop: '12px', textAlign: 'center' }}>
+              <button type="button" onClick={handleDeleteAccount} style={{ background: 'transparent', color: '#ef9a9a', border: '1px solid #633', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}>
+                アカウントと投票データを削除
               </button>
             </div>
 
