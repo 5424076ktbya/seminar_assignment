@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, onValue, runTransaction, get } from 'firebase/database';
+import { getDatabase, ref, onValue, set, remove } from 'firebase/database';
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from 'firebase/auth';
 
 import upcomingData from '../upcoming_matches.json';
@@ -21,6 +21,39 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
+
+// Firebase Realtime Database のキーとして安全な試合IDに変換
+const getFirebaseMatchId = (matchId) => {
+  return String(matchId).replace(/[.#$[\]\/]/g, '_');
+};
+
+// Jリーグ / 欧州5大リーグの日時文字列を試合開始時刻(ms)へ変換
+const getMatchStartTime = (datetime) => {
+  if (!datetime) return null;
+
+  // Jリーグ: 2026-08-29 18:00
+  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(datetime)) {
+    const time = new Date(`${datetime.replace(' ', 'T')}:00+09:00`).getTime();
+    return Number.isNaN(time) ? null : time;
+  }
+
+  // 欧州: 2026年 08/23（日） 22:00
+  const match = datetime.match(/(\d{4})年\s*(\d{2})\/(\d{2})（.+?）\s*(\d{2}):(\d{2})/);
+  if (match) {
+    const [, year, month, day, hour, minute] = match;
+    const time = new Date(`${year}-${month}-${day}T${hour}:${minute}:00+09:00`).getTime();
+    return Number.isNaN(time) ? null : time;
+  }
+
+  return null;
+};
+
+// 結果が出ている、または試合開始時刻を過ぎていれば投票締切
+const isMatchLocked = (match) => {
+  if (match.result) return true;
+  const startTime = getMatchStartTime(match.datetime);
+  return startTime !== null && Date.now() >= startTime;
+};
 
 export default function UpcomingMatches() {
   const [regionTab, setRegionTab] = useState('jleague');
@@ -52,33 +85,60 @@ export default function UpcomingMatches() {
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
-      if (user) {
-        const userVotesRef = ref(db, `user_votes/${user.uid}`);
-        get(userVotesRef).then((snapshot) => {
-          if (snapshot.exists()) setUserVotes(snapshot.val());
-        });
-      } else {
+
+      if (!user) {
         setUserVotes({});
       }
     });
 
+    return () => {
+      unsubscribeAuth();
+    };
+  }, []);
+
+  useEffect(() => {
     const votesRef = ref(db, 'match_votes');
+
     const unsubscribeVotes = onValue(votesRef, (snapshot) => {
-      setVoteCounts(snapshot.val() || {});
+      const rawVotes = snapshot.val() || {};
+      const counts = {};
+      const myVotes = {};
+
+      Object.entries(rawVotes).forEach(([matchId, users]) => {
+        let home = 0;
+        let draw = 0;
+        let away = 0;
+
+        if (users && typeof users === 'object') {
+          Object.entries(users).forEach(([uid, choice]) => {
+            if (choice === 'home') home += 1;
+            if (choice === 'draw') draw += 1;
+            if (choice === 'away') away += 1;
+
+            if (currentUser && uid === currentUser.uid) {
+              myVotes[matchId] = choice;
+            }
+          });
+        }
+
+        counts[matchId] = { home, draw, away };
+      });
+
+      setVoteCounts(counts);
+      setUserVotes(currentUser ? myVotes : {});
     });
 
     return () => {
-      unsubscribeAuth();
       unsubscribeVotes();
     };
-  }, []);
+  }, [currentUser]);
 
   const calculateUserStats = () => {
     let totalFinishedVotes = 0;
     let correctVotes = 0;
 
     allMatches.forEach(match => {
-      const userChoice = userVotes[match.id];
+      const userChoice = userVotes[getFirebaseMatchId(match.id)];
       if (userChoice && match.result) {
         totalFinishedVotes += 1;
         if (userChoice === match.result) correctVotes += 1;
@@ -95,7 +155,7 @@ export default function UpcomingMatches() {
   const stats = calculateUserStats();
 
   const getUserHistoryMatches = () => {
-    return allMatches.filter(m => !!userVotes[m.id]);
+    return allMatches.filter(m => !!userVotes[getFirebaseMatchId(m.id)]);
   };
 
   const historyMatches = getUserHistoryMatches();
@@ -103,38 +163,36 @@ export default function UpcomingMatches() {
   const handleLogin = () => signInWithPopup(auth, provider);
   const handleLogout = () => signOut(auth);
 
-  const handleVote = (matchId, choice, isFinished) => {
+  const handleVote = async (matchId, choice, isFinished) => {
     if (!currentUser) {
       alert("投票するにはGoogleログインが必要です。");
       return;
     }
+
     if (isFinished) {
       alert("この試合は既に終了しています。");
       return;
     }
 
-    const previousChoice = userVotes[matchId];
+    const firebaseMatchId = getFirebaseMatchId(matchId);
+    const previousChoice = userVotes[firebaseMatchId];
     const isCancel = previousChoice === choice;
 
-    const matchVoteRef = ref(db, `match_votes/${matchId}`);
-    runTransaction(matchVoteRef, (currentData) => {
-      if (!currentData) currentData = { home: 0, draw: 0, away: 0 };
-      if (previousChoice && currentData[previousChoice] > 0) {
-        currentData[previousChoice] -= 1;
-      }
-      if (!isCancel) {
-        currentData[choice] = (currentData[choice] || 0) + 1;
-      }
-      return currentData;
-    });
+    const voteRef = ref(
+      db,
+      `match_votes/${firebaseMatchId}/${currentUser.uid}`
+    );
 
-    const newUserVotes = { ...userVotes };
-    if (isCancel) delete newUserVotes[matchId];
-    else newUserVotes[matchId] = choice;
-
-    setUserVotes(newUserVotes);
-    const userVotesRef = ref(db, `user_votes/${currentUser.uid}`);
-    runTransaction(userVotesRef, () => newUserVotes);
+    try {
+      if (isCancel) {
+        await remove(voteRef);
+      } else {
+        await set(voteRef, choice);
+      }
+    } catch (error) {
+      console.error("投票に失敗しました:", error);
+      alert("投票に失敗しました。もう一度お試しください。");
+    }
   };
 
   const getFeaturedMatches = () => {
@@ -143,7 +201,7 @@ export default function UpcomingMatches() {
     const calculated = currentTargetMatches
       .filter(m => !m.result)
       .map(m => {
-        const v = voteCounts[m.id] || { home: 0, draw: 0, away: 0 };
+        const v = voteCounts[getFirebaseMatchId(m.id)] || { home: 0, draw: 0, away: 0 };
         const total = v.home + v.draw + v.away;
         
         const homePct = total ? (v.home / total) * 100 : 0;
@@ -186,15 +244,17 @@ export default function UpcomingMatches() {
     });
 
   const renderMatchCard = (m, isFeatured = false) => {
-    const votes = voteCounts[m.id] || { home: 0, draw: 0, away: 0 };
+    const firebaseMatchId = getFirebaseMatchId(m.id);
+    const votes = voteCounts[firebaseMatchId] || { home: 0, draw: 0, away: 0 };
     const totalVotes = votes.home + votes.draw + votes.away;
 
     const homePct = totalVotes ? Math.round((votes.home / totalVotes) * 100) : 0;
     const drawPct = totalVotes ? Math.round((votes.draw / totalVotes) * 100) : 0;
     const awayPct = totalVotes ? Math.round((votes.away / totalVotes) * 100) : 0;
 
-    const userChoice = userVotes[m.id];
+    const userChoice = userVotes[firebaseMatchId];
     const isFinished = !!m.result;
+    const isLocked = isMatchLocked(m);
     const isHit = isFinished && userChoice && userChoice === m.result;
 
     return (
@@ -221,6 +281,10 @@ export default function UpcomingMatches() {
           {isFinished ? (
             <span style={{ background: '#333', color: '#aaa', fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', border: '1px solid #444' }}>
               試合終了
+            </span>
+          ) : isLocked ? (
+            <span style={{ background: '#4a2a2a', color: '#ef9a9a', fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', border: '1px solid #633' }}>
+              受付終了
             </span>
           ) : (
             <span style={{ background: '#1b5e20', color: '#81c784', fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px' }}>
@@ -276,39 +340,39 @@ export default function UpcomingMatches() {
 
         <div style={{ display: 'flex', gap: '8px', marginTop: '14px' }}>
           <button 
-            onClick={() => handleVote(m.id, 'home', isFinished)}
-            disabled={isFinished}
+            onClick={() => handleVote(m.id, 'home', isLocked)}
+            disabled={isLocked}
             style={{ 
               flex: 1, padding: '8px', borderRadius: '4px', 
               border: userChoice === 'home' ? '2px solid #66bb6a' : (m.result === 'home' ? '1px solid #4caf50' : '1px solid #333'), 
               background: userChoice === 'home' ? '#2e7d32' : (m.result === 'home' ? '#1b381e' : '#2a2a2a'), 
-              color: '#fff', cursor: isFinished ? 'not-allowed' : 'pointer' 
+              color: '#fff', cursor: isLocked ? 'not-allowed' : 'pointer' 
             }}
           >
             {m.home_team} ({homePct}%)
           </button>
           
           <button 
-            onClick={() => handleVote(m.id, 'draw', isFinished)}
-            disabled={isFinished}
+            onClick={() => handleVote(m.id, 'draw', isLocked)}
+            disabled={isLocked}
             style={{ 
               width: '90px', padding: '8px', borderRadius: '4px', 
               border: userChoice === 'draw' ? '2px solid #ffb74d' : (m.result === 'draw' ? '1px solid #ef6c00' : '1px solid #333'), 
               background: userChoice === 'draw' ? '#ef6c00' : (m.result === 'draw' ? '#3d2506' : '#2a2a2a'), 
-              color: '#fff', cursor: isFinished ? 'not-allowed' : 'pointer' 
+              color: '#fff', cursor: isLocked ? 'not-allowed' : 'pointer' 
             }}
           >
             引き分け ({drawPct}%)
           </button>
 
           <button 
-            onClick={() => handleVote(m.id, 'away', isFinished)}
-            disabled={isFinished}
+            onClick={() => handleVote(m.id, 'away', isLocked)}
+            disabled={isLocked}
             style={{ 
               flex: 1, padding: '8px', borderRadius: '4px', 
               border: userChoice === 'away' ? '2px solid #42a5f5' : (m.result === 'away' ? '1px solid #4caf50' : '1px solid #333'), 
               background: userChoice === 'away' ? '#1565c0' : (m.result === 'away' ? '#1b381e' : '#2a2a2a'), 
-              color: '#fff', cursor: isFinished ? 'not-allowed' : 'pointer' 
+              color: '#fff', cursor: isLocked ? 'not-allowed' : 'pointer' 
             }}
           >
             {m.away_team} ({awayPct}%)
@@ -372,8 +436,9 @@ export default function UpcomingMatches() {
                 <h4 style={{ margin: '0 0 12px 0', fontSize: '0.95rem', color: '#2196f3' }}>📋 予想した試合の履歴</h4>
                 {historyMatches.length > 0 ? (
                   historyMatches.map(m => {
-                    const userChoice = userVotes[m.id];
+                    const userChoice = userVotes[getFirebaseMatchId(m.id)];
                     const isFinished = !!m.result;
+                    const isLocked = isMatchLocked(m);
                     const isHit = isFinished && userChoice === m.result;
                     
                     let choiceText = '引き分け';
@@ -409,9 +474,13 @@ export default function UpcomingMatches() {
                                 不的中 
                               </span>
                             )
+                          ) : isLocked ? (
+                            <span style={{ background: '#4a2a2a', color: '#ef9a9a', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '4px' }}>
+                              受付終了
+                            </span>
                           ) : (
                             <span style={{ background: '#1565c0', color: '#fff', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '4px' }}>
-                              受付中 
+                              受付中
                             </span>
                           )}
                         </div>
