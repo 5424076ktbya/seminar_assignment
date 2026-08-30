@@ -3,6 +3,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 const METRIC_DEFINITIONS = [
   { key: 'possession', label: 'ボール支配率', unit: '%', goodDirection: 'high', thresholds: [45, 50, 55, 60, 65] },
   { key: 'shots', label: 'シュート数', unit: '本', goodDirection: 'high', thresholds: [8, 10, 12, 15, 18, 20] },
+  { key: 'corner_kicks', label: 'コーナーキック数', unit: '本', goodDirection: 'high', thresholds: [2, 4, 6, 8, 10] },
+  { key: 'free_kicks', label: 'フリーキック数', unit: '本', goodDirection: 'high', thresholds: [8, 12, 16, 20, 24] },
   { key: 'shot_accuracy', label: '枠内シュート率', unit: '%', goodDirection: 'high', thresholds: [25, 30, 35, 40, 45, 50] },
   { key: 'pass_accuracy', label: 'パス成功率', unit: '%', goodDirection: 'high', thresholds: [75, 80, 85, 90] },
   { key: 'high_xg_shots', label: '決定機数', unit: '本', goodDirection: 'high', thresholds: [1, 2, 3, 4] },
@@ -109,6 +111,17 @@ function buildTeamProfile(matches, teamName) {
   const neutralPatterns = [...candidates].sort((a, b) => Math.abs(a.winDiff) - Math.abs(b.winDiff)).slice(0, 2);
   const recentEntries = [...entries].sort((a, b) => Number(b.match.match_id) - Number(a.match.match_id)).slice(0, 5);
   const recent = summarizeEntries(recentEntries);
+  const strongestByMetric = (items, valueKey) => {
+    const selected = new Map();
+    [...items].sort((a, b) => b[valueKey] - a[valueKey] || b.count - a.count).forEach(item => {
+      if (!selected.has(item.metric)) selected.set(item.metric, item);
+    });
+    return [...selected.values()];
+  };
+  const watchPoints = [
+    ...strongestByMetric(candidates.filter(item => item.winDiff >= 5), 'winDiff').map(item => ({ ...item, type: 'positive', impact: item.winDiff })),
+    ...strongestByMetric(candidates.filter(item => item.lossDiff >= 5), 'lossDiff').map(item => ({ ...item, type: 'negative', impact: -item.lossDiff }))
+  ].sort((a, b) => Math.abs(b.impact) - Math.abs(a.impact) || b.count - a.count).slice(0, 6);
 
   return {
     teamName,
@@ -122,8 +135,54 @@ function buildTeamProfile(matches, teamName) {
     lossAverages: Object.fromEntries(METRIC_DEFINITIONS.map(metric => [metric.key, average(losses, metric.key)])),
     positivePatterns,
     negativePatterns,
-    neutralPatterns
+    neutralPatterns,
+    watchPoints
   };
+}
+
+function WatchPointChart({ profile }) {
+  const points = profile.watchPoints || [];
+  if (!points.length) return null;
+  const maxImpact = Math.max(10, ...points.map(point => Math.abs(point.impact)));
+  const primary = points[0];
+  return (
+    <div style={{ marginTop: '16px', padding: '15px', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
+        <div>
+          <h3 style={{ margin: 0, fontSize: '15px' }}>観戦ポイント重要度マップ</h3>
+          <p style={{ margin: '4px 0 0', color: '#94a3b8', fontSize: '11px' }}>中央が通常成績。右は勝利サイン、左は敗北への注意サインです。</p>
+        </div>
+        <div style={{ fontSize: '11px', color: '#94a3b8' }}><span style={{ color: '#f87171' }}>← 注意</span>　通常　<span style={{ color: '#4ade80' }}>勝利サイン →</span></div>
+      </div>
+      <div style={{ display: 'grid', gap: '10px' }}>
+        {points.map(point => {
+          const width = Math.max(4, Math.min(50, (Math.abs(point.impact) / maxImpact) * 48));
+          const positive = point.impact > 0;
+          return (
+            <div key={`${point.type}-${point.id}`}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '4px', fontSize: '11px' }}>
+                <strong>{point.label}</strong>
+                <span style={{ color: '#94a3b8', whiteSpace: 'nowrap' }}>{point.count}試合・信頼度{point.confidence}</span>
+              </div>
+              <div style={{ position: 'relative', height: '24px', background: '#1e293b', borderRadius: '5px', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: '1px', background: '#64748b', zIndex: 2 }} />
+                <div style={{ position: 'absolute', top: '4px', bottom: '4px', left: positive ? '50%' : `${50 - width}%`, width: `${width}%`, background: positive ? '#16a34a' : '#dc2626', borderRadius: positive ? '0 4px 4px 0' : '4px 0 0 4px' }} />
+                <span style={{ position: 'absolute', zIndex: 3, top: '4px', left: positive ? `calc(50% + 7px)` : '7px', color: '#fff', fontSize: '10px', fontWeight: 'bold' }}>
+                  {positive ? '+' : '−'}{fixed(Math.abs(point.impact))}pt
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div style={{ marginTop: '13px', padding: '10px 12px', borderRadius: '6px', background: '#082f49', fontSize: '12px', lineHeight: 1.7 }}>
+        <strong style={{ color: '#7dd3fc' }}>まず見るポイント：</strong>
+        {primary.type === 'positive'
+          ? `「${primary.label}」へ近づいているか確認してください。過去データでは通常より勝率が${fixed(primary.winDiff)}ポイント高い条件です。`
+          : `「${primary.label}」の展開に注意してください。過去データでは通常より敗率が${fixed(primary.lossDiff)}ポイント高い条件です。`}
+      </div>
+    </div>
+  );
 }
 
 function RateBox({ label, summary, color = '#38bdf8' }) {
@@ -167,6 +226,8 @@ function TeamProfile({ profile }) {
         <RateBox label="アウェイ勝率" summary={profile.away} color="#fbbf24" />
         <RateBox label="データ上の直近5試合" summary={profile.recent} color="#c084fc" />
       </div>
+
+      <WatchPointChart profile={profile} />
 
       <div style={{ marginTop: '12px', padding: '12px', borderRadius: '7px', background: '#082f49', border: '1px solid #0369a1', fontSize: '13px', lineHeight: 1.7 }}>
         <strong style={{ color: '#7dd3fc' }}>観戦ポイント：</strong>

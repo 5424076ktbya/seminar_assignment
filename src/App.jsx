@@ -4,7 +4,9 @@ import jleagueHistoryDataUrl from './jleague_history.json?url';
 import UpcomingMatches from './components/UpcomingMatches'; // 今週の試合予想コンポーネントを追加
 import LegalModal from './components/LegalModal';
 import TeamInsights from './components/TeamInsights';
+import TeamClusterChart from './components/TeamClusterChart';
 import { canonicalizeRequestedMatch, normalizeMatch } from './dataNormalization';
+import { CartesianGrid, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 // クラッシュ防止用のエラーバウンダリ
 class ErrorBoundary extends Component {
@@ -278,6 +280,37 @@ function MainApp() {
   const passAccRes = useMemo(() => analyzeLaw((s, m, t) => checkSingleCond(s, m, t, { metric: 'passAcc', value: minPassAcc })), [matches, minPassAcc]);
   const firstGoalRes = useMemo(() => analyzeLaw((s, m, t) => checkSingleCond(s, m, t, { metric: 'firstGoal', value: firstGoalMinute })), [matches, firstGoalMinute]);
 
+  const selectedMetricValue = {
+    shots: minShots,
+    corners: cornerKicks,
+    freeKicks,
+    possession: minPossession,
+    firstGoal: firstGoalMinute,
+    highXg: minHighXg,
+    defense: maxOpponentPasses,
+    shotAcc: minShotAcc,
+    passAcc: minPassAcc
+  }[activeTab];
+
+  const winRateTrend = useMemo(() => {
+    const metric = METRICS.find(item => item.id === activeTab);
+    if (!metric || metric.min === undefined || !metricAvailability[activeTab]?.available) return [];
+    const points = [];
+    for (let value = metric.min; value <= metric.max; value += metric.step) {
+      const result = analyzeLaw((stats, match, teamName) => checkSingleCond(stats, match, teamName, { metric: activeTab, value }));
+      if (result.total > 0) {
+        points.push({
+          value,
+          勝率: Number(result.winRate),
+          引分率: Number(result.drawRate),
+          敗北率: Number(result.lossRate),
+          該当件数: result.total
+        });
+      }
+    }
+    return points;
+  }, [matches, activeTab, metricAvailability]);
+
   const multiResult = useMemo(() => {
     return analyzeLaw((stats, match, teamName) => {
       return conditions.every(c => !metricAvailability[c.metric]?.available || checkSingleCond(stats, match, teamName, c));
@@ -374,7 +407,7 @@ function MainApp() {
         </div>
 
         <p style={{ margin: '14px 0 0', color: '#94a3b8', fontSize: '11px', lineHeight: 1.6 }}>
-          ※ 分析結果は過去データの傾向であり、将来の試合結果を保証するものではありません。実測値と推定値は各分析項目に表示します。
+          ※ 分析結果は過去データの傾向であり、将来の試合結果を保証するものではありません。
         </p>
       </section>
 
@@ -476,6 +509,28 @@ function MainApp() {
                 </div>
               )}
 
+              {activeTab === 'corners' && (
+                <div>
+                  <h3 style={{ fontSize: '16px', margin: '0 0 10px 0' }}>コーナーキック数と勝率</h3>
+                  <div style={{ background: '#0f172a', padding: '15px', borderRadius: '6px', margin: '20px 0' }}>
+                    <label style={{ fontSize: '13px' }}>コーナーキック数: <strong style={{ color: '#38bdf8' }}>{cornerKicks - 1}〜{cornerKicks + 1} 本</strong></label>
+                    <input type="range" min="0" max="15" step="1" value={cornerKicks} onChange={e => setCornerKicks(Number(e.target.value))} style={{ width: '100%', marginTop: '8px' }} />
+                  </div>
+                  <ResultBar res={cornersRes} />
+                </div>
+              )}
+
+              {activeTab === 'freeKicks' && (
+                <div>
+                  <h3 style={{ fontSize: '16px', margin: '0 0 10px 0' }}>フリーキック数と勝率</h3>
+                  <div style={{ background: '#0f172a', padding: '15px', borderRadius: '6px', margin: '20px 0' }}>
+                    <label style={{ fontSize: '13px' }}>フリーキック数: <strong style={{ color: '#38bdf8' }}>{freeKicks - 1}〜{freeKicks + 1} 本</strong></label>
+                    <input type="range" min="0" max="30" step="1" value={freeKicks} onChange={e => setFreeKicks(Number(e.target.value))} style={{ width: '100%', marginTop: '8px' }} />
+                  </div>
+                  <ResultBar res={freeKicksRes} />
+                </div>
+              )}
+
               {activeTab === 'possession' && (
                 <div>
                   <h3 style={{ fontSize: '16px', margin: '0 0 10px 0' }}>ボール支配率と勝率</h3>
@@ -541,11 +596,18 @@ function MainApp() {
                   <ResultBar res={passAccRes} />
                 </div>
               )}
+
+              {winRateTrend.length > 1 && (
+                <WinRateTrendChart
+                  data={winRateTrend}
+                  metric={getMetricInfo(activeTab)}
+                  selectedValue={selectedMetricValue}
+                />
+              )}
             </div>
 
             <div style={{ background: '#0f172a', padding: '20px', borderRadius: '8px', border: '1px solid #334155' }}>
               <h3 style={{ color: '#38bdf8', marginTop: 0, fontSize: '15px' }}>{getMetricInfo(activeTab)?.name}</h3>
-              <DataQualityBadge status={metricAvailability[activeTab]} />
               <p style={{ fontSize: '13px', lineHeight: '1.6', color: '#cbd5e1' }}>
                 {getMetricInfo(activeTab)?.description}
               </p>
@@ -555,27 +617,6 @@ function MainApp() {
                 </p>
               )}
 
-              {activeTab === 'corners' && (
-                <div>
-                  <h3 style={{ fontSize: '16px', margin: '0 0 10px 0' }}>コーナーキック数と勝率</h3>
-                  <div style={{ background: '#0f172a', padding: '15px', borderRadius: '6px', margin: '20px 0' }}>
-                    <label style={{ fontSize: '13px' }}>コーナーキック数: <strong style={{ color: '#38bdf8' }}>{cornerKicks - 1}〜{cornerKicks + 1} 本</strong></label>
-                    <input type="range" min="0" max="15" step="1" value={cornerKicks} onChange={e => setCornerKicks(Number(e.target.value))} style={{ width: '100%', marginTop: '8px' }} />
-                  </div>
-                  <ResultBar res={cornersRes} />
-                </div>
-              )}
-
-              {activeTab === 'freeKicks' && (
-                <div>
-                  <h3 style={{ fontSize: '16px', margin: '0 0 10px 0' }}>フリーキック数と勝率</h3>
-                  <div style={{ background: '#0f172a', padding: '15px', borderRadius: '6px', margin: '20px 0' }}>
-                    <label style={{ fontSize: '13px' }}>フリーキック数: <strong style={{ color: '#38bdf8' }}>{freeKicks - 1}〜{freeKicks + 1} 本</strong></label>
-                    <input type="range" min="0" max="30" step="1" value={freeKicks} onChange={e => setFreeKicks(Number(e.target.value))} style={{ width: '100%', marginTop: '8px' }} />
-                  </div>
-                  <ResultBar res={freeKicksRes} />
-                </div>
-              )}
               <p style={{ fontSize: '12px', lineHeight: '1.6', color: '#94a3b8', marginBottom: 0 }}>
                 該当試合における勝利・引き分け・敗北の割合を表示します。
               </p>
@@ -638,7 +679,6 @@ function MainApp() {
                       </>
                     )}
                   </div>
-                  <div style={{ marginTop: '9px' }}><DataQualityBadge status={metricAvailability[cond.metric]} /></div>
                   {!metricAvailability[cond.metric]?.available && (
                     <div style={{ marginTop: '7px', color: '#fbbf24', fontSize: '12px' }}>この条件は選択中のデータに存在しないため、複数条件の集計から自動的に除外されます。</div>
                   )}
@@ -693,6 +733,10 @@ function MainApp() {
 
       <TeamInsights matches={matches} requestedMatch={requestedMatchAnalysis} />
 
+      <section id="team-clusters" style={{ marginTop: '28px', padding: '20px', background: '#1e293b', border: '1px solid #334155', borderRadius: '9px' }}>
+        <TeamClusterChart />
+      </section>
+
       {/* ★ここに今週の試合予想コンポーネントを配置 */}
       <UpcomingMatches onAnalyzeMatch={(match) => {
         const normalizedMatch = canonicalizeRequestedMatch(match);
@@ -713,16 +757,33 @@ function MainApp() {
   );
 }
 
-function DataQualityBadge({ status }) {
-  if (!status?.available) {
-    return <span style={{ display: 'inline-block', padding: '3px 7px', borderRadius: '999px', background: '#422006', color: '#fbbf24', fontSize: '11px' }}>利用可能なデータなし</span>;
-  }
-  const estimated = status.quality === 'estimated';
-  const mixed = status.quality === 'mixed';
+function WinRateTrendChart({ data, metric, selectedValue }) {
   return (
-    <span style={{ display: 'inline-block', padding: '3px 7px', borderRadius: '999px', background: estimated || mixed ? '#3f2b0b' : '#052e16', color: estimated || mixed ? '#fbbf24' : '#4ade80', fontSize: '11px' }}>
-      {mixed ? '実測・推定混在' : estimated ? '推定データ' : '実測データ'} / 対象カバー率 {status.coverage}%
-    </span>
+    <section style={{ marginTop: '22px', padding: '16px', borderRadius: '8px', background: '#0f172a', border: '1px solid #334155' }}>
+      <h3 style={{ margin: '0 0 4px', fontSize: '15px' }}>{metric?.name}ごとの勝率推移</h3>
+      <p style={{ margin: '0 0 14px', color: '#94a3b8', fontSize: '11px' }}>
+        各数値の前後1を含む試合を集計しています。点にカーソルを合わせると該当件数を確認できます。
+      </p>
+      <div style={{ width: '100%', height: '290px' }}>
+        <ResponsiveContainer>
+          <LineChart data={data} margin={{ top: 14, right: 20, left: 0, bottom: 8 }}>
+            <CartesianGrid stroke="#334155" strokeDasharray="3 3" />
+            <XAxis dataKey="value" tick={{ fill: '#94a3b8', fontSize: 11 }} label={{ value: metric?.name, position: 'insideBottom', offset: -4, fill: '#94a3b8', fontSize: 11 }} />
+            <YAxis domain={[0, 100]} tick={{ fill: '#94a3b8', fontSize: 11 }} tickFormatter={value => `${value}%`} />
+            <Tooltip
+              contentStyle={{ background: '#0f172a', border: '1px solid #475569', borderRadius: '6px', color: '#f8fafc', fontSize: '12px' }}
+              formatter={(value, name) => [`${Number(value).toFixed(1)}%`, name]}
+              labelFormatter={(value, payload) => `${metric?.name}: ${value}（該当 ${payload?.[0]?.payload?.該当件数 ?? 0}件）`}
+            />
+            <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
+            {selectedValue !== undefined && <ReferenceLine x={selectedValue} stroke="#38bdf8" strokeDasharray="5 4" label={{ value: '選択中', fill: '#38bdf8', fontSize: 10 }} />}
+            <Line type="monotone" dataKey="勝率" stroke="#22c55e" strokeWidth={3} dot={{ r: 3 }} activeDot={{ r: 6 }} />
+            <Line type="monotone" dataKey="引分率" stroke="#eab308" strokeWidth={2} dot={{ r: 2 }} />
+            <Line type="monotone" dataKey="敗北率" stroke="#ef4444" strokeWidth={2} dot={{ r: 2 }} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </section>
   );
 }
 

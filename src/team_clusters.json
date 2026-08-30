@@ -1,0 +1,19 @@
+{
+  "generated_at": null,
+  "team_count": 0,
+  "features": [],
+  "clustering": {
+    "algorithm": "kmeans",
+    "k": 0,
+    "k_search_range": [4, 8],
+    "silhouette_scores": {},
+    "random_state": 42
+  },
+  "projection": {
+    "algorithm": "umap",
+    "n_neighbors": 15,
+    "min_dist": 0.3,
+    "random_state": 42
+  },
+  "teams": []
+}

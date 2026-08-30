@@ -12,6 +12,7 @@ on:
           - all
           - europe
           - j1
+          - clusters
       start_season:
         description: First season year
         required: true
@@ -76,6 +77,10 @@ jobs:
             --end-season "${{ inputs.end_season }}" \
             $EXTRA_ARGS
 
+      - name: Recompute team clusters
+        if: inputs.dataset == 'clusters'
+        run: python cluster_teams.py
+
       - name: Commit updated datasets
         run: |
           git config user.name "github-actions[bot]"
@@ -83,6 +88,9 @@ jobs:
           git add src/shots_data.json
           if [ -f src/jleague_history.json ]; then
             git add src/jleague_history.json
+          fi
+          if [ -f src/team_clusters.json ]; then
+            git add src/team_clusters.json
           fi
           if git diff --cached --quiet; then
             echo "変更なし"

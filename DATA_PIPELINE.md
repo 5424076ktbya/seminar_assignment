@@ -49,3 +49,26 @@ python fetch_jleague_history.py --start-season 2014 --end-season 2025
 
 現段階ではJ1結果を欧州の分析JSONへ混在させない。支配率などがないJ1試合を同じ条件で
 集計すると誤解を招くため、次段階でリーグ選択と利用可能指標の制御を追加してからUIへ接続する。
+
+## チームクラスタリング（似たチームを見つける）
+
+### セットアップ
+
+```powershell
+python -m pip install -r requirements-data.txt
+```
+
+### コマンド
+
+```powershell
+python cluster_teams.py
+```
+
+- 出力: `src/team_clusters.json`
+- 欧州5大リーグとJ1を、得点・失点・勝敗・ホーム／アウェイから算出した欠損のない指標で比較する。
+- K-meansは標準化した元特徴量に対して実行する。
+- UMAPは散布図上の配置だけに使用し、UMAP座標ではクラスタリングしない。
+- GitHub Actionsでは`dataset: clusters`を明示的に選んだ場合だけ再計算する。
+- 通常の欧州・J1データ更新には含めないため、データ更新でクラスタ番号が意図せず変わることを防げる。
+
+J1結果は通常の条件分析では欧州分析JSONへ混在させないが、クラスタリングでは両リーグに共通する得点・勝敗由来の指標だけを利用するため、リーグ横断比較の対象に含める。
