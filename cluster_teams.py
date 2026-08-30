@@ -1,4 +1,4 @@
-"""得点・勝敗由来の特徴量から似たチームを分類し、可視化用JSONを生成する。"""
+"""試合スタッツからプレースタイルが似たチームを分類する。"""
 
 import argparse
 import json
@@ -18,15 +18,14 @@ DEFAULT_SHOTS_DATA = Path("src/shots_data.json")
 DEFAULT_JLEAGUE_HISTORY = Path("src/jleague_history.json")
 DEFAULT_OUTPUT = Path("src/team_clusters.json")
 
-FEATURE_KEYS = [
-    "avg_goals_for", "avg_goals_against", "win_rate", "draw_rate",
-    "home_win_rate", "away_win_rate", "home_advantage", "clean_sheet_rate",
-    "scoreless_rate", "close_game_rate", "blowout_rate", "big_win_rate",
-]
+MODEL_FEATURES = {
+    "j1_style": ["avg_shots", "avg_corner_kicks", "avg_free_kicks", "first_goal_rate", "avg_first_goal_minute"],
+    "europe_style": ["avg_shots", "avg_possession", "avg_pass_accuracy", "avg_shot_accuracy", "avg_high_xg_shots", "avg_opponent_passes", "first_goal_rate", "avg_first_goal_minute"],
+}
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="試合結果からチームをクラスタリングします")
+    parser = argparse.ArgumentParser(description="スタッツから似たチームをクラスタリングします")
     parser.add_argument("--shots-data", type=Path, default=DEFAULT_SHOTS_DATA)
     parser.add_argument("--jleague-history", type=Path, default=DEFAULT_JLEAGUE_HISTORY)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
@@ -61,82 +60,78 @@ def read_matches(path):
     return data
 
 
+def model_for_match(match):
+    return "j1_style" if match.get("league") == "J1" else "europe_style"
+
+
 def collect_team_records(matches):
     records = defaultdict(list)
     leagues = defaultdict(Counter)
+    models = {}
     for match in matches:
         team_a, team_b = match.get("teamA"), match.get("teamB")
-        goals_a, goals_b = match.get("goalsA"), match.get("goalsB")
-        if not team_a or not team_b or goals_a is None or goals_b is None:
+        if not team_a or not team_b:
             continue
-        winner, league = match.get("winner"), match.get("league")
-        for team, goals_for, goals_against, is_home in (
-            (team_a, goals_a, goals_b, True), (team_b, goals_b, goals_a, False)
-        ):
-            records[team].append({
-                "goals_for": int(goals_for), "goals_against": int(goals_against),
-                "is_home": is_home,
-                "result": "win" if winner == team else ("draw" if winner is None else "loss"),
-            })
-            if league:
-                leagues[team][league] += 1
-    return records, leagues
+        model_id = model_for_match(match)
+        for team in (team_a, team_b):
+            stats = match.get("stats", {}).get(team)
+            if not isinstance(stats, dict):
+                continue
+            records[team].append({"match": match, "stats": stats})
+            models[team] = model_id
+            if match.get("league"):
+                leagues[team][match["league"]] += 1
+    return records, leagues, models
 
 
-def rate(count, total):
-    return count / total if total else 0.0
+def mean_available(entries, field):
+    values = [float(entry["stats"][field]) for entry in entries if entry["stats"].get(field) is not None]
+    return (sum(values) / len(values), len(values) / len(entries)) if values else (None, 0.0)
 
 
-def compute_features(entries):
-    total = len(entries)
-    goals_for = [entry["goals_for"] for entry in entries]
-    goals_against = [entry["goals_against"] for entry in entries]
-    differences = [gf - ga for gf, ga in zip(goals_for, goals_against)]
-    home_entries = [entry for entry in entries if entry["is_home"]]
-    away_entries = [entry for entry in entries if not entry["is_home"]]
-    home_win_rate = rate(sum(entry["result"] == "win" for entry in home_entries), len(home_entries))
-    away_win_rate = rate(sum(entry["result"] == "win" for entry in away_entries), len(away_entries))
-    features = {
-        "avg_goals_for": sum(goals_for) / total,
-        "avg_goals_against": sum(goals_against) / total,
-        "win_rate": rate(sum(entry["result"] == "win" for entry in entries), total),
-        "draw_rate": rate(sum(entry["result"] == "draw" for entry in entries), total),
-        "home_win_rate": home_win_rate,
-        "away_win_rate": away_win_rate,
-        "home_advantage": home_win_rate - away_win_rate,
-        "clean_sheet_rate": rate(sum(value == 0 for value in goals_against), total),
-        "scoreless_rate": rate(sum(value == 0 for value in goals_for), total),
-        "close_game_rate": rate(sum(abs(value) <= 1 for value in differences), total),
-        "blowout_rate": rate(sum(abs(value) >= 3 for value in differences), total),
-        "big_win_rate": rate(sum(entry["result"] == "win" and difference >= 2 for entry, difference in zip(entries, differences)), total),
+def compute_style_features(entries, team_name, model_id):
+    field_map = {
+        "avg_shots": "shots", "avg_corner_kicks": "corner_kicks", "avg_free_kicks": "free_kicks",
+        "avg_possession": "possession", "avg_pass_accuracy": "pass_accuracy",
+        "avg_shot_accuracy": "shot_accuracy", "avg_high_xg_shots": "high_xg_shots",
+        "avg_opponent_passes": "opponent_passes",
     }
-    return features, len(home_entries), len(away_entries)
+    features, coverage = {}, {}
+    for feature_key in MODEL_FEATURES[model_id]:
+        if feature_key in field_map:
+            features[feature_key], coverage[feature_key] = mean_available(entries, field_map[feature_key])
+
+    known_first_goals = [entry for entry in entries if entry["match"].get("first_goal_minute") is not None]
+    team_first_goals = [entry for entry in known_first_goals if entry["match"].get("first_goal_team") == team_name]
+    features["first_goal_rate"] = len(team_first_goals) / len(known_first_goals) if known_first_goals else None
+    coverage["first_goal_rate"] = len(known_first_goals) / len(entries)
+    features["avg_first_goal_minute"] = (
+        sum(float(entry["match"]["first_goal_minute"]) for entry in team_first_goals) / len(team_first_goals)
+        if team_first_goals else None
+    )
+    coverage["avg_first_goal_minute"] = len(team_first_goals) / len(entries)
+    return features, coverage
 
 
-def main():
-    args = parse_args()
-    matches = read_matches(args.shots_data) + read_matches(args.jleague_history)
-    records, leagues = collect_team_records(matches)
-    team_names = sorted(records)
-    if len(team_names) < 4:
-        raise SystemExit("クラスタリングに必要なチーム数がありません")
+def impute_feature_rows(team_rows, feature_keys):
+    medians = {}
+    for key in feature_keys:
+        values = [row["features"].get(key) for row in team_rows if row["features"].get(key) is not None]
+        medians[key] = float(np.median(values)) if values else 0.0
+    matrix = []
+    for row in team_rows:
+        for key in feature_keys:
+            if row["features"].get(key) is None:
+                row["features"][key] = medians[key]
+                row.setdefault("imputed_features", []).append(key)
+        matrix.append([row["features"][key] for key in feature_keys])
+    return np.asarray(matrix, dtype=float)
 
-    feature_rows = []
-    team_metadata = []
-    for team_name in team_names:
-        features, home_matches, away_matches = compute_features(records[team_name])
-        feature_rows.append([features[key] for key in FEATURE_KEYS])
-        team_metadata.append({
-            "team_name": team_name,
-            "league": leagues[team_name].most_common(1)[0][0] if leagues[team_name] else None,
-            "matches": len(records[team_name]),
-            "home_matches": home_matches,
-            "away_matches": away_matches,
-            "features": features,
-        })
 
-    scaled = StandardScaler().fit_transform(np.asarray(feature_rows, dtype=float))
-    maximum_k = min(args.k_max, len(team_names) - 1)
+def cluster_model(team_rows, feature_keys, args):
+    matrix = impute_feature_rows(team_rows, feature_keys)
+    scaled = StandardScaler().fit_transform(matrix)
+    maximum_k = min(args.k_max, len(team_rows) - 1)
     minimum_k = min(args.k_min, maximum_k)
     scores = {}
     if args.k is None:
@@ -145,42 +140,52 @@ def main():
             scores[str(cluster_count)] = float(silhouette_score(scaled, labels))
         selected_k = int(max(scores, key=scores.get))
     else:
-        if not 2 <= args.k < len(team_names):
-            raise SystemExit("--k は2以上かつチーム数未満にしてください")
-        selected_k = args.k
-
+        selected_k = min(args.k, len(team_rows) - 1)
     labels = KMeans(n_clusters=selected_k, random_state=args.seed, n_init=20).fit_predict(scaled)
-    neighbors = min(max(2, args.umap_neighbors), len(team_names) - 1)
-    coordinates = UMAP(
-        n_neighbors=neighbors, min_dist=args.umap_min_dist, n_components=2,
-        random_state=args.seed, n_jobs=1,
-    ).fit_transform(scaled)
+    neighbors = min(max(2, args.umap_neighbors), len(team_rows) - 1)
+    coordinates = UMAP(n_neighbors=neighbors, min_dist=args.umap_min_dist, n_components=2, random_state=args.seed, n_jobs=1).fit_transform(scaled)
+    for row, label, coordinate in zip(team_rows, labels, coordinates):
+        row["cluster_id"] = int(label)
+        row["umap_x"] = round(float(coordinate[0]), 5)
+        row["umap_y"] = round(float(coordinate[1]), 5)
+    return {"k": selected_k, "silhouette_scores": scores, "n_neighbors": neighbors}
 
-    teams = []
-    for metadata, cluster_id, coordinate in zip(team_metadata, labels, coordinates):
-        teams.append({
-            **metadata, "cluster_id": int(cluster_id),
-            "umap_x": round(float(coordinate[0]), 5),
-            "umap_y": round(float(coordinate[1]), 5),
+
+def main():
+    args = parse_args()
+    matches = read_matches(args.shots_data) + read_matches(args.jleague_history)
+    records, leagues, team_models = collect_team_records(matches)
+    teams_by_model = defaultdict(list)
+    for team_name in sorted(records):
+        model_id = team_models[team_name]
+        features, coverage = compute_style_features(records[team_name], team_name, model_id)
+        teams_by_model[model_id].append({
+            "team_name": team_name, "league": leagues[team_name].most_common(1)[0][0],
+            "model_id": model_id, "matches": len(records[team_name]),
+            "features": features, "coverage": coverage,
         })
 
+    model_metadata = {}
+    all_teams = []
+    for model_id, feature_keys in MODEL_FEATURES.items():
+        rows = teams_by_model.get(model_id, [])
+        if len(rows) < 4:
+            continue
+        result = cluster_model(rows, feature_keys, args)
+        model_metadata[model_id] = {
+            "features": feature_keys, "team_count": len(rows), "k": result["k"],
+            "silhouette_scores": result["silhouette_scores"], "n_neighbors": result["n_neighbors"],
+        }
+        all_teams.extend(rows)
+
     output = {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
-        "team_count": len(teams),
-        "features": FEATURE_KEYS,
-        "clustering": {
-            "algorithm": "kmeans", "k": selected_k,
-            "k_search_range": [minimum_k, maximum_k],
-            "silhouette_scores": scores, "random_state": args.seed,
-        },
-        "projection": {
-            "algorithm": "umap", "n_neighbors": neighbors,
-            "min_dist": args.umap_min_dist, "random_state": args.seed,
-        },
-        "teams": teams,
+        "generated_at": datetime.now(timezone.utc).isoformat(), "team_count": len(all_teams),
+        "clustering": {"algorithm": "kmeans", "random_state": args.seed},
+        "projection": {"algorithm": "umap", "min_dist": args.umap_min_dist, "random_state": args.seed},
+        "models": model_metadata, "teams": all_teams,
     }
     atomic_write_json(args.output, output)
-    print(f"完了: {len(teams)}チームを{selected_k}クラスタに分類し、{args.output}へ保存しました")
+    print(f"完了: {len(all_teams)}チームをプレースタイルで分類しました")
 
 
 if __name__ == "__main__":
