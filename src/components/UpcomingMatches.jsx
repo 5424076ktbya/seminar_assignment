@@ -53,7 +53,7 @@ const isMatchLocked = (match) => {
   return startTime !== null && Date.now() >= startTime;
 };
 
-export default function UpcomingMatches() {
+export default function UpcomingMatches({ onAnalyzeMatch }) {
   const [regionTab, setRegionTab] = useState('jleague');
   const [pickupFilter, setPickupFilter] = useState('most_voted');
 
@@ -424,6 +424,15 @@ export default function UpcomingMatches() {
             {m.away_team} ({awayPct}%)
           </button>
         </div>
+        {onAnalyzeMatch && (
+          <button
+            type="button"
+            onClick={() => onAnalyzeMatch(m)}
+            style={{ width: '100%', marginTop: '9px', padding: '8px', borderRadius: '4px', border: '1px solid #0284c7', background: 'rgba(2, 132, 199, 0.12)', color: '#7dd3fc', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}
+          >
+            この対戦の過去データ分析・観戦ポイントを見る
+          </button>
+        )}
       </div>
     );
   };

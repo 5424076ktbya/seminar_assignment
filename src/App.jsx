@@ -2,6 +2,7 @@ import React, { useState, useMemo, Component } from 'react';
 import matchesData from './shots_data.json';
 import UpcomingMatches from './components/UpcomingMatches'; // 今週の試合予想コンポーネントを追加
 import LegalModal from './components/LegalModal';
+import TeamInsights from './components/TeamInsights';
 
 // クラッシュ防止用のエラーバウンダリ
 class ErrorBoundary extends Component {
@@ -37,6 +38,8 @@ class ErrorBoundary extends Component {
 function MainApp() {
   const matches = Array.isArray(matchesData) ? matchesData : [];
   const [legalModal, setLegalModal] = useState(null);
+  const [showTeamList, setShowTeamList] = useState(false);
+  const [requestedMatchAnalysis, setRequestedMatchAnalysis] = useState(null);
 
   const [mode, setMode] = useState('single');
   const [activeTab, setActiveTab] = useState('homeAway');
@@ -51,14 +54,14 @@ function MainApp() {
   const [homeAwayCondition, setHomeAwayCondition] = useState('home');
 
   const METRICS = [
-    { id: 'homeAway', name: 'ホーム / アウェイ', unit: '戦' },
-    { id: 'shots', name: 'シュート本数', min: 5, max: 30, step: 1, default: 15, unit: '本以上' },
-    { id: 'possession', name: 'ボール支配率', min: 30, max: 80, step: 5, default: 60, unit: '% 以上' },
-    { id: 'firstGoal', name: '先制点時間帯', min: 10, max: 45, step: 5, default: 30, unit: '分以内に先制' },
-    { id: 'highXg', name: '決定機数 (高xG)', min: 1, max: 8, step: 1, default: 3, unit: '本以上' },
-    { id: 'defense', name: '相手パス許容数', min: 200, max: 600, step: 25, default: 350, unit: '本以下' },
-    { id: 'shotAcc', name: '枠内シュート率', min: 20, max: 70, step: 5, default: 45, unit: '% 以上' },
-    { id: 'passAcc', name: 'パス成功率', min: 70, max: 92, step: 1, default: 85, unit: '% 以上' }
+    { id: 'homeAway', name: 'ホーム / アウェイ', unit: '戦', description: 'チームがホームまたはアウェイでプレーした試合に分けて成績を比較します。' },
+    { id: 'shots', name: 'シュート本数', min: 5, max: 30, step: 1, default: 15, unit: '±1本', description: 'チームが1試合で放ったシュートの総数です。攻撃の積極性の目安になります。' },
+    { id: 'possession', name: 'ボール支配率', min: 30, max: 80, step: 5, default: 60, unit: '±1%', description: '試合中にボールを保持していた割合です。試合をどの程度コントロールしたかの目安になります。' },
+    { id: 'firstGoal', name: '先制点時間帯', min: 10, max: 45, step: 5, default: 30, unit: '±1分に先制', description: 'そのチームが先制した時刻です。早い時間帯の先制が結果に与える影響を確認できます。' },
+    { id: 'highXg', name: '決定機数 (高xG)', min: 1, max: 8, step: 1, default: 3, unit: '±1本', description: '得点につながる可能性が高いシュートの本数です。チャンスの質と量を表します。' },
+    { id: 'defense', name: '相手パス許容数', min: 200, max: 600, step: 25, default: 350, unit: '±1本', description: '相手チームに許したパス数です。相手のボール保持や自チームの守備傾向を見る目安になります。' },
+    { id: 'shotAcc', name: '枠内シュート率', min: 20, max: 70, step: 5, default: 45, unit: '±1%', description: '全シュートのうち枠内へ飛んだ割合です。シュート精度の目安になります。' },
+    { id: 'passAcc', name: 'パス成功率', min: 70, max: 92, step: 1, default: 85, unit: '±1%', description: '試みたパスのうち成功した割合です。ボール運びの安定性を表します。' }
   ];
 
   const [conditions, setConditions] = useState([
@@ -98,19 +101,29 @@ function MainApp() {
   const checkSingleCond = (stats, match, teamName, cond) => {
     if (!stats || !match) return false;
     const { metric, value, homeAway } = cond;
-    if (metric === 'shots') return Number(stats.shots ?? 0) >= value;
-    if (metric === 'possession') return Number(stats.possession ?? 0) >= value;
-    if (metric === 'firstGoal') return match.first_goal_team === teamName && match.first_goal_minute !== null && match.first_goal_minute !== undefined && Number(match.first_goal_minute) <= value;
-    if (metric === 'highXg') return Number(stats.high_xg_shots ?? 0) >= value;
-    if (metric === 'defense') return Number(stats.opponent_passes ?? 999) <= value;
-    if (metric === 'shotAcc') return Number(stats.shot_accuracy ?? 0) >= value;
-    if (metric === 'passAcc') return Number(stats.pass_accuracy ?? 0) >= value;
+    const isWithinSelectedRange = actual => {
+      if (actual === null || actual === undefined || actual === '') return false;
+      const numericValue = Number(actual);
+      return Number.isFinite(numericValue) && Math.abs(numericValue - Number(value)) <= 1;
+    };
+    if (metric === 'shots') return isWithinSelectedRange(stats.shots);
+    if (metric === 'possession') return isWithinSelectedRange(stats.possession);
+    if (metric === 'firstGoal') return match.first_goal_team === teamName && match.first_goal_minute !== null && match.first_goal_minute !== undefined && isWithinSelectedRange(match.first_goal_minute);
+    if (metric === 'highXg') return isWithinSelectedRange(stats.high_xg_shots);
+    if (metric === 'defense') return isWithinSelectedRange(stats.opponent_passes);
+    if (metric === 'shotAcc') return isWithinSelectedRange(stats.shot_accuracy);
+    if (metric === 'passAcc') return isWithinSelectedRange(stats.pass_accuracy);
     if (metric === 'homeAway') return homeAway === 'home' ? stats.is_home === true : stats.is_home === false;
     return true;
   };
 
   const analyzeLaw = (filterFn) => {
     let qualified = 0, win = 0, draw = 0, loss = 0;
+    const outcomeTeams = { win: new Map(), draw: new Map(), loss: new Map() };
+    const addOutcomeTeam = (outcome, teamName) => {
+      const teamCounts = outcomeTeams[outcome];
+      teamCounts.set(teamName, (teamCounts.get(teamName) || 0) + 1);
+    };
     matches.forEach(m => {
       if (!m || !m.stats) return;
       ['teamA', 'teamB'].forEach(tKey => {
@@ -119,23 +132,51 @@ function MainApp() {
         const stats = m.stats[tName];
         if (stats && filterFn(stats, m, tName)) {
           qualified++;
-          if (m.winner === tName) win++;
-          else if (m.winner === null || m.winner === undefined) draw++;
-          else loss++;
+          if (m.winner === tName) {
+            win++;
+            addOutcomeTeam('win', tName);
+          } else if (m.winner === null || m.winner === undefined) {
+            draw++;
+            addOutcomeTeam('draw', tName);
+          } else {
+            loss++;
+            addOutcomeTeam('loss', tName);
+          }
         }
       });
     });
+    const formatOutcomeTeams = teamCounts => [...teamCounts.entries()]
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'ja'));
+    const teamsByOutcome = {
+      win: formatOutcomeTeams(outcomeTeams.win),
+      draw: formatOutcomeTeams(outcomeTeams.draw),
+      loss: formatOutcomeTeams(outcomeTeams.loss)
+    };
     const total = qualified;
     if (total === 0) {
-      return { total: 0, winRate: "0.0", drawRate: "0.0", lossRate: "0.0" };
+      return { total: 0, winRate: "0.0", drawRate: "0.0", lossRate: "0.0", teamsByOutcome };
     }
     return {
       total: qualified,
       winRate: ((win / total) * 100).toFixed(1),
       drawRate: ((draw / total) * 100).toFixed(1),
-      lossRate: ((loss / total) * 100).toFixed(1)
+      lossRate: ((loss / total) * 100).toFixed(1),
+      teamsByOutcome
     };
   };
+
+  const teams = useMemo(() => {
+    const teamMatches = new Map();
+    matches.forEach(match => {
+      [match?.teamA, match?.teamB].forEach(teamName => {
+        if (teamName) teamMatches.set(teamName, (teamMatches.get(teamName) || 0) + 1);
+      });
+    });
+    return [...teamMatches.entries()]
+      .map(([name, matchCount]) => ({ name, matchCount }))
+      .sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+  }, [matches]);
 
   const homeAwayRes = useMemo(() => analyzeLaw((s, m, t) => checkSingleCond(s, m, t, { metric: 'homeAway', homeAway: homeAwayCondition })), [matches, homeAwayCondition]);
   const shotsRes = useMemo(() => analyzeLaw((s, m, t) => checkSingleCond(s, m, t, { metric: 'shots', value: minShots })), [matches, minShots]);
@@ -159,8 +200,26 @@ function MainApp() {
       <div style={{ marginBottom: '20px', borderBottom: '1px solid #334155', paddingBottom: '15px' }}>
         <h1 style={{ margin: 0, fontSize: '22px', color: '#38bdf8' }}>サッカー試合データ勝率予想・分析</h1>
         <p style={{ color: '#94a3b8', fontSize: '13px', marginTop: '6px' }}>
-          対象データ数: 全 {matches.length} 試合
+          対象データ数: 全 {matches.length} 試合 / {teams.length} チーム
         </p>
+        <button
+          type="button"
+          onClick={() => setShowTeamList(current => !current)}
+          aria-expanded={showTeamList}
+          style={{ padding: '6px 12px', borderRadius: '5px', border: '1px solid #475569', background: '#1e293b', color: '#7dd3fc', cursor: 'pointer', fontSize: '12px' }}
+        >
+          {showTeamList ? 'チーム一覧を閉じる' : '対象チーム一覧を表示'}
+        </button>
+        {showTeamList && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: '7px', maxHeight: '300px', overflowY: 'auto', marginTop: '12px', padding: '12px', background: '#1e293b', border: '1px solid #334155', borderRadius: '7px' }}>
+            {teams.map(team => (
+              <div key={team.name} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', padding: '5px 8px', background: '#0f172a', borderRadius: '4px', fontSize: '12px' }}>
+                <span>{team.name}</span>
+                <span style={{ color: '#94a3b8', whiteSpace: 'nowrap' }}>{team.matchCount}試合</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div style={{ display: 'flex', gap: '10px', marginBottom: '25px', background: '#0f172a', border: '1px solid #334155', padding: '4px', borderRadius: '8px', width: 'fit-content' }}>
@@ -229,7 +288,7 @@ function MainApp() {
                 <div>
                   <h3 style={{ fontSize: '16px', margin: '0 0 10px 0' }}>シュート総数と勝率</h3>
                   <div style={{ background: '#0f172a', padding: '15px', borderRadius: '6px', margin: '20px 0' }}>
-                    <label style={{ fontSize: '13px' }}>シュート本数: <strong style={{ color: '#38bdf8' }}>{minShots} 本以上</strong></label>
+                    <label style={{ fontSize: '13px' }}>シュート本数: <strong style={{ color: '#38bdf8' }}>{minShots - 1}〜{minShots + 1} 本</strong></label>
                     <input type="range" min="5" max="30" step="1" value={minShots} onChange={e => setMinShots(Number(e.target.value))} style={{ width: '100%', marginTop: '8px' }} />
                   </div>
                   <ResultBar res={shotsRes} />
@@ -240,7 +299,7 @@ function MainApp() {
                 <div>
                   <h3 style={{ fontSize: '16px', margin: '0 0 10px 0' }}>ボール支配率と勝率</h3>
                   <div style={{ background: '#0f172a', padding: '15px', borderRadius: '6px', margin: '20px 0' }}>
-                    <label style={{ fontSize: '13px' }}>ボール支配率: <strong style={{ color: '#38bdf8' }}>{minPossession}% 以上</strong></label>
+                    <label style={{ fontSize: '13px' }}>ボール支配率: <strong style={{ color: '#38bdf8' }}>{minPossession - 1}〜{minPossession + 1}%</strong></label>
                     <input type="range" min="30" max="80" step="5" value={minPossession} onChange={e => setMinPossession(Number(e.target.value))} style={{ width: '100%', marginTop: '8px' }} />
                   </div>
                   <ResultBar res={possessionRes} />
@@ -251,7 +310,7 @@ function MainApp() {
                 <div>
                   <h3 style={{ fontSize: '16px', margin: '0 0 10px 0' }}>先制点と勝利確率</h3>
                   <div style={{ background: '#0f172a', padding: '15px', borderRadius: '6px', margin: '20px 0' }}>
-                    <label style={{ fontSize: '13px' }}>先制点の時間帯: <strong style={{ color: '#38bdf8' }}>前半 {firstGoalMinute} 分以内</strong></label>
+                    <label style={{ fontSize: '13px' }}>先制点の時間帯: <strong style={{ color: '#38bdf8' }}>{firstGoalMinute - 1}〜{firstGoalMinute + 1} 分</strong></label>
                     <input type="range" min="10" max="45" step="5" value={firstGoalMinute} onChange={e => setFirstGoalMinute(Number(e.target.value))} style={{ width: '100%', marginTop: '8px' }} />
                   </div>
                   <ResultBar res={firstGoalRes} />
@@ -262,7 +321,7 @@ function MainApp() {
                 <div>
                   <h3 style={{ fontSize: '16px', margin: '0 0 10px 0' }}>決定機数（高xG）と勝率</h3>
                   <div style={{ background: '#0f172a', padding: '15px', borderRadius: '6px', margin: '20px 0' }}>
-                    <label style={{ fontSize: '13px' }}>決定機の最小本数: <strong style={{ color: '#38bdf8' }}>{minHighXg} 本以上</strong></label>
+                    <label style={{ fontSize: '13px' }}>決定機数: <strong style={{ color: '#38bdf8' }}>{minHighXg - 1}〜{minHighXg + 1} 本</strong></label>
                     <input type="range" min="1" max="8" step="1" value={minHighXg} onChange={e => setMinHighXg(Number(e.target.value))} style={{ width: '100%', marginTop: '8px' }} />
                   </div>
                   <ResultBar res={shotQualityRes} />
@@ -273,7 +332,7 @@ function MainApp() {
                 <div>
                   <h3 style={{ fontSize: '16px', margin: '0 0 10px 0' }}>相手パス試行数の制限（守備強度）</h3>
                   <div style={{ background: '#0f172a', padding: '15px', borderRadius: '6px', margin: '20px 0' }}>
-                    <label style={{ fontSize: '13px' }}>相手パス許容数の上限: <strong style={{ color: '#38bdf8' }}>{maxOpponentPasses} 本以下</strong></label>
+                    <label style={{ fontSize: '13px' }}>相手パス許容数: <strong style={{ color: '#38bdf8' }}>{maxOpponentPasses - 1}〜{maxOpponentPasses + 1} 本</strong></label>
                     <input type="range" min="200" max="600" step="25" value={maxOpponentPasses} onChange={e => setMaxOpponentPasses(Number(e.target.value))} style={{ width: '100%', marginTop: '8px' }} />
                   </div>
                   <ResultBar res={defenseRes} />
@@ -284,7 +343,7 @@ function MainApp() {
                 <div>
                   <h3 style={{ fontSize: '16px', margin: '0 0 10px 0' }}>枠内シュート率（シュート精度）</h3>
                   <div style={{ background: '#0f172a', padding: '15px', borderRadius: '6px', margin: '20px 0' }}>
-                    <label style={{ fontSize: '13px' }}>枠内シュート率の下限: <strong style={{ color: '#38bdf8' }}>{minShotAcc}% 以上</strong></label>
+                    <label style={{ fontSize: '13px' }}>枠内シュート率: <strong style={{ color: '#38bdf8' }}>{minShotAcc - 1}〜{minShotAcc + 1}%</strong></label>
                     <input type="range" min="20" max="70" step="5" value={minShotAcc} onChange={e => setMinShotAcc(Number(e.target.value))} style={{ width: '100%', marginTop: '8px' }} />
                   </div>
                   <ResultBar res={shotAccRes} />
@@ -295,7 +354,7 @@ function MainApp() {
                 <div>
                   <h3 style={{ fontSize: '16px', margin: '0 0 10px 0' }}>パス成功率と勝率</h3>
                   <div style={{ background: '#0f172a', padding: '15px', borderRadius: '6px', margin: '20px 0' }}>
-                    <label style={{ fontSize: '13px' }}>パス成功率の下限: <strong style={{ color: '#38bdf8' }}>{minPassAcc}% 以上</strong></label>
+                    <label style={{ fontSize: '13px' }}>パス成功率: <strong style={{ color: '#38bdf8' }}>{minPassAcc - 1}〜{minPassAcc + 1}%</strong></label>
                     <input type="range" min="70" max="92" step="1" value={minPassAcc} onChange={e => setMinPassAcc(Number(e.target.value))} style={{ width: '100%', marginTop: '8px' }} />
                   </div>
                   <ResultBar res={passAccRes} />
@@ -304,9 +363,17 @@ function MainApp() {
             </div>
 
             <div style={{ background: '#0f172a', padding: '20px', borderRadius: '8px', border: '1px solid #334155' }}>
-              <h3 style={{ color: '#38bdf8', marginTop: 0, fontSize: '15px' }}>要約</h3>
+              <h3 style={{ color: '#38bdf8', marginTop: 0, fontSize: '15px' }}>{getMetricInfo(activeTab)?.name}</h3>
               <p style={{ fontSize: '13px', lineHeight: '1.6', color: '#cbd5e1' }}>
-                選択中の条件を満たした試合における勝利・引き分け・敗北の割合を示しています。
+                {getMetricInfo(activeTab)?.description}
+              </p>
+              {activeTab !== 'homeAway' && (
+                <p style={{ fontSize: '12px', lineHeight: '1.6', color: '#94a3b8', marginBottom: 0 }}>
+                  選択した数値の前後1を含む範囲に該当する試合を集計します。
+                </p>
+              )}
+              <p style={{ fontSize: '12px', lineHeight: '1.6', color: '#94a3b8', marginBottom: 0 }}>
+                該当試合における勝利・引き分け・敗北の割合を表示します。
               </p>
             </div>
           </div>
@@ -367,6 +434,10 @@ function MainApp() {
                       </>
                     )}
                   </div>
+                  <p style={{ margin: '10px 0 0', fontSize: '12px', lineHeight: '1.5', color: '#94a3b8' }}>
+                    {info?.description}
+                    {cond.metric !== 'homeAway' && ' 選択値の前後1を含む範囲で集計します。'}
+                  </p>
                 </div>
               );
             })}
@@ -412,8 +483,13 @@ function MainApp() {
         </div>
       )}
 
+      <TeamInsights matches={matches} requestedMatch={requestedMatchAnalysis} />
+
       {/* ★ここに今週の試合予想コンポーネントを配置 */}
-      <UpcomingMatches />
+      <UpcomingMatches onAnalyzeMatch={(match) => {
+        setRequestedMatchAnalysis({ homeTeam: match.home_team, awayTeam: match.away_team, requestId: Date.now() });
+        window.setTimeout(() => document.getElementById('team-insights')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
+      }} />
 
       <footer style={{ marginTop: '28px', paddingTop: '18px', borderTop: '1px solid #334155', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '12px', color: '#94a3b8', fontSize: '12px' }}>
         <span>© 2026 サッカー試合データ勝率予想・分析</span>
@@ -443,23 +519,54 @@ function ResultBar({ res }) {
   return (
     <div>
       <div style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '8px' }}>該当件数: {res.total} 件</div>
-      <div style={{ display: 'flex', height: '32px', borderRadius: '6px', overflow: 'hidden', border: '1px solid #475569' }}>
+      <div style={{ display: 'flex', height: '32px', borderRadius: '6px', border: '1px solid #475569' }}>
         {Number(res.winRate) > 0 && (
-          <div style={{ width: `${res.winRate}%`, background: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '12px' }}>
-            勝利 {res.winRate}%
-          </div>
+          <OutcomeSegment label="勝利" rate={res.winRate} teams={res.teamsByOutcome?.win} color="#16a34a" align="left" />
         )}
         {Number(res.drawRate) > 0 && (
-          <div style={{ width: `${res.drawRate}%`, background: '#ca8a04', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '12px', color: '#000' }}>
-            引分 {res.drawRate}%
-          </div>
+          <OutcomeSegment label="引分" rate={res.drawRate} teams={res.teamsByOutcome?.draw} color="#ca8a04" textColor="#000" align="center" />
         )}
         {Number(res.lossRate) > 0 && (
-          <div style={{ width: `${res.lossRate}%`, background: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '12px' }}>
-            敗北 {res.lossRate}%
-          </div>
+          <OutcomeSegment label="敗北" rate={res.lossRate} teams={res.teamsByOutcome?.loss} color="#dc2626" align="right" />
         )}
       </div>
+      <div style={{ marginTop: '7px', color: '#64748b', fontSize: '11px' }}>各項目にカーソルを合わせると該当チームを確認できます。</div>
+    </div>
+  );
+}
+
+function OutcomeSegment({ label, rate, teams = [], color, textColor = '#fff', align }) {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const tooltipPosition = align === 'left'
+    ? { left: 0 }
+    : align === 'right'
+      ? { right: 0 }
+      : { left: '50%', transform: 'translateX(-50%)' };
+
+  return (
+    <div
+      tabIndex={0}
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
+      onFocus={() => setShowTooltip(true)}
+      onBlur={() => setShowTooltip(false)}
+      style={{ width: `${rate}%`, background: color, color: textColor, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', fontWeight: 'bold', fontSize: '12px', cursor: 'help', outlineOffset: '2px', whiteSpace: 'nowrap' }}
+      aria-label={`${label} ${rate}%。該当チーム一覧を表示`}
+    >
+      {label} {rate}%
+      {showTooltip && (
+        <div style={{ ...tooltipPosition, position: 'absolute', top: 'calc(100% + 8px)', zIndex: 20, width: '280px', maxWidth: '80vw', padding: '10px', background: '#020617', color: '#f8fafc', border: `1px solid ${color}`, borderRadius: '7px', boxShadow: '0 10px 25px rgba(0,0,0,0.45)', fontWeight: 'normal', whiteSpace: 'normal' }}>
+          <div style={{ fontWeight: 'bold', color, marginBottom: '7px' }}>{label}に含まれるチーム（{teams.length}）</div>
+          <div style={{ maxHeight: '220px', overflowY: 'auto' }}>
+            {teams.map(team => (
+              <div key={team.name} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', padding: '4px 2px', borderBottom: '1px solid #1e293b', fontSize: '12px' }}>
+                <span>{team.name}</span>
+                <span style={{ color: '#94a3b8', whiteSpace: 'nowrap' }}>{team.count}件</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

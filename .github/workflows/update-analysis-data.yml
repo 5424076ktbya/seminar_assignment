@@ -1,0 +1,70 @@
+name: Update Historical Analysis Data
+
+on:
+  workflow_dispatch:
+    inputs:
+      dataset:
+        description: Dataset to update
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - europe
+          - j1
+      start_season:
+        description: First season year
+        required: true
+        default: "2014"
+      end_season:
+        description: Last season year
+        required: true
+        default: "2025"
+
+permissions:
+  contents: write
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install data dependencies
+        run: pip install -r requirements-data.txt
+
+      - name: Update European data
+        if: inputs.dataset == 'all' || inputs.dataset == 'europe'
+        run: >-
+          python generate_data.py
+          --start-season ${{ inputs.start_season }}
+          --end-season ${{ inputs.end_season }}
+
+      - name: Update J1 result history
+        if: inputs.dataset == 'all' || inputs.dataset == 'j1'
+        run: >-
+          python fetch_jleague_history.py
+          --start-season ${{ inputs.start_season }}
+          --end-season ${{ inputs.end_season }}
+
+      - name: Commit updated datasets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/shots_data.json
+          if [ -f src/jleague_history.json ]; then
+            git add src/jleague_history.json
+          fi
+          if git diff --cached --quiet; then
+            echo "変更なし"
+          else
+            git commit -m "data: 過去試合分析データを更新"
+            git push
+          fi
