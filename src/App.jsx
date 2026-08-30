@@ -1,8 +1,10 @@
-import React, { useState, useMemo, Component } from 'react';
+import React, { useState, useMemo, useEffect, Component } from 'react';
 import matchesData from './shots_data.json';
+import jleagueHistoryData from './jleague_history.json';
 import UpcomingMatches from './components/UpcomingMatches'; // 今週の試合予想コンポーネントを追加
 import LegalModal from './components/LegalModal';
 import TeamInsights from './components/TeamInsights';
+import { canonicalizeRequestedMatch, normalizeMatch } from './dataNormalization';
 
 // クラッシュ防止用のエラーバウンダリ
 class ErrorBoundary extends Component {
@@ -36,10 +38,15 @@ class ErrorBoundary extends Component {
 }
 
 function MainApp() {
-  const matches = Array.isArray(matchesData) ? matchesData : [];
+  const allMatches = useMemo(() => [
+    ...(Array.isArray(matchesData) ? matchesData : []),
+    ...(Array.isArray(jleagueHistoryData) ? jleagueHistoryData : [])
+  ].map(normalizeMatch), []);
   const [legalModal, setLegalModal] = useState(null);
   const [showTeamList, setShowTeamList] = useState(false);
   const [requestedMatchAnalysis, setRequestedMatchAnalysis] = useState(null);
+  const [selectedLeague, setSelectedLeague] = useState('ALL');
+  const [selectedSeason, setSelectedSeason] = useState('ALL');
 
   const [mode, setMode] = useState('single');
   const [activeTab, setActiveTab] = useState('homeAway');
@@ -54,15 +61,48 @@ function MainApp() {
   const [homeAwayCondition, setHomeAwayCondition] = useState('home');
 
   const METRICS = [
-    { id: 'homeAway', name: 'ホーム / アウェイ', unit: '戦', description: 'チームがホームまたはアウェイでプレーした試合に分けて成績を比較します。' },
-    { id: 'shots', name: 'シュート本数', min: 5, max: 30, step: 1, default: 15, unit: '±1本', description: 'チームが1試合で放ったシュートの総数です。攻撃の積極性の目安になります。' },
-    { id: 'possession', name: 'ボール支配率', min: 30, max: 80, step: 5, default: 60, unit: '±1%', description: '試合中にボールを保持していた割合です。試合をどの程度コントロールしたかの目安になります。' },
-    { id: 'firstGoal', name: '先制点時間帯', min: 10, max: 45, step: 5, default: 30, unit: '±1分に先制', description: 'そのチームが先制した時刻です。早い時間帯の先制が結果に与える影響を確認できます。' },
-    { id: 'highXg', name: '決定機数 (高xG)', min: 1, max: 8, step: 1, default: 3, unit: '±1本', description: '得点につながる可能性が高いシュートの本数です。チャンスの質と量を表します。' },
-    { id: 'defense', name: '相手パス許容数', min: 200, max: 600, step: 25, default: 350, unit: '±1本', description: '相手チームに許したパス数です。相手のボール保持や自チームの守備傾向を見る目安になります。' },
-    { id: 'shotAcc', name: '枠内シュート率', min: 20, max: 70, step: 5, default: 45, unit: '±1%', description: '全シュートのうち枠内へ飛んだ割合です。シュート精度の目安になります。' },
-    { id: 'passAcc', name: 'パス成功率', min: 70, max: 92, step: 1, default: 85, unit: '±1%', description: '試みたパスのうち成功した割合です。ボール運びの安定性を表します。' }
+    { id: 'homeAway', name: 'ホーム / アウェイ', unit: '戦', field: 'is_home', quality: 'actual', description: 'チームがホームまたはアウェイでプレーした試合に分けて成績を比較します。' },
+    { id: 'shots', name: 'シュート本数', min: 5, max: 30, step: 1, default: 15, unit: '±1本', field: 'shots', quality: 'estimated', description: 'チームが1試合で放ったシュートの総数です。攻撃の積極性の目安になります。' },
+    { id: 'possession', name: 'ボール支配率', min: 30, max: 80, step: 5, default: 60, unit: '±1%', field: 'possession', quality: 'estimated', description: '試合中にボールを保持していた割合です。試合をどの程度コントロールしたかの目安になります。' },
+    { id: 'firstGoal', name: '先制点時間帯', min: 10, max: 45, step: 5, default: 30, unit: '±1分に先制', field: 'first_goal_minute', quality: 'actual', description: 'そのチームが先制した時刻です。早い時間帯の先制が結果に与える影響を確認できます。' },
+    { id: 'highXg', name: '決定機数 (高xG)', min: 1, max: 8, step: 1, default: 3, unit: '±1本', field: 'high_xg_shots', quality: 'estimated', description: '得点につながる可能性が高いシュートの本数です。チャンスの質と量を表します。' },
+    { id: 'defense', name: '相手パス許容数', min: 200, max: 600, step: 25, default: 350, unit: '±1本', field: 'opponent_passes', quality: 'estimated', description: '相手チームに許したパス数です。相手のボール保持や自チームの守備傾向を見る目安になります。' },
+    { id: 'shotAcc', name: '枠内シュート率', min: 20, max: 70, step: 5, default: 45, unit: '±1%', field: 'shot_accuracy', quality: 'estimated', description: '全シュートのうち枠内へ飛んだ割合です。シュート精度の目安になります。' },
+    { id: 'passAcc', name: 'パス成功率', min: 70, max: 92, step: 1, default: 85, unit: '±1%', field: 'pass_accuracy', quality: 'estimated', description: '試みたパスのうち成功した割合です。ボール運びの安定性を表します。' }
   ];
+
+  const leagueOptions = useMemo(() => [...new Set(allMatches.map(match => match.league).filter(Boolean))].sort(), [allMatches]);
+  const seasonOptions = useMemo(() => [...new Set(allMatches
+    .filter(match => selectedLeague === 'ALL' || match.league === selectedLeague)
+    .map(match => match.season).filter(season => season !== null && season !== undefined))]
+    .sort((a, b) => Number(b) - Number(a)), [allMatches, selectedLeague]);
+  const matches = useMemo(() => allMatches.filter(match =>
+    (selectedLeague === 'ALL' || match.league === selectedLeague)
+    && (selectedSeason === 'ALL' || String(match.season) === String(selectedSeason))
+  ), [allMatches, selectedLeague, selectedSeason]);
+
+  const metricAvailability = useMemo(() => Object.fromEntries(METRICS.map(metric => {
+    let availableCount = 0;
+    let teamRecordCount = 0;
+    matches.forEach(match => {
+      [match.teamA, match.teamB].forEach(teamName => {
+        const stats = match.stats?.[teamName];
+        if (!stats) return;
+        teamRecordCount += 1;
+        const value = metric.id === 'firstGoal' ? match.first_goal_minute : stats[metric.field];
+        if (value !== null && value !== undefined && value !== '') availableCount += 1;
+      });
+    });
+    return [metric.id, {
+      available: availableCount > 0,
+      coverage: teamRecordCount ? Math.round((availableCount / teamRecordCount) * 100) : 0,
+      quality: metric.quality
+    }];
+  })), [matches]);
+
+  useEffect(() => {
+    if (!metricAvailability[activeTab]?.available) setActiveTab('homeAway');
+  }, [activeTab, metricAvailability]);
 
   const [conditions, setConditions] = useState([
     { id: Date.now(), metric: 'possession', value: 60, homeAway: 'home' },
@@ -189,9 +229,9 @@ function MainApp() {
 
   const multiResult = useMemo(() => {
     return analyzeLaw((stats, match, teamName) => {
-      return conditions.every(c => checkSingleCond(stats, match, teamName, c));
+      return conditions.every(c => !metricAvailability[c.metric]?.available || checkSingleCond(stats, match, teamName, c));
     });
-  }, [matches, conditions]);
+  }, [matches, conditions, metricAvailability]);
 
   const getMetricInfo = (id) => METRICS.find(m => m.id === id);
 
@@ -220,6 +260,61 @@ function MainApp() {
             ))}
           </div>
         )}
+      </div>
+
+      <section style={{ marginBottom: '20px', padding: '22px', borderRadius: '10px', background: 'linear-gradient(135deg, #082f49 0%, #172554 100%)', border: '1px solid #0369a1' }}>
+        <div style={{ maxWidth: '850px' }}>
+          <div style={{ display: 'inline-block', marginBottom: '8px', padding: '3px 8px', borderRadius: '999px', background: 'rgba(56, 189, 248, 0.15)', color: '#7dd3fc', fontSize: '11px', fontWeight: 'bold' }}>
+            過去の試合データを、次の観戦に役立てる
+          </div>
+          <h2 style={{ margin: '0 0 9px', fontSize: '21px', color: '#f8fafc' }}>チームの勝ち方と、試合の注目ポイントが分かるサイトです</h2>
+          <p style={{ margin: 0, color: '#cbd5e1', fontSize: '13px', lineHeight: 1.8 }}>
+            過去の試合結果やスタッツをもとに、特定の条件で勝率がどう変わるかを分析します。
+            チームごとの得意な展開や注意すべき条件を知り、試合前の勝敗予想、観戦中のチェックポイント、試合後の振り返りに利用できます。
+          </p>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '10px', marginTop: '18px' }}>
+          {[
+            { number: '1', title: '実際のデータと比較して振り返る', text: '試合後の支配率、シュート数、先制時間などを条件別勝率と比較し、予想した展開と実際の試合がどう違ったかを振り返れます。' },
+            { number: '2', title: 'チームの特徴を知る', text: '通常勝率との差から、そのチームの勝率が上がる条件や敗れやすい展開を確認します。' },
+            { number: '3', title: '次の試合の見どころを探す', text: '対戦する2チームを比較し、試合前に注目したいポイントを見つけます。' },
+            { number: '4', title: '実際の試合を予想する', text: '今後の試合でホーム勝利・引き分け・アウェイ勝利から結果を予想して投票できます。試合終了後は自分の予想が当たったか、これまでの的中率と一緒に確認できます。' }
+          ].map(item => (
+            <div key={item.number} style={{ padding: '13px', borderRadius: '7px', background: 'rgba(15, 23, 42, 0.72)', border: '1px solid rgba(125, 211, 252, 0.2)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                <span style={{ display: 'inline-flex', width: '22px', height: '22px', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: '#0284c7', color: '#fff', fontSize: '11px', fontWeight: 'bold' }}>{item.number}</span>
+                <strong style={{ color: '#e0f2fe', fontSize: '13px' }}>{item.title}</strong>
+              </div>
+              <p style={{ margin: 0, color: '#94a3b8', fontSize: '12px', lineHeight: 1.6 }}>{item.text}</p>
+            </div>
+          ))}
+        </div>
+
+        <p style={{ margin: '14px 0 0', color: '#94a3b8', fontSize: '11px', lineHeight: 1.6 }}>
+          ※ 分析結果は過去データの傾向であり、将来の試合結果を保証するものではありません。実測値と推定値は各分析項目に表示します。
+        </p>
+      </section>
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'end', marginBottom: '20px', padding: '14px', background: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}>
+        <label style={{ minWidth: '220px', fontSize: '12px', color: '#cbd5e1' }}>
+          リーグ
+          <select value={selectedLeague} onChange={event => { setSelectedLeague(event.target.value); setSelectedSeason('ALL'); }} style={{ display: 'block', width: '100%', marginTop: '5px', padding: '8px', borderRadius: '5px', background: '#0f172a', color: '#fff', border: '1px solid #475569' }}>
+            <option value="ALL">すべてのリーグ</option>
+            {leagueOptions.map(league => <option key={league} value={league}>{league}</option>)}
+          </select>
+        </label>
+        <label style={{ minWidth: '180px', fontSize: '12px', color: '#cbd5e1' }}>
+          シーズン
+          <select value={selectedSeason} onChange={event => setSelectedSeason(event.target.value)} disabled={seasonOptions.length === 0} style={{ display: 'block', width: '100%', marginTop: '5px', padding: '8px', borderRadius: '5px', background: '#0f172a', color: '#fff', border: '1px solid #475569', opacity: seasonOptions.length ? 1 : 0.55 }}>
+            <option value="ALL">すべてのシーズン</option>
+            {seasonOptions.map(season => <option key={season} value={season}>{season}</option>)}
+          </select>
+        </label>
+        <div style={{ color: '#94a3b8', fontSize: '12px', paddingBottom: '8px' }}>
+          選択中: <strong style={{ color: '#f8fafc' }}>{matches.length}試合</strong>
+          {seasonOptions.length === 0 && '（既存データのリーグ・シーズン情報は更新処理後に利用できます）'}
+        </div>
       </div>
 
       <div style={{ display: 'flex', gap: '10px', marginBottom: '25px', background: '#0f172a', border: '1px solid #334155', padding: '4px', borderRadius: '8px', width: 'fit-content' }}>
@@ -259,12 +354,14 @@ function MainApp() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
+                disabled={!metricAvailability[tab.id]?.available}
+                title={!metricAvailability[tab.id]?.available ? '選択中のリーグ・シーズンでは利用できません' : undefined}
                 style={{
-                  padding: '8px 14px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px',
-                  backgroundColor: activeTab === tab.id ? '#334155' : '#1e293b', color: activeTab === tab.id ? '#38bdf8' : '#94a3b8', transition: '0.2s'
+                  padding: '8px 14px', borderRadius: '6px', border: 'none', cursor: metricAvailability[tab.id]?.available ? 'pointer' : 'not-allowed', fontWeight: 'bold', fontSize: '13px',
+                  backgroundColor: activeTab === tab.id ? '#334155' : '#1e293b', color: activeTab === tab.id ? '#38bdf8' : '#94a3b8', transition: '0.2s', opacity: metricAvailability[tab.id]?.available ? 1 : 0.4
                 }}
               >
-                {tab.label}
+                {tab.label} {!metricAvailability[tab.id]?.available && '（利用不可）'}
               </button>
             ))}
           </div>
@@ -364,6 +461,7 @@ function MainApp() {
 
             <div style={{ background: '#0f172a', padding: '20px', borderRadius: '8px', border: '1px solid #334155' }}>
               <h3 style={{ color: '#38bdf8', marginTop: 0, fontSize: '15px' }}>{getMetricInfo(activeTab)?.name}</h3>
+              <DataQualityBadge status={metricAvailability[activeTab]} />
               <p style={{ fontSize: '13px', lineHeight: '1.6', color: '#cbd5e1' }}>
                 {getMetricInfo(activeTab)?.description}
               </p>
@@ -405,7 +503,7 @@ function MainApp() {
                     style={{ width: '100%', padding: '8px', borderRadius: '4px', background: '#0f172a', color: '#fff', border: '1px solid #475569', fontSize: '13px' }}
                   >
                     {METRICS.map(m => (
-                      <option key={m.id} value={m.id}>{m.name}</option>
+                      <option key={m.id} value={m.id} disabled={!metricAvailability[m.id]?.available}>{m.name}{!metricAvailability[m.id]?.available ? '（利用不可）' : ''}</option>
                     ))}
                   </select>
 
@@ -434,6 +532,10 @@ function MainApp() {
                       </>
                     )}
                   </div>
+                  <div style={{ marginTop: '9px' }}><DataQualityBadge status={metricAvailability[cond.metric]} /></div>
+                  {!metricAvailability[cond.metric]?.available && (
+                    <div style={{ marginTop: '7px', color: '#fbbf24', fontSize: '12px' }}>この条件は選択中のデータに存在しないため、複数条件の集計から自動的に除外されます。</div>
+                  )}
                   <p style={{ margin: '10px 0 0', fontSize: '12px', lineHeight: '1.5', color: '#94a3b8' }}>
                     {info?.description}
                     {cond.metric !== 'homeAway' && ' 選択値の前後1を含む範囲で集計します。'}
@@ -487,7 +589,8 @@ function MainApp() {
 
       {/* ★ここに今週の試合予想コンポーネントを配置 */}
       <UpcomingMatches onAnalyzeMatch={(match) => {
-        setRequestedMatchAnalysis({ homeTeam: match.home_team, awayTeam: match.away_team, requestId: Date.now() });
+        const normalizedMatch = canonicalizeRequestedMatch(match);
+        setRequestedMatchAnalysis({ homeTeam: normalizedMatch.home_team, awayTeam: normalizedMatch.away_team, requestId: Date.now() });
         window.setTimeout(() => document.getElementById('team-insights')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
       }} />
 
@@ -501,6 +604,18 @@ function MainApp() {
 
       <LegalModal type={legalModal} onClose={() => setLegalModal(null)} />
     </div>
+  );
+}
+
+function DataQualityBadge({ status }) {
+  if (!status?.available) {
+    return <span style={{ display: 'inline-block', padding: '3px 7px', borderRadius: '999px', background: '#422006', color: '#fbbf24', fontSize: '11px' }}>利用可能なデータなし</span>;
+  }
+  const estimated = status.quality === 'estimated';
+  return (
+    <span style={{ display: 'inline-block', padding: '3px 7px', borderRadius: '999px', background: estimated ? '#3f2b0b' : '#052e16', color: estimated ? '#fbbf24' : '#4ade80', fontSize: '11px' }}>
+      {estimated ? '推定データ' : '実測データ'} / 対象カバー率 {status.coverage}%
+    </span>
   );
 }
 

@@ -20,6 +20,11 @@ on:
         description: Last season year
         required: true
         default: "2025"
+      fetch_first_goal:
+        description: Fetch first-goal minute for every new match (much slower)
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -42,10 +47,16 @@ jobs:
 
       - name: Update European data
         if: inputs.dataset == 'all' || inputs.dataset == 'europe'
-        run: >-
-          python generate_data.py
-          --start-season ${{ inputs.start_season }}
-          --end-season ${{ inputs.end_season }}
+        shell: bash
+        run: |
+          EXTRA_ARGS="--skip-first-goal"
+          if [ "${{ inputs.fetch_first_goal }}" = "true" ]; then
+            EXTRA_ARGS=""
+          fi
+          python generate_data.py \
+            --start-season "${{ inputs.start_season }}" \
+            --end-season "${{ inputs.end_season }}" \
+            $EXTRA_ARGS
 
       - name: Update J1 result history
         if: inputs.dataset == 'all' || inputs.dataset == 'j1'

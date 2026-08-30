@@ -24,6 +24,16 @@ python generate_data.py --start-season 2014 --end-season 2025
 
 `--replace` を指定すると既存データを使わず再生成するため、通常は指定しない。
 
+大量の年度を追加するときは、先制点時刻の試合別アクセスを省略する高速モードを使う。
+
+```powershell
+python generate_data.py --start-season 2014 --end-season 2025 --skip-first-goal
+```
+
+高速モードでも得点、勝敗、xGは取得される。省略した先制点時刻は `data_quality.missing`
+に記録され、画面ではその試合を先制時間分析の対象外にする。GitHub Actionsでは
+`Fetch first-goal minute` をオフにすると高速モードになる。
+
 ## J1過去結果
 
 ```powershell

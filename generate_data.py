@@ -20,6 +20,7 @@ def parse_args():
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--request-delay", type=float, default=0.15)
     parser.add_argument("--replace", action="store_true", help="既存データを再利用せず再生成")
+    parser.add_argument("--skip-first-goal", action="store_true", help="先制点の個別取得を省略して高速化")
     return parser.parse_args()
 
 
@@ -78,7 +79,7 @@ def estimated_stats(goals, xg, possession, is_home):
     }
 
 
-def format_match(understat, raw, league, season, delay):
+def format_match(understat, raw, league, season, delay, skip_first_goal=False):
     match_id = str(raw["id"])
     home_team = raw["h"]["title"]
     away_team = raw["a"]["title"]
@@ -89,7 +90,10 @@ def format_match(understat, raw, league, season, delay):
     total_xg = home_xg + away_xg
     home_possession = round((home_xg / total_xg * 40) + 30, 1) if total_xg else 50.0
     away_possession = round(100 - home_possession, 1)
-    first_goal_team, first_goal_minute = get_first_goal(understat, match_id, home_team, away_team, delay)
+    if skip_first_goal:
+        first_goal_team, first_goal_minute = None, None
+    else:
+        first_goal_team, first_goal_minute = get_first_goal(understat, match_id, home_team, away_team, delay)
     winner = home_team if home_goals > away_goals else away_team if away_goals > home_goals else None
     return {
         "match_id": match_id,
@@ -111,8 +115,9 @@ def format_match(understat, raw, league, season, delay):
         },
         "source": "understat",
         "data_quality": {
-            "actual": ["goals", "winner", "total_xg", "first_goal_team", "first_goal_minute"],
+            "actual": ["goals", "winner", "total_xg"] + ([] if skip_first_goal else ["first_goal_team", "first_goal_minute"]),
             "estimated": ["shots", "on_target_shots", "possession", "pass_accuracy", "high_xg_shots", "opponent_passes", "shot_accuracy"],
+            "missing": ["first_goal_team", "first_goal_minute"] if skip_first_goal else [],
         },
     }
 
@@ -150,7 +155,7 @@ def main():
                     })
                     continue
                 try:
-                    formatted = format_match(understat, raw, league, season, args.request_delay)
+                    formatted = format_match(understat, raw, league, season, args.request_delay, args.skip_first_goal)
                 except Exception as error:
                     print(f"  試合変換失敗 match_id={match_id}: {error}")
                     continue
