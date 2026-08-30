@@ -9,7 +9,7 @@ from pathlib import Path
 
 from understatapi import UnderstatClient
 
-LEAGUES = ["EPL", "La_liga", "Bundesliga", "Serie_A", "Ligue_1"]
+LEAGUES = ["EPL", "La_Liga", "Bundesliga", "Serie_A", "Ligue_1"]
 DEFAULT_OUTPUT = Path("src/shots_data.json")
 
 
