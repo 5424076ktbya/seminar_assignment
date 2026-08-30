@@ -6,6 +6,7 @@ import os
 import re
 import tempfile
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import urljoin
@@ -24,6 +25,8 @@ def parse_args():
     parser.add_argument("--end-season", type=int, default=2025)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--request-delay", type=float, default=1.0)
+    parser.add_argument("--fetch-details", action="store_true")
+    parser.add_argument("--detail-workers", type=int, default=4)
     return parser.parse_args()
 
 
@@ -122,6 +125,121 @@ def fetch_season(session, season):
     return parse_results(response.text, season)
 
 
+def parse_goal_minute(text):
+    """Convert strings such as 07', 31' and 90'+4 to elapsed minutes."""
+    match = re.search(r"(\d+)\s*['’](?:\s*\+\s*(\d+))?", text)
+    if not match:
+        return None
+    return int(match.group(1)) + int(match.group(2) or 0)
+
+
+def parse_match_details(html, home_team, away_team):
+    soup = BeautifulSoup(html, "html.parser")
+    kick_counts = {}
+    for row in soup.select(".score-board-other dl.score-board-base"):
+        label = row.select_one("dt")
+        left = row.select_one(".left-score")
+        right = row.select_one(".right-score")
+        if not label or not left or not right:
+            continue
+        try:
+            kick_counts[label.get_text(strip=True).upper()] = (
+                int(left.get_text(strip=True)), int(right.get_text(strip=True))
+            )
+        except ValueError:
+            continue
+
+    goal_events = []
+    goal_board = soup.select_one(".score-board-pk")
+    if goal_board:
+        for area, team, time_index in (
+            (goal_board.select_one("td.left-area"), home_team, 1),
+            (goal_board.select_one("td.right-area"), away_team, 0),
+        ):
+            if not area:
+                continue
+            for row in area.select("table tr"):
+                cells = row.find_all("td", recursive=False)
+                if len(cells) <= time_index:
+                    continue
+                minute = parse_goal_minute(cells[time_index].get_text(" ", strip=True))
+                if minute is not None:
+                    goal_events.append((minute, team))
+    goal_events.sort(key=lambda event: event[0])
+    first_goal = goal_events[0] if goal_events else None
+    return {
+        "shots": kick_counts.get("SH"),
+        "corner_kicks": kick_counts.get("CK"),
+        "free_kicks": kick_counts.get("FK"),
+        "first_goal_minute": first_goal[0] if first_goal else None,
+        "first_goal_team": first_goal[1] if first_goal else None,
+    }
+
+
+def fetch_match_details(match):
+    response = requests.get(
+        match["source_url"],
+        headers={
+            "User-Agent": "seminar-assignment-data-collector/1.0 (educational project)",
+            "Accept-Language": "ja,en;q=0.8",
+        },
+        timeout=30,
+    )
+    response.raise_for_status()
+    return parse_match_details(response.text, match["home_team"], match["away_team"])
+
+
+def apply_match_details(match, details):
+    home_team, away_team = match["home_team"], match["away_team"]
+    for field in ("shots", "corner_kicks", "free_kicks"):
+        values = details.get(field)
+        if values:
+            match["stats"][home_team][field] = values[0]
+            match["stats"][away_team][field] = values[1]
+    match["first_goal_minute"] = details.get("first_goal_minute")
+    match["first_goal_team"] = details.get("first_goal_team")
+    quality = match.setdefault("data_quality", {})
+    actual = set(quality.get("actual", []))
+    missing = set(quality.get("missing", []))
+    for field in ("shots", "corner_kicks", "free_kicks"):
+        if details.get(field):
+            actual.add(field)
+            missing.discard(field)
+    if details.get("first_goal_minute") is not None:
+        actual.update(("first_goal_team", "first_goal_minute"))
+        missing.difference_update(("first_goal_team", "first_goal_minute"))
+    quality["actual"] = sorted(actual)
+    quality["missing"] = sorted(missing)
+    quality["details_fetched"] = True
+
+
+def enrich_matches(matches, output, workers, start_season, end_season):
+    targets = [
+        m for m in matches
+        if start_season <= int(m.get("season", 0)) <= end_season
+        and not m.get("data_quality", {}).get("details_fetched")
+    ]
+    if not targets:
+        print("J1 detail data is already up to date")
+        return
+    completed = failures = 0
+    with ThreadPoolExecutor(max_workers=max(1, min(workers, 6))) as executor:
+        future_map = {executor.submit(fetch_match_details, match): match for match in targets}
+        for future in as_completed(future_map):
+            match = future_map[future]
+            try:
+                apply_match_details(match, future.result())
+                completed += 1
+            except Exception as error:
+                failures += 1
+                print(f"[{match['match_id']}] detail fetch failed: {error}")
+            if (completed + failures) % 50 == 0:
+                atomic_write_json(output, matches)
+                print(f"J1 details: {completed}/{len(targets)} complete, {failures} failed")
+    atomic_write_json(output, matches)
+    print(f"J1 details finished: {completed} complete, {failures} failed")
+
+
 def main():
     args = parse_args()
     if args.start_season > args.end_season:
@@ -146,6 +264,9 @@ def main():
             continue
         successful_seasons += 1
         for match in season_matches:
+            old_match = existing_by_id.get(match["match_id"])
+            if old_match and old_match.get("data_quality", {}).get("details_fetched"):
+                match = old_match
             existing_by_id[match["match_id"]] = match
         all_matches = list(existing_by_id.values())
         all_matches.sort(key=lambda match: (match.get("datetime") or "", match["match_id"]))
@@ -155,6 +276,11 @@ def main():
             time.sleep(args.request_delay)
     if successful_seasons == 0:
         raise SystemExit("指定シーズンを1件も取得できませんでした。既存ファイルは変更していません。")
+    if args.fetch_details:
+        enrich_matches(
+            all_matches, args.output, args.detail_workers,
+            args.start_season, args.end_season,
+        )
     print(f"完了: {args.output} に {len(all_matches)}試合を保存しました")
 
 

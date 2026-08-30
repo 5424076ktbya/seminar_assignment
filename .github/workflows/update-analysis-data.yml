@@ -25,6 +25,11 @@ on:
         required: true
         default: false
         type: boolean
+      fetch_j1_details:
+        description: Fetch J1 shots, corners, free kicks and first-goal time (slower)
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -60,10 +65,16 @@ jobs:
 
       - name: Update J1 result history
         if: inputs.dataset == 'all' || inputs.dataset == 'j1'
-        run: >-
-          python fetch_jleague_history.py
-          --start-season ${{ inputs.start_season }}
-          --end-season ${{ inputs.end_season }}
+        shell: bash
+        run: |
+          EXTRA_ARGS=""
+          if [ "${{ inputs.fetch_j1_details }}" = "true" ]; then
+            EXTRA_ARGS="--fetch-details"
+          fi
+          python fetch_jleague_history.py \
+            --start-season "${{ inputs.start_season }}" \
+            --end-season "${{ inputs.end_season }}" \
+            $EXTRA_ARGS
 
       - name: Commit updated datasets
         run: |

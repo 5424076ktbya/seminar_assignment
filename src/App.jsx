@@ -78,6 +78,8 @@ function MainApp() {
   const [activeTab, setActiveTab] = useState('homeAway');
 
   const [minShots, setMinShots] = useState(15);
+  const [cornerKicks, setCornerKicks] = useState(5);
+  const [freeKicks, setFreeKicks] = useState(12);
   const [minPossession, setMinPossession] = useState(60);
   const [firstGoalMinute, setFirstGoalMinute] = useState(30);
   const [minHighXg, setMinHighXg] = useState(3);
@@ -89,6 +91,8 @@ function MainApp() {
   const METRICS = [
     { id: 'homeAway', name: 'ホーム / アウェイ', unit: '戦', field: 'is_home', quality: 'actual', description: 'チームがホームまたはアウェイでプレーした試合に分けて成績を比較します。' },
     { id: 'shots', name: 'シュート本数', min: 5, max: 30, step: 1, default: 15, unit: '±1本', field: 'shots', quality: 'estimated', description: 'チームが1試合で放ったシュートの総数です。攻撃の積極性の目安になります。' },
+    { id: 'corners', name: 'コーナーキック数', min: 0, max: 15, step: 1, default: 5, unit: '±1本', field: 'corner_kicks', quality: 'actual', description: 'チームが獲得したコーナーキック数です。相手陣内で攻め込んだ回数の目安になります。' },
+    { id: 'freeKicks', name: 'フリーキック数', min: 0, max: 30, step: 1, default: 12, unit: '±1本', field: 'free_kicks', quality: 'actual', description: 'チームに与えられたフリーキック数です。試合の接触やセットプレー機会の目安になります。' },
     { id: 'possession', name: 'ボール支配率', min: 30, max: 80, step: 5, default: 60, unit: '±1%', field: 'possession', quality: 'estimated', description: '試合中にボールを保持していた割合です。試合をどの程度コントロールしたかの目安になります。' },
     { id: 'firstGoal', name: '先制点時間帯', min: 10, max: 45, step: 5, default: 30, unit: '±1分に先制', field: 'first_goal_minute', quality: 'actual', description: 'そのチームが先制した時刻です。早い時間帯の先制が結果に与える影響を確認できます。' },
     { id: 'highXg', name: '決定機数 (高xG)', min: 1, max: 8, step: 1, default: 3, unit: '±1本', field: 'high_xg_shots', quality: 'estimated', description: '得点につながる可能性が高いシュートの本数です。チャンスの質と量を表します。' },
@@ -110,19 +114,31 @@ function MainApp() {
   const metricAvailability = useMemo(() => Object.fromEntries(METRICS.map(metric => {
     let availableCount = 0;
     let teamRecordCount = 0;
+    let actualCount = 0;
+    let estimatedCount = 0;
     matches.forEach(match => {
       [match.teamA, match.teamB].forEach(teamName => {
         const stats = match.stats?.[teamName];
         if (!stats) return;
         teamRecordCount += 1;
         const value = metric.id === 'firstGoal' ? match.first_goal_minute : stats[metric.field];
-        if (value !== null && value !== undefined && value !== '') availableCount += 1;
+        if (value !== null && value !== undefined && value !== '') {
+          availableCount += 1;
+          const qualityField = metric.id === 'firstGoal' ? 'first_goal_minute' : metric.field;
+          if (match.data_quality?.actual?.includes(qualityField)) actualCount += 1;
+          else if (match.data_quality?.estimated?.includes(qualityField)) estimatedCount += 1;
+          else if (metric.quality === 'actual') actualCount += 1;
+          else estimatedCount += 1;
+        }
       });
     });
+    const quality = actualCount > 0 && estimatedCount > 0
+      ? 'mixed'
+      : actualCount > 0 ? 'actual' : metric.quality;
     return [metric.id, {
       available: availableCount > 0,
       coverage: teamRecordCount ? Math.round((availableCount / teamRecordCount) * 100) : 0,
-      quality: metric.quality
+      quality
     }];
   })), [matches]);
 
@@ -173,6 +189,8 @@ function MainApp() {
       return Number.isFinite(numericValue) && Math.abs(numericValue - Number(value)) <= 1;
     };
     if (metric === 'shots') return isWithinSelectedRange(stats.shots);
+    if (metric === 'corners') return isWithinSelectedRange(stats.corner_kicks);
+    if (metric === 'freeKicks') return isWithinSelectedRange(stats.free_kicks);
     if (metric === 'possession') return isWithinSelectedRange(stats.possession);
     if (metric === 'firstGoal') return match.first_goal_team === teamName && match.first_goal_minute !== null && match.first_goal_minute !== undefined && isWithinSelectedRange(match.first_goal_minute);
     if (metric === 'highXg') return isWithinSelectedRange(stats.high_xg_shots);
@@ -246,6 +264,8 @@ function MainApp() {
 
   const homeAwayRes = useMemo(() => analyzeLaw((s, m, t) => checkSingleCond(s, m, t, { metric: 'homeAway', homeAway: homeAwayCondition })), [matches, homeAwayCondition]);
   const shotsRes = useMemo(() => analyzeLaw((s, m, t) => checkSingleCond(s, m, t, { metric: 'shots', value: minShots })), [matches, minShots]);
+  const cornersRes = useMemo(() => analyzeLaw((s, m, t) => checkSingleCond(s, m, t, { metric: 'corners', value: cornerKicks })), [matches, cornerKicks]);
+  const freeKicksRes = useMemo(() => analyzeLaw((s, m, t) => checkSingleCond(s, m, t, { metric: 'freeKicks', value: freeKicks })), [matches, freeKicks]);
   const possessionRes = useMemo(() => analyzeLaw((s, m, t) => checkSingleCond(s, m, t, { metric: 'possession', value: minPossession })), [matches, minPossession]);
   const shotQualityRes = useMemo(() => analyzeLaw((s, m, t) => checkSingleCond(s, m, t, { metric: 'highXg', value: minHighXg })), [matches, minHighXg]);
   const defenseRes = useMemo(() => analyzeLaw((s, m, t) => checkSingleCond(s, m, t, { metric: 'defense', value: maxOpponentPasses })), [matches, maxOpponentPasses]);
@@ -393,6 +413,8 @@ function MainApp() {
             {[
               { id: 'homeAway', label: 'ホーム / アウェイ' },
               { id: 'shots', label: 'シュート本数' },
+              { id: 'corners', label: 'コーナーキック数' },
+              { id: 'freeKicks', label: 'フリーキック数' },
               { id: 'possession', label: 'ボール支配率' },
               { id: 'firstGoal', label: '先制点時間帯' },
               { id: 'highXg', label: '決定機数 (高xG)' },
@@ -518,6 +540,28 @@ function MainApp() {
                 <p style={{ fontSize: '12px', lineHeight: '1.6', color: '#94a3b8', marginBottom: 0 }}>
                   選択した数値の前後1を含む範囲に該当する試合を集計します。
                 </p>
+              )}
+
+              {activeTab === 'corners' && (
+                <div>
+                  <h3 style={{ fontSize: '16px', margin: '0 0 10px 0' }}>コーナーキック数と勝率</h3>
+                  <div style={{ background: '#0f172a', padding: '15px', borderRadius: '6px', margin: '20px 0' }}>
+                    <label style={{ fontSize: '13px' }}>コーナーキック数: <strong style={{ color: '#38bdf8' }}>{cornerKicks - 1}〜{cornerKicks + 1} 本</strong></label>
+                    <input type="range" min="0" max="15" step="1" value={cornerKicks} onChange={e => setCornerKicks(Number(e.target.value))} style={{ width: '100%', marginTop: '8px' }} />
+                  </div>
+                  <ResultBar res={cornersRes} />
+                </div>
+              )}
+
+              {activeTab === 'freeKicks' && (
+                <div>
+                  <h3 style={{ fontSize: '16px', margin: '0 0 10px 0' }}>フリーキック数と勝率</h3>
+                  <div style={{ background: '#0f172a', padding: '15px', borderRadius: '6px', margin: '20px 0' }}>
+                    <label style={{ fontSize: '13px' }}>フリーキック数: <strong style={{ color: '#38bdf8' }}>{freeKicks - 1}〜{freeKicks + 1} 本</strong></label>
+                    <input type="range" min="0" max="30" step="1" value={freeKicks} onChange={e => setFreeKicks(Number(e.target.value))} style={{ width: '100%', marginTop: '8px' }} />
+                  </div>
+                  <ResultBar res={freeKicksRes} />
+                </div>
               )}
               <p style={{ fontSize: '12px', lineHeight: '1.6', color: '#94a3b8', marginBottom: 0 }}>
                 該当試合における勝利・引き分け・敗北の割合を表示します。
@@ -661,9 +705,10 @@ function DataQualityBadge({ status }) {
     return <span style={{ display: 'inline-block', padding: '3px 7px', borderRadius: '999px', background: '#422006', color: '#fbbf24', fontSize: '11px' }}>利用可能なデータなし</span>;
   }
   const estimated = status.quality === 'estimated';
+  const mixed = status.quality === 'mixed';
   return (
-    <span style={{ display: 'inline-block', padding: '3px 7px', borderRadius: '999px', background: estimated ? '#3f2b0b' : '#052e16', color: estimated ? '#fbbf24' : '#4ade80', fontSize: '11px' }}>
-      {estimated ? '推定データ' : '実測データ'} / 対象カバー率 {status.coverage}%
+    <span style={{ display: 'inline-block', padding: '3px 7px', borderRadius: '999px', background: estimated || mixed ? '#3f2b0b' : '#052e16', color: estimated || mixed ? '#fbbf24' : '#4ade80', fontSize: '11px' }}>
+      {mixed ? '実測・推定混在' : estimated ? '推定データ' : '実測データ'} / 対象カバー率 {status.coverage}%
     </span>
   );
 }
