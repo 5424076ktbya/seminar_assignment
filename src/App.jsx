@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, Component } from 'react';
-import matchesData from './shots_data.json';
-import jleagueHistoryData from './jleague_history.json';
+import matchesDataUrl from './shots_data.json?url';
+import jleagueHistoryDataUrl from './jleague_history.json?url';
 import UpcomingMatches from './components/UpcomingMatches'; // 今週の試合予想コンポーネントを追加
 import LegalModal from './components/LegalModal';
 import TeamInsights from './components/TeamInsights';
@@ -38,10 +38,36 @@ class ErrorBoundary extends Component {
 }
 
 function MainApp() {
+  const [matchesData, setMatchesData] = useState([]);
+  const [jleagueHistoryData, setJleagueHistoryData] = useState([]);
+  const [dataLoadState, setDataLoadState] = useState({ loading: true, error: null });
+
+  useEffect(() => {
+    let active = true;
+    Promise.all([
+      fetch(matchesDataUrl).then(response => {
+        if (!response.ok) throw new Error(`欧州データの取得に失敗しました (${response.status})`);
+        return response.json();
+      }),
+      fetch(jleagueHistoryDataUrl).then(response => {
+        if (!response.ok) throw new Error(`J1データの取得に失敗しました (${response.status})`);
+        return response.json();
+      })
+    ]).then(([europeData, jleagueData]) => {
+      if (!active) return;
+      setMatchesData(Array.isArray(europeData) ? europeData : []);
+      setJleagueHistoryData(Array.isArray(jleagueData) ? jleagueData : []);
+      setDataLoadState({ loading: false, error: null });
+    }).catch(error => {
+      if (active) setDataLoadState({ loading: false, error: error.message });
+    });
+    return () => { active = false; };
+  }, []);
+
   const allMatches = useMemo(() => [
     ...(Array.isArray(matchesData) ? matchesData : []),
     ...(Array.isArray(jleagueHistoryData) ? jleagueHistoryData : [])
-  ].map(normalizeMatch), []);
+  ].map(normalizeMatch), [matchesData, jleagueHistoryData]);
   const [legalModal, setLegalModal] = useState(null);
   const [showTeamList, setShowTeamList] = useState(false);
   const [requestedMatchAnalysis, setRequestedMatchAnalysis] = useState(null);
@@ -234,6 +260,29 @@ function MainApp() {
   }, [matches, conditions, metricAvailability]);
 
   const getMetricInfo = (id) => METRICS.find(m => m.id === id);
+
+  if (dataLoadState.loading) {
+    return (
+      <div style={{ display: 'grid', placeItems: 'center', minHeight: '100vh', padding: '24px', background: '#0f172a', color: '#f8fafc', fontFamily: 'sans-serif' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ color: '#38bdf8', fontSize: '20px', fontWeight: 'bold' }}>試合データを読み込んでいます</div>
+          <p style={{ color: '#94a3b8', fontSize: '13px' }}>初回は数秒かかる場合があります。</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (dataLoadState.error) {
+    return (
+      <div style={{ display: 'grid', placeItems: 'center', minHeight: '100vh', padding: '24px', background: '#0f172a', color: '#f8fafc', fontFamily: 'sans-serif' }}>
+        <div style={{ maxWidth: '560px', padding: '20px', border: '1px solid #ef4444', borderRadius: '8px', background: '#1e293b' }}>
+          <h2 style={{ color: '#f87171', marginTop: 0 }}>試合データを読み込めませんでした</h2>
+          <p>{dataLoadState.error}</p>
+          <button onClick={() => window.location.reload()} style={{ padding: '8px 14px', border: 0, borderRadius: '5px', background: '#0284c7', color: '#fff', cursor: 'pointer' }}>再読み込み</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: '30px', backgroundColor: '#0f172a', color: '#f8fafc', minHeight: '100vh', fontFamily: 'sans-serif' }}>
