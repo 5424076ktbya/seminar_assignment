@@ -33,8 +33,10 @@ def parse_args():
     parser.add_argument("--k-min", type=int, default=4)
     parser.add_argument("--k-max", type=int, default=8)
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--umap-neighbors", type=int, default=15)
-    parser.add_argument("--umap-min-dist", type=float, default=0.3)
+    parser.add_argument("--umap-neighbors", type=int, default=12)
+    parser.add_argument("--umap-min-dist", type=float, default=1.4)
+    parser.add_argument("--umap-spread", type=float, default=3.5)
+    parser.add_argument("--umap-repulsion-strength", type=float, default=2.0)
     return parser.parse_args()
 
 
@@ -143,7 +145,15 @@ def cluster_model(team_rows, feature_keys, args):
         selected_k = min(args.k, len(team_rows) - 1)
     labels = KMeans(n_clusters=selected_k, random_state=args.seed, n_init=20).fit_predict(scaled)
     neighbors = min(max(2, args.umap_neighbors), len(team_rows) - 1)
-    coordinates = UMAP(n_neighbors=neighbors, min_dist=args.umap_min_dist, n_components=2, random_state=args.seed, n_jobs=1).fit_transform(scaled)
+    coordinates = UMAP(
+        n_neighbors=neighbors,
+        min_dist=args.umap_min_dist,
+        spread=args.umap_spread,
+        repulsion_strength=args.umap_repulsion_strength,
+        n_components=2,
+        random_state=args.seed,
+        n_jobs=1,
+    ).fit_transform(scaled)
     for row, label, coordinate in zip(team_rows, labels, coordinates):
         row["cluster_id"] = int(label)
         row["umap_x"] = round(float(coordinate[0]), 5)
@@ -181,7 +191,12 @@ def main():
     output = {
         "generated_at": datetime.now(timezone.utc).isoformat(), "team_count": len(all_teams),
         "clustering": {"algorithm": "kmeans", "random_state": args.seed},
-        "projection": {"algorithm": "umap", "min_dist": args.umap_min_dist, "random_state": args.seed},
+        "projection": {
+            "algorithm": "umap", "n_neighbors": args.umap_neighbors,
+            "min_dist": args.umap_min_dist, "spread": args.umap_spread,
+            "repulsion_strength": args.umap_repulsion_strength,
+            "random_state": args.seed,
+        },
         "models": model_metadata, "teams": all_teams,
     }
     atomic_write_json(args.output, output)

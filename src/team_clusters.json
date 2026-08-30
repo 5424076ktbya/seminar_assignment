@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-30T05:57:44.577180+00:00",
+  "generated_at": "2026-08-30T22:11:24.388029+00:00",
   "team_count": 200,
   "clustering": {
     "algorithm": "kmeans",
@@ -7,7 +7,10 @@
   },
   "projection": {
     "algorithm": "umap",
-    "min_dist": 0.3,
+    "n_neighbors": 12,
+    "min_dist": 1.4,
+    "spread": 3.5,
+    "repulsion_strength": 2.0,
     "random_state": 42
   },
   "models": {
@@ -28,7 +31,7 @@
         "7": 0.19510326316624288,
         "8": 0.2045715777572876
       },
-      "n_neighbors": 15
+      "n_neighbors": 12
     },
     "europe_style": {
       "features": [
@@ -44,13 +47,13 @@
       "team_count": 168,
       "k": 8,
       "silhouette_scores": {
-        "4": 0.2781390385959775,
-        "5": 0.29862518223589196,
-        "6": 0.29065141565933417,
-        "7": 0.2984368041017359,
-        "8": 0.30138594948503844
+        "4": 0.27813903859597844,
+        "5": 0.29862518223589307,
+        "6": 0.29065141565933256,
+        "7": 0.29843680410173623,
+        "8": 0.3013859494850387
       },
-      "n_neighbors": 15
+      "n_neighbors": 12
     }
   },
   "teams": [
@@ -74,8 +77,8 @@
         "avg_first_goal_minute": 0.45077720207253885
       },
       "cluster_id": 3,
-      "umap_x": -10.98398,
-      "umap_y": 10.55295
+      "umap_x": -1.22304,
+      "umap_y": 13.57076
     },
     {
       "team_name": "京都",
@@ -97,8 +100,8 @@
         "avg_first_goal_minute": 0.4097222222222222
       },
       "cluster_id": 3,
-      "umap_x": -9.2789,
-      "umap_y": 10.49157
+      "umap_x": -4.00433,
+      "umap_y": 23.73117
     },
     {
       "team_name": "仙台",
@@ -120,8 +123,8 @@
         "avg_first_goal_minute": 0.3695652173913043
       },
       "cluster_id": 3,
-      "umap_x": -10.26027,
-      "umap_y": 11.51738
+      "umap_x": 2.21358,
+      "umap_y": 16.72116
     },
     {
       "team_name": "名古屋",
@@ -143,8 +146,8 @@
         "avg_first_goal_minute": 0.4533678756476684
       },
       "cluster_id": 3,
-      "umap_x": -11.26802,
-      "umap_y": 11.30978
+      "umap_x": 3.33573,
+      "umap_y": 12.18485
     },
     {
       "team_name": "大分",
@@ -166,8 +169,8 @@
         "avg_first_goal_minute": 0.4056603773584906
       },
       "cluster_id": 1,
-      "umap_x": -8.31545,
-      "umap_y": 11.66747
+      "umap_x": 2.13547,
+      "umap_y": 28.13437
     },
     {
       "team_name": "大宮",
@@ -189,8 +192,8 @@
         "avg_first_goal_minute": 0.39215686274509803
       },
       "cluster_id": 3,
-      "umap_x": -9.9632,
-      "umap_y": 12.54956
+      "umap_x": 9.07037,
+      "umap_y": 18.06034
     },
     {
       "team_name": "山形",
@@ -212,8 +215,8 @@
         "avg_first_goal_minute": 0.20588235294117646
       },
       "cluster_id": 2,
-      "umap_x": -9.76954,
-      "umap_y": 12.09207
+      "umap_x": 6.99943,
+      "umap_y": 19.90549
     },
     {
       "team_name": "岡山",
@@ -235,8 +238,8 @@
         "avg_first_goal_minute": 0.39473684210526316
       },
       "cluster_id": 3,
-      "umap_x": -8.21564,
-      "umap_y": 10.74528
+      "umap_x": -0.3734,
+      "umap_y": 25.92596
     },
     {
       "team_name": "川崎Ｆ",
@@ -258,8 +261,8 @@
         "avg_first_goal_minute": 0.6166666666666667
       },
       "cluster_id": 0,
-      "umap_x": -11.0422,
-      "umap_y": 8.28597
+      "umap_x": -12.73316,
+      "umap_y": 11.25089
     },
     {
       "team_name": "広島",
@@ -281,8 +284,8 @@
         "avg_first_goal_minute": 0.4857142857142857
       },
       "cluster_id": 0,
-      "umap_x": -11.07266,
-      "umap_y": 8.87732
+      "umap_x": -12.22954,
+      "umap_y": 14.15525
     },
     {
       "team_name": "徳島",
@@ -304,8 +307,8 @@
         "avg_first_goal_minute": 0.3055555555555556
       },
       "cluster_id": 1,
-      "umap_x": -9.39095,
-      "umap_y": 12.95738
+      "umap_x": 11.53324,
+      "umap_y": 22.05005
     },
     {
       "team_name": "新潟",
@@ -327,8 +330,8 @@
         "avg_first_goal_minute": 0.3699186991869919
       },
       "cluster_id": 3,
-      "umap_x": -9.7298,
-      "umap_y": 10.15082
+      "umap_x": -2.98115,
+      "umap_y": 19.91969
     },
     {
       "team_name": "札幌",
@@ -350,8 +353,8 @@
         "avg_first_goal_minute": 0.4357142857142857
       },
       "cluster_id": 0,
-      "umap_x": -10.04504,
-      "umap_y": 9.1885
+      "umap_x": -6.09954,
+      "umap_y": 17.57751
     },
     {
       "team_name": "東京Ｖ",
@@ -373,8 +376,8 @@
         "avg_first_goal_minute": 0.39473684210526316
       },
       "cluster_id": 3,
-      "umap_x": -9.20668,
-      "umap_y": 11.60326
+      "umap_x": 5.10963,
+      "umap_y": 22.92148
     },
     {
       "team_name": "松本",
@@ -396,8 +399,8 @@
         "avg_first_goal_minute": 0.38235294117647056
       },
       "cluster_id": 3,
-      "umap_x": -8.74349,
-      "umap_y": 10.94408
+      "umap_x": -3.0322,
+      "umap_y": 27.22673
     },
     {
       "team_name": "柏",
@@ -419,8 +422,8 @@
         "avg_first_goal_minute": 0.4740932642487047
       },
       "cluster_id": 0,
-      "umap_x": -10.54008,
-      "umap_y": 9.50958
+      "umap_x": -9.23032,
+      "umap_y": 18.23335
     },
     {
       "team_name": "横浜FC",
@@ -442,8 +445,8 @@
         "avg_first_goal_minute": 0.3888888888888889
       },
       "cluster_id": 1,
-      "umap_x": -8.68402,
-      "umap_y": 11.97217
+      "umap_x": 4.6688,
+      "umap_y": 26.32216
     },
     {
       "team_name": "横浜FM",
@@ -465,8 +468,8 @@
         "avg_first_goal_minute": 0.5595238095238095
       },
       "cluster_id": 0,
-      "umap_x": -11.8346,
-      "umap_y": 8.90197
+      "umap_x": -7.53631,
+      "umap_y": 8.84622
     },
     {
       "team_name": "浦和",
@@ -488,8 +491,8 @@
         "avg_first_goal_minute": 0.5
       },
       "cluster_id": 0,
-      "umap_x": -11.28304,
-      "umap_y": 9.34839
+      "umap_x": -9.037,
+      "umap_y": 14.77166
     },
     {
       "team_name": "清水",
@@ -511,8 +514,8 @@
         "avg_first_goal_minute": 0.4012738853503185
       },
       "cluster_id": 3,
-      "umap_x": -9.69243,
-      "umap_y": 11.00623
+      "umap_x": -0.28384,
+      "umap_y": 18.85886
     },
     {
       "team_name": "湘南",
@@ -534,8 +537,8 @@
         "avg_first_goal_minute": 0.3977272727272727
       },
       "cluster_id": 3,
-      "umap_x": -8.80165,
-      "umap_y": 10.09101
+      "umap_x": -0.93985,
+      "umap_y": 22.47916
     },
     {
       "team_name": "甲府",
@@ -557,8 +560,8 @@
         "avg_first_goal_minute": 0.36764705882352944
       },
       "cluster_id": 3,
-      "umap_x": -10.51913,
-      "umap_y": 12.97528
+      "umap_x": 11.83854,
+      "umap_y": 18.38872
     },
     {
       "team_name": "町田",
@@ -580,8 +583,8 @@
         "avg_first_goal_minute": 0.5526315789473685
       },
       "cluster_id": 0,
-      "umap_x": -9.51333,
-      "umap_y": 8.76615
+      "umap_x": -11.36337,
+      "umap_y": 21.18756
     },
     {
       "team_name": "磐田",
@@ -603,8 +606,8 @@
         "avg_first_goal_minute": 0.3605769230769231
       },
       "cluster_id": 3,
-      "umap_x": -10.70473,
-      "umap_y": 11.91457
+      "umap_x": 5.18534,
+      "umap_y": 15.77752
     },
     {
       "team_name": "神戸",
@@ -626,8 +629,8 @@
         "avg_first_goal_minute": 0.5095238095238095
       },
       "cluster_id": 0,
-      "umap_x": -10.36259,
-      "umap_y": 8.67359
+      "umap_x": -12.13515,
+      "umap_y": 16.94243
     },
     {
       "team_name": "福岡",
@@ -649,8 +652,8 @@
         "avg_first_goal_minute": 0.35648148148148145
       },
       "cluster_id": 3,
-      "umap_x": -9.01685,
-      "umap_y": 12.56655
+      "umap_x": 8.69841,
+      "umap_y": 24.34576
     },
     {
       "team_name": "長崎",
@@ -672,8 +675,8 @@
         "avg_first_goal_minute": 0.4411764705882353
       },
       "cluster_id": 3,
-      "umap_x": -11.31066,
-      "umap_y": 11.93529
+      "umap_x": 6.38315,
+      "umap_y": 12.8824
     },
     {
       "team_name": "鳥栖",
@@ -695,8 +698,8 @@
         "avg_first_goal_minute": 0.4214659685863874
       },
       "cluster_id": 3,
-      "umap_x": -10.11216,
-      "umap_y": 10.71702
+      "umap_x": 2.1967,
+      "umap_y": 21.14815
     },
     {
       "team_name": "鹿島",
@@ -718,8 +721,8 @@
         "avg_first_goal_minute": 0.5666666666666667
       },
       "cluster_id": 0,
-      "umap_x": -11.65318,
-      "umap_y": 8.39565
+      "umap_x": -10.65707,
+      "umap_y": 8.88165
     },
     {
       "team_name": "Ｃ大阪",
@@ -741,8 +744,8 @@
         "avg_first_goal_minute": 0.4971590909090909
       },
       "cluster_id": 0,
-      "umap_x": -11.49689,
-      "umap_y": 9.80737
+      "umap_x": -5.53998,
+      "umap_y": 13.37908
     },
     {
       "team_name": "Ｆ東京",
@@ -764,8 +767,8 @@
         "avg_first_goal_minute": 0.5
       },
       "cluster_id": 0,
-      "umap_x": -11.35942,
-      "umap_y": 7.92143
+      "umap_x": -8.60666,
+      "umap_y": 11.87855
     },
     {
       "team_name": "Ｇ大阪",
@@ -787,8 +790,8 @@
         "avg_first_goal_minute": 0.48333333333333334
       },
       "cluster_id": 3,
-      "umap_x": -9.10268,
-      "umap_y": 9.41764
+      "umap_x": -8.14158,
+      "umap_y": 22.58513
     },
     {
       "team_name": "AC Milan",
@@ -797,9 +800,9 @@
       "matches": 456,
       "features": {
         "avg_shots": 16.736842105263158,
-        "avg_possession": 53.1592105263158,
-        "avg_pass_accuracy": 82.97521929824562,
-        "avg_shot_accuracy": 24.853070175438592,
+        "avg_possession": 53.15921052631579,
+        "avg_pass_accuracy": 82.9752192982456,
+        "avg_shot_accuracy": 24.853070175438596,
         "avg_high_xg_shots": 1.969298245614035,
         "avg_opponent_passes": 374.33991228070175,
         "first_goal_rate": 0.6388888888888888,
@@ -816,8 +819,8 @@
         "avg_first_goal_minute": 0.25219298245614036
       },
       "cluster_id": 1,
-      "umap_x": 3.43084,
-      "umap_y": 13.29611
+      "umap_x": -17.22595,
+      "umap_y": 16.96288
     },
     {
       "team_name": "Ajaccio",
@@ -826,9 +829,9 @@
       "matches": 38,
       "features": {
         "avg_shots": 9.18421052631579,
-        "avg_possession": 43.297368421052624,
+        "avg_possession": 43.29736842105263,
         "avg_pass_accuracy": 81.49736842105263,
-        "avg_shot_accuracy": 39.56052631578948,
+        "avg_shot_accuracy": 39.560526315789474,
         "avg_high_xg_shots": 0.7368421052631579,
         "avg_opponent_passes": 453.2631578947368,
         "first_goal_rate": 0.14285714285714285,
@@ -845,8 +848,8 @@
         "avg_first_goal_minute": 0.13157894736842105
       },
       "cluster_id": 6,
-      "umap_x": 7.53035,
-      "umap_y": 6.20976
+      "umap_x": 19.43919,
+      "umap_y": 1.30004
     },
     {
       "team_name": "Alaves",
@@ -855,8 +858,8 @@
       "matches": 342,
       "features": {
         "avg_shots": 12.087719298245615,
-        "avg_possession": 48.03333333333332,
-        "avg_pass_accuracy": 82.20730994152052,
+        "avg_possession": 48.03333333333334,
+        "avg_pass_accuracy": 82.20730994152048,
         "avg_shot_accuracy": 30.05730994152047,
         "avg_high_xg_shots": 1.213450292397661,
         "avg_opponent_passes": 415.3099415204678,
@@ -878,8 +881,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 8.27236,
-      "umap_y": 9.25901
+      "umap_x": 18.86924,
+      "umap_y": 14.43734
     },
     {
       "team_name": "Almeria",
@@ -888,9 +891,9 @@
       "matches": 114,
       "features": {
         "avg_shots": 12.543859649122806,
-        "avg_possession": 45.97456140350876,
-        "avg_pass_accuracy": 81.89649122807016,
-        "avg_shot_accuracy": 31.902631578947375,
+        "avg_possession": 45.97456140350877,
+        "avg_pass_accuracy": 81.89649122807018,
+        "avg_shot_accuracy": 31.902631578947368,
         "avg_high_xg_shots": 1.3421052631578947,
         "avg_opponent_passes": 431.79824561403507,
         "first_goal_rate": 0.45,
@@ -911,8 +914,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 10.48329,
-      "umap_y": 7.90843
+      "umap_x": 19.80222,
+      "umap_y": -5.96655
     },
     {
       "team_name": "Amiens",
@@ -921,8 +924,8 @@
       "matches": 104,
       "features": {
         "avg_shots": 10.0,
-        "avg_possession": 46.53846153846153,
-        "avg_pass_accuracy": 81.97884615384616,
+        "avg_possession": 46.53846153846154,
+        "avg_pass_accuracy": 81.97884615384615,
         "avg_shot_accuracy": 36.49326923076923,
         "avg_high_xg_shots": 0.875,
         "avg_opponent_passes": 427.2692307692308,
@@ -944,8 +947,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 3,
-      "umap_x": 12.3907,
-      "umap_y": 6.27594
+      "umap_x": 12.54471,
+      "umap_y": -16.97726
     },
     {
       "team_name": "Angers",
@@ -954,9 +957,9 @@
       "matches": 362,
       "features": {
         "avg_shots": 11.925414364640885,
-        "avg_possession": 48.23397790055246,
-        "avg_pass_accuracy": 82.2361878453039,
-        "avg_shot_accuracy": 30.294198895027634,
+        "avg_possession": 48.23397790055249,
+        "avg_pass_accuracy": 82.23618784530387,
+        "avg_shot_accuracy": 30.294198895027623,
         "avg_high_xg_shots": 1.1657458563535912,
         "avg_opponent_passes": 413.71270718232046,
         "first_goal_rate": 0.34532374100719426,
@@ -973,8 +976,8 @@
         "avg_first_goal_minute": 0.13259668508287292
       },
       "cluster_id": 7,
-      "umap_x": 8.13499,
-      "umap_y": 9.8246
+      "umap_x": 18.70454,
+      "umap_y": 19.14826
     },
     {
       "team_name": "Arminia Bielefeld",
@@ -983,7 +986,7 @@
       "matches": 68,
       "features": {
         "avg_shots": 9.691176470588236,
-        "avg_possession": 43.2485294117647,
+        "avg_possession": 43.24852941176471,
         "avg_pass_accuracy": 81.48970588235295,
         "avg_shot_accuracy": 34.0,
         "avg_high_xg_shots": 0.7794117647058824,
@@ -1002,8 +1005,8 @@
         "avg_first_goal_minute": 0.29411764705882354
       },
       "cluster_id": 3,
-      "umap_x": 10.78288,
-      "umap_y": 6.16702
+      "umap_x": 16.51498,
+      "umap_y": -1.67983
     },
     {
       "team_name": "Arsenal",
@@ -1012,9 +1015,9 @@
       "matches": 456,
       "features": {
         "avg_shots": 18.289473684210527,
-        "avg_possession": 54.44385964912285,
-        "avg_pass_accuracy": 83.16600877192985,
-        "avg_shot_accuracy": 24.08640350877191,
+        "avg_possession": 54.44385964912281,
+        "avg_pass_accuracy": 83.16600877192982,
+        "avg_shot_accuracy": 24.08640350877193,
         "avg_high_xg_shots": 2.223684210526316,
         "avg_opponent_passes": 364.06140350877195,
         "first_goal_rate": 0.6871508379888268,
@@ -1031,8 +1034,8 @@
         "avg_first_goal_minute": 0.26973684210526316
       },
       "cluster_id": 1,
-      "umap_x": 2.59249,
-      "umap_y": 13.87717
+      "umap_x": -19.86357,
+      "umap_y": 14.511
     },
     {
       "team_name": "Aston Villa",
@@ -1041,9 +1044,9 @@
       "matches": 342,
       "features": {
         "avg_shots": 13.695906432748538,
-        "avg_possession": 48.62192982456142,
-        "avg_pass_accuracy": 82.29239766081874,
-        "avg_shot_accuracy": 29.34385964912284,
+        "avg_possession": 48.621929824561406,
+        "avg_pass_accuracy": 82.29239766081871,
+        "avg_shot_accuracy": 29.34385964912281,
         "avg_high_xg_shots": 1.432748538011696,
         "avg_opponent_passes": 410.64619883040933,
         "first_goal_rate": 0.5359116022099447,
@@ -1060,8 +1063,8 @@
         "avg_first_goal_minute": 0.28362573099415206
       },
       "cluster_id": 2,
-      "umap_x": 6.25649,
-      "umap_y": 9.11919
+      "umap_x": 11.10924,
+      "umap_y": 14.70618
     },
     {
       "team_name": "Atalanta",
@@ -1070,9 +1073,9 @@
       "matches": 456,
       "features": {
         "avg_shots": 17.82236842105263,
-        "avg_possession": 53.494078947368365,
-        "avg_pass_accuracy": 83.02368421052627,
-        "avg_shot_accuracy": 24.923245614035082,
+        "avg_possession": 53.49407894736842,
+        "avg_pass_accuracy": 83.02368421052633,
+        "avg_shot_accuracy": 24.92324561403509,
         "avg_high_xg_shots": 2.1600877192982457,
         "avg_opponent_passes": 371.6469298245614,
         "first_goal_rate": 0.6067415730337079,
@@ -1089,8 +1092,8 @@
         "avg_first_goal_minute": 0.23684210526315788
       },
       "cluster_id": 1,
-      "umap_x": 3.24933,
-      "umap_y": 13.56143
+      "umap_x": -16.24701,
+      "umap_y": 15.08957
     },
     {
       "team_name": "Athletic Club",
@@ -1099,9 +1102,9 @@
       "matches": 456,
       "features": {
         "avg_shots": 14.162280701754385,
-        "avg_possession": 51.47039473684214,
-        "avg_pass_accuracy": 82.71885964912279,
-        "avg_shot_accuracy": 27.632456140350897,
+        "avg_possession": 51.4703947368421,
+        "avg_pass_accuracy": 82.71885964912282,
+        "avg_shot_accuracy": 27.632456140350875,
         "avg_high_xg_shots": 1.5394736842105263,
         "avg_opponent_passes": 387.82236842105266,
         "first_goal_rate": 0.45,
@@ -1122,8 +1125,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 2,
-      "umap_x": 4.73075,
-      "umap_y": 10.38794
+      "umap_x": 1.37409,
+      "umap_y": 19.60677
     },
     {
       "team_name": "Atletico Madrid",
@@ -1132,9 +1135,9 @@
       "matches": 456,
       "features": {
         "avg_shots": 16.467105263157894,
-        "avg_possession": 54.490789473684174,
-        "avg_pass_accuracy": 83.17302631578954,
-        "avg_shot_accuracy": 25.736842105263186,
+        "avg_possession": 54.49078947368421,
+        "avg_pass_accuracy": 83.17302631578947,
+        "avg_shot_accuracy": 25.736842105263158,
         "avg_high_xg_shots": 1.905701754385965,
         "avg_opponent_passes": 363.66008771929825,
         "first_goal_rate": 0.45,
@@ -1155,8 +1158,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 1,
-      "umap_x": 2.74324,
-      "umap_y": 12.58221
+      "umap_x": -12.47632,
+      "umap_y": 13.10868
     },
     {
       "team_name": "Augsburg",
@@ -1165,9 +1168,9 @@
       "matches": 408,
       "features": {
         "avg_shots": 13.139705882352942,
-        "avg_possession": 47.363725490196074,
-        "avg_pass_accuracy": 82.10588235294115,
-        "avg_shot_accuracy": 29.340931372548994,
+        "avg_possession": 47.36372549019608,
+        "avg_pass_accuracy": 82.10588235294117,
+        "avg_shot_accuracy": 29.340931372549022,
         "avg_high_xg_shots": 1.357843137254902,
         "avg_opponent_passes": 420.7230392156863,
         "first_goal_rate": 0.45,
@@ -1184,8 +1187,8 @@
         "avg_first_goal_minute": 0.17647058823529413
       },
       "cluster_id": 7,
-      "umap_x": 7.32293,
-      "umap_y": 8.30372
+      "umap_x": 14.46491,
+      "umap_y": 9.29107
     },
     {
       "team_name": "Auxerre",
@@ -1194,9 +1197,9 @@
       "matches": 106,
       "features": {
         "avg_shots": 12.40566037735849,
-        "avg_possession": 46.67264150943397,
-        "avg_pass_accuracy": 82.00283018867925,
-        "avg_shot_accuracy": 29.145283018867918,
+        "avg_possession": 46.672641509433966,
+        "avg_pass_accuracy": 82.00283018867924,
+        "avg_shot_accuracy": 29.145283018867925,
         "avg_high_xg_shots": 1.2358490566037736,
         "avg_opponent_passes": 426.22641509433964,
         "first_goal_rate": 0.4852941176470588,
@@ -1213,8 +1216,8 @@
         "avg_first_goal_minute": 0.3113207547169811
       },
       "cluster_id": 0,
-      "umap_x": 7.33215,
-      "umap_y": 7.56046
+      "umap_x": 17.09014,
+      "umap_y": 7.91
     },
     {
       "team_name": "Barcelona",
@@ -1223,9 +1226,9 @@
       "matches": 456,
       "features": {
         "avg_shots": 23.276315789473685,
-        "avg_possession": 57.479605263157886,
-        "avg_pass_accuracy": 83.62083333333337,
-        "avg_shot_accuracy": 21.28771929824562,
+        "avg_possession": 57.47960526315789,
+        "avg_pass_accuracy": 83.62083333333334,
+        "avg_shot_accuracy": 21.287719298245616,
         "avg_high_xg_shots": 3.013157894736842,
         "avg_opponent_passes": 339.7609649122807,
         "first_goal_rate": 0.45,
@@ -1246,8 +1249,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 5,
-      "umap_x": 2.10612,
-      "umap_y": 13.88407
+      "umap_x": -19.55003,
+      "umap_y": 8.62692
     },
     {
       "team_name": "Bayer Leverkusen",
@@ -1256,9 +1259,9 @@
       "matches": 408,
       "features": {
         "avg_shots": 18.090686274509803,
-        "avg_possession": 53.314215686274565,
-        "avg_pass_accuracy": 82.99558823529412,
-        "avg_shot_accuracy": 24.75024509803923,
+        "avg_possession": 53.31421568627451,
+        "avg_pass_accuracy": 82.99558823529411,
+        "avg_shot_accuracy": 24.750245098039215,
         "avg_high_xg_shots": 2.139705882352941,
         "avg_opponent_passes": 373.1078431372549,
         "first_goal_rate": 0.6645569620253164,
@@ -1275,8 +1278,8 @@
         "avg_first_goal_minute": 0.25735294117647056
       },
       "cluster_id": 1,
-      "umap_x": 3.1154,
-      "umap_y": 13.83856
+      "umap_x": -19.12807,
+      "umap_y": 16.0517
     },
     {
       "team_name": "Bayern Munich",
@@ -1285,9 +1288,9 @@
       "matches": 408,
       "features": {
         "avg_shots": 25.03921568627451,
-        "avg_possession": 58.64485294117644,
-        "avg_pass_accuracy": 83.79754901960783,
-        "avg_shot_accuracy": 21.390441176470578,
+        "avg_possession": 58.64485294117647,
+        "avg_pass_accuracy": 83.79754901960784,
+        "avg_shot_accuracy": 21.390441176470585,
         "avg_high_xg_shots": 3.2892156862745097,
         "avg_opponent_passes": 330.4313725490196,
         "first_goal_rate": 0.7396449704142012,
@@ -1304,8 +1307,8 @@
         "avg_first_goal_minute": 0.30637254901960786
       },
       "cluster_id": 5,
-      "umap_x": 2.22948,
-      "umap_y": 14.29887
+      "umap_x": -22.87298,
+      "umap_y": 9.43997
     },
     {
       "team_name": "Benevento",
@@ -1315,7 +1318,7 @@
       "features": {
         "avg_shots": 11.013157894736842,
         "avg_possession": 43.89605263157895,
-        "avg_pass_accuracy": 81.58421052631581,
+        "avg_pass_accuracy": 81.58421052631579,
         "avg_shot_accuracy": 33.90921052631579,
         "avg_high_xg_shots": 1.013157894736842,
         "avg_opponent_passes": 448.38157894736844,
@@ -1333,8 +1336,8 @@
         "avg_first_goal_minute": 0.17105263157894737
       },
       "cluster_id": 3,
-      "umap_x": 11.03061,
-      "umap_y": 6.34111
+      "umap_x": 14.78452,
+      "umap_y": -6.72516
     },
     {
       "team_name": "Bochum",
@@ -1343,7 +1346,7 @@
       "matches": 136,
       "features": {
         "avg_shots": 13.838235294117647,
-        "avg_possession": 47.010294117647064,
+        "avg_possession": 47.01029411764706,
         "avg_pass_accuracy": 82.04926470588236,
         "avg_shot_accuracy": 26.591176470588238,
         "avg_high_xg_shots": 1.5514705882352942,
@@ -1362,8 +1365,8 @@
         "avg_first_goal_minute": 0.375
       },
       "cluster_id": 0,
-      "umap_x": 7.55557,
-      "umap_y": 8.13191
+      "umap_x": 11.90084,
+      "umap_y": 6.97172
     },
     {
       "team_name": "Bologna",
@@ -1372,9 +1375,9 @@
       "matches": 418,
       "features": {
         "avg_shots": 13.263157894736842,
-        "avg_possession": 48.90382775119615,
+        "avg_possession": 48.90382775119617,
         "avg_pass_accuracy": 82.33564593301436,
-        "avg_shot_accuracy": 29.31985645933012,
+        "avg_shot_accuracy": 29.319856459330147,
         "avg_high_xg_shots": 1.3899521531100478,
         "avg_opponent_passes": 408.38277511961724,
         "first_goal_rate": 0.5144508670520231,
@@ -1391,8 +1394,8 @@
         "avg_first_goal_minute": 0.21291866028708134
       },
       "cluster_id": 2,
-      "umap_x": 5.96202,
-      "umap_y": 8.8065
+      "umap_x": 10.30874,
+      "umap_y": 13.25929
     },
     {
       "team_name": "Bordeaux",
@@ -1401,9 +1404,9 @@
       "matches": 294,
       "features": {
         "avg_shots": 12.959183673469388,
-        "avg_possession": 49.41700680272107,
-        "avg_pass_accuracy": 82.41564625850341,
-        "avg_shot_accuracy": 29.760544217687087,
+        "avg_possession": 49.41700680272109,
+        "avg_pass_accuracy": 82.4156462585034,
+        "avg_shot_accuracy": 29.760544217687077,
         "avg_high_xg_shots": 1.3401360544217686,
         "avg_opponent_passes": 404.23809523809524,
         "first_goal_rate": 0.43478260869565216,
@@ -1420,8 +1423,8 @@
         "avg_first_goal_minute": 0.10204081632653061
       },
       "cluster_id": 2,
-      "umap_x": 6.83451,
-      "umap_y": 10.40635
+      "umap_x": 13.45456,
+      "umap_y": 21.12007
     },
     {
       "team_name": "Borussia Dortmund",
@@ -1430,9 +1433,9 @@
       "matches": 408,
       "features": {
         "avg_shots": 20.36519607843137,
-        "avg_possession": 54.71887254901957,
+        "avg_possession": 54.71887254901961,
         "avg_pass_accuracy": 83.20661764705883,
-        "avg_shot_accuracy": 23.178186274509798,
+        "avg_shot_accuracy": 23.178186274509805,
         "avg_high_xg_shots": 2.5392156862745097,
         "avg_opponent_passes": 361.84558823529414,
         "first_goal_rate": 0.6547619047619048,
@@ -1449,8 +1452,8 @@
         "avg_first_goal_minute": 0.2696078431372549
       },
       "cluster_id": 1,
-      "umap_x": 2.7961,
-      "umap_y": 14.31363
+      "umap_x": -20.75517,
+      "umap_y": 11.38193
     },
     {
       "team_name": "Borussia M.Gladbach",
@@ -1459,9 +1462,9 @@
       "matches": 408,
       "features": {
         "avg_shots": 16.357843137254903,
-        "avg_possession": 50.41053921568631,
-        "avg_pass_accuracy": 82.56299019607846,
-        "avg_shot_accuracy": 25.802941176470586,
+        "avg_possession": 50.41053921568628,
+        "avg_pass_accuracy": 82.56299019607843,
+        "avg_shot_accuracy": 25.80294117647059,
         "avg_high_xg_shots": 1.8676470588235294,
         "avg_opponent_passes": 396.31617647058823,
         "first_goal_rate": 0.5527950310559007,
@@ -1478,8 +1481,8 @@
         "avg_first_goal_minute": 0.2181372549019608
       },
       "cluster_id": 2,
-      "umap_x": 4.94358,
-      "umap_y": 11.6945
+      "umap_x": 1.34584,
+      "umap_y": 26.84859
     },
     {
       "team_name": "Bournemouth",
@@ -1488,9 +1491,9 @@
       "matches": 342,
       "features": {
         "avg_shots": 14.456140350877194,
-        "avg_possession": 48.59239766081873,
-        "avg_pass_accuracy": 82.2865497076023,
-        "avg_shot_accuracy": 27.05877192982457,
+        "avg_possession": 48.59239766081871,
+        "avg_pass_accuracy": 82.28654970760233,
+        "avg_shot_accuracy": 27.058771929824562,
         "avg_high_xg_shots": 1.5730994152046784,
         "avg_opponent_passes": 410.8888888888889,
         "first_goal_rate": 0.45871559633027525,
@@ -1507,8 +1510,8 @@
         "avg_first_goal_minute": 0.14619883040935672
       },
       "cluster_id": 2,
-      "umap_x": 5.94384,
-      "umap_y": 10.85938
+      "umap_x": 8.50757,
+      "umap_y": 24.35402
     },
     {
       "team_name": "Brentford",
@@ -1517,8 +1520,8 @@
       "matches": 190,
       "features": {
         "avg_shots": 16.526315789473685,
-        "avg_possession": 50.623684210526285,
-        "avg_pass_accuracy": 82.59052631578943,
+        "avg_possession": 50.623684210526314,
+        "avg_pass_accuracy": 82.59052631578948,
         "avg_shot_accuracy": 24.666842105263157,
         "avg_high_xg_shots": 1.931578947368421,
         "avg_opponent_passes": 394.6,
@@ -1536,8 +1539,8 @@
         "avg_first_goal_minute": 0.3526315789473684
       },
       "cluster_id": 2,
-      "umap_x": 4.34454,
-      "umap_y": 11.33121
+      "umap_x": -1.336,
+      "umap_y": 22.80521
     },
     {
       "team_name": "Brescia",
@@ -1546,9 +1549,9 @@
       "matches": 38,
       "features": {
         "avg_shots": 11.947368421052632,
-        "avg_possession": 44.93947368421053,
+        "avg_possession": 44.939473684210526,
         "avg_pass_accuracy": 81.74736842105263,
-        "avg_shot_accuracy": 28.144736842105257,
+        "avg_shot_accuracy": 28.144736842105264,
         "avg_high_xg_shots": 1.1842105263157894,
         "avg_opponent_passes": 440.13157894736844,
         "first_goal_rate": 0.45,
@@ -1569,8 +1572,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 9.59246,
-      "umap_y": 7.89842
+      "umap_x": 22.55641,
+      "umap_y": -3.18813
     },
     {
       "team_name": "Brest",
@@ -1579,9 +1582,9 @@
       "matches": 244,
       "features": {
         "avg_shots": 13.610655737704919,
-        "avg_possession": 48.25204918032786,
-        "avg_pass_accuracy": 82.23606557377055,
-        "avg_shot_accuracy": 29.169262295081992,
+        "avg_possession": 48.252049180327866,
+        "avg_pass_accuracy": 82.23606557377049,
+        "avg_shot_accuracy": 29.169262295081968,
         "avg_high_xg_shots": 1.4262295081967213,
         "avg_opponent_passes": 413.5655737704918,
         "first_goal_rate": 0.47337278106508873,
@@ -1598,8 +1601,8 @@
         "avg_first_goal_minute": 0.32786885245901637
       },
       "cluster_id": 7,
-      "umap_x": 6.83626,
-      "umap_y": 8.84581
+      "umap_x": 12.7457,
+      "umap_y": 12.83387
     },
     {
       "team_name": "Brighton",
@@ -1608,8 +1611,8 @@
       "matches": 342,
       "features": {
         "avg_shots": 14.687134502923977,
-        "avg_possession": 50.190935672514605,
-        "avg_pass_accuracy": 82.52894736842107,
+        "avg_possession": 50.19093567251462,
+        "avg_pass_accuracy": 82.52894736842106,
         "avg_shot_accuracy": 26.63947368421053,
         "avg_high_xg_shots": 1.6257309941520468,
         "avg_opponent_passes": 398.07894736842104,
@@ -1627,8 +1630,8 @@
         "avg_first_goal_minute": 0.25146198830409355
       },
       "cluster_id": 2,
-      "umap_x": 4.99425,
-      "umap_y": 10.96711
+      "umap_x": 2.69187,
+      "umap_y": 23.72335
     },
     {
       "team_name": "Burnley",
@@ -1637,8 +1640,8 @@
       "matches": 342,
       "features": {
         "avg_shots": 11.43859649122807,
-        "avg_possession": 45.87777777777773,
-        "avg_pass_accuracy": 81.88333333333328,
+        "avg_possession": 45.87777777777778,
+        "avg_pass_accuracy": 81.88333333333333,
         "avg_shot_accuracy": 31.26345029239766,
         "avg_high_xg_shots": 1.0818713450292399,
         "avg_opponent_passes": 432.56140350877195,
@@ -1656,8 +1659,8 @@
         "avg_first_goal_minute": 0.12573099415204678
       },
       "cluster_id": 7,
-      "umap_x": 10.35258,
-      "umap_y": 7.13925
+      "umap_x": 16.48841,
+      "umap_y": -5.49815
     },
     {
       "team_name": "Cadiz",
@@ -1666,8 +1669,8 @@
       "matches": 152,
       "features": {
         "avg_shots": 11.171052631578947,
-        "avg_possession": 47.230263157894754,
-        "avg_pass_accuracy": 82.08355263157891,
+        "avg_possession": 47.23026315789474,
+        "avg_pass_accuracy": 82.08355263157895,
         "avg_shot_accuracy": 30.954605263157898,
         "avg_high_xg_shots": 1.118421052631579,
         "avg_opponent_passes": 421.7763157894737,
@@ -1689,8 +1692,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 10.04025,
-      "umap_y": 8.86428
+      "umap_x": 23.82944,
+      "umap_y": -6.95368
     },
     {
       "team_name": "Caen",
@@ -1701,7 +1704,7 @@
         "avg_shots": 11.336842105263157,
         "avg_possession": 47.1321052631579,
         "avg_pass_accuracy": 82.06947368421054,
-        "avg_shot_accuracy": 31.803157894736838,
+        "avg_shot_accuracy": 31.803157894736845,
         "avg_high_xg_shots": 1.0578947368421052,
         "avg_opponent_passes": 422.5473684210526,
         "first_goal_rate": 0.45,
@@ -1722,8 +1725,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 10.6605,
-      "umap_y": 8.55918
+      "umap_x": 23.19571,
+      "umap_y": -9.32259
     },
     {
       "team_name": "Cagliari",
@@ -1732,9 +1735,9 @@
       "matches": 380,
       "features": {
         "avg_shots": 12.428947368421053,
-        "avg_possession": 46.72263157894733,
-        "avg_pass_accuracy": 82.00815789473688,
-        "avg_shot_accuracy": 30.889999999999983,
+        "avg_possession": 46.722631578947365,
+        "avg_pass_accuracy": 82.00815789473684,
+        "avg_shot_accuracy": 30.89,
         "avg_high_xg_shots": 1.2421052631578948,
         "avg_opponent_passes": 425.7815789473684,
         "first_goal_rate": 0.3617021276595745,
@@ -1751,8 +1754,8 @@
         "avg_first_goal_minute": 0.13421052631578947
       },
       "cluster_id": 0,
-      "umap_x": 7.29564,
-      "umap_y": 6.76901
+      "umap_x": 19.70016,
+      "umap_y": 4.51758
     },
     {
       "team_name": "Cardiff",
@@ -1761,8 +1764,8 @@
       "matches": 38,
       "features": {
         "avg_shots": 11.657894736842104,
-        "avg_possession": 46.192105263157885,
-        "avg_pass_accuracy": 81.92894736842103,
+        "avg_possession": 46.19210526315789,
+        "avg_pass_accuracy": 81.92894736842106,
         "avg_shot_accuracy": 30.681578947368422,
         "avg_high_xg_shots": 1.131578947368421,
         "avg_opponent_passes": 430.13157894736844,
@@ -1784,8 +1787,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 10.3788,
-      "umap_y": 7.9658
+      "umap_x": 21.01221,
+      "umap_y": -5.03801
     },
     {
       "team_name": "Carpi",
@@ -1794,9 +1797,9 @@
       "matches": 38,
       "features": {
         "avg_shots": 12.131578947368421,
-        "avg_possession": 47.70526315789474,
-        "avg_pass_accuracy": 82.15789473684208,
-        "avg_shot_accuracy": 30.844736842105267,
+        "avg_possession": 47.705263157894734,
+        "avg_pass_accuracy": 82.15789473684211,
+        "avg_shot_accuracy": 30.84473684210526,
         "avg_high_xg_shots": 1.3157894736842106,
         "avg_opponent_passes": 417.92105263157896,
         "first_goal_rate": 0.45,
@@ -1817,8 +1820,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 8.88029,
-      "umap_y": 9.41637
+      "umap_x": 20.87613,
+      "umap_y": 13.42989
     },
     {
       "team_name": "Celta Vigo",
@@ -1827,9 +1830,9 @@
       "matches": 456,
       "features": {
         "avg_shots": 13.826754385964913,
-        "avg_possession": 49.350000000000016,
-        "avg_pass_accuracy": 82.40109649122812,
-        "avg_shot_accuracy": 28.91732456140351,
+        "avg_possession": 49.349999999999994,
+        "avg_pass_accuracy": 82.40109649122807,
+        "avg_shot_accuracy": 28.917324561403507,
         "avg_high_xg_shots": 1.4714912280701755,
         "avg_opponent_passes": 404.80263157894734,
         "first_goal_rate": 0.45,
@@ -1850,8 +1853,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 2,
-      "umap_x": 5.98914,
-      "umap_y": 10.1304
+      "umap_x": 9.40567,
+      "umap_y": 20.88854
     },
     {
       "team_name": "Cesena",
@@ -1861,8 +1864,8 @@
       "features": {
         "avg_shots": 10.289473684210526,
         "avg_possession": 44.08947368421053,
-        "avg_pass_accuracy": 81.61052631578946,
-        "avg_shot_accuracy": 37.79473684210527,
+        "avg_pass_accuracy": 81.61052631578947,
+        "avg_shot_accuracy": 37.794736842105266,
         "avg_high_xg_shots": 0.868421052631579,
         "avg_opponent_passes": 446.8421052631579,
         "first_goal_rate": 0.45,
@@ -1883,8 +1886,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 3,
-      "umap_x": 11.71666,
-      "umap_y": 5.72519
+      "umap_x": 9.07892,
+      "umap_y": -14.2713
     },
     {
       "team_name": "Chelsea",
@@ -1893,8 +1896,8 @@
       "matches": 456,
       "features": {
         "avg_shots": 17.75877192982456,
-        "avg_possession": 54.33442982456147,
-        "avg_pass_accuracy": 83.14890350877188,
+        "avg_possession": 54.334429824561404,
+        "avg_pass_accuracy": 83.14890350877194,
         "avg_shot_accuracy": 23.815570175438594,
         "avg_high_xg_shots": 2.111842105263158,
         "avg_opponent_passes": 364.92763157894734,
@@ -1912,8 +1915,8 @@
         "avg_first_goal_minute": 0.23684210526315788
       },
       "cluster_id": 1,
-      "umap_x": 2.85662,
-      "umap_y": 13.61295
+      "umap_x": -17.04724,
+      "umap_y": 13.33353
     },
     {
       "team_name": "Chievo",
@@ -1922,9 +1925,9 @@
       "matches": 190,
       "features": {
         "avg_shots": 10.83157894736842,
-        "avg_possession": 46.75684210526316,
-        "avg_pass_accuracy": 82.01052631578949,
-        "avg_shot_accuracy": 32.45684210526314,
+        "avg_possession": 46.75684210526315,
+        "avg_pass_accuracy": 82.01052631578948,
+        "avg_shot_accuracy": 32.456842105263156,
         "avg_high_xg_shots": 0.9842105263157894,
         "avg_opponent_passes": 425.5105263157895,
         "first_goal_rate": 0.45,
@@ -1945,8 +1948,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 11.28881,
-      "umap_y": 8.09191
+      "umap_x": 21.01179,
+      "umap_y": -11.40686
     },
     {
       "team_name": "Clermont Foot",
@@ -1955,9 +1958,9 @@
       "matches": 110,
       "features": {
         "avg_shots": 12.272727272727273,
-        "avg_possession": 47.044545454545435,
-        "avg_pass_accuracy": 82.05727272727273,
-        "avg_shot_accuracy": 29.039999999999996,
+        "avg_possession": 47.04454545454545,
+        "avg_pass_accuracy": 82.05727272727272,
+        "avg_shot_accuracy": 29.04,
         "avg_high_xg_shots": 1.2272727272727273,
         "avg_opponent_passes": 423.25454545454545,
         "first_goal_rate": 0.4019607843137255,
@@ -1974,8 +1977,8 @@
         "avg_first_goal_minute": 0.37272727272727274
       },
       "cluster_id": 0,
-      "umap_x": 6.89377,
-      "umap_y": 7.02028
+      "umap_x": 21.17092,
+      "umap_y": 5.23718
     },
     {
       "team_name": "Como",
@@ -1984,9 +1987,9 @@
       "matches": 76,
       "features": {
         "avg_shots": 15.921052631578947,
-        "avg_possession": 52.11842105263157,
-        "avg_pass_accuracy": 82.81710526315791,
-        "avg_shot_accuracy": 25.131578947368418,
+        "avg_possession": 52.11842105263158,
+        "avg_pass_accuracy": 82.8171052631579,
+        "avg_shot_accuracy": 25.13157894736842,
         "avg_high_xg_shots": 1.7763157894736843,
         "avg_opponent_passes": 382.64473684210526,
         "first_goal_rate": 0.5,
@@ -2003,8 +2006,8 @@
         "avg_first_goal_minute": 0.25
       },
       "cluster_id": 1,
-      "umap_x": 3.30695,
-      "umap_y": 12.18385
+      "umap_x": -10.60229,
+      "umap_y": 16.21288
     },
     {
       "team_name": "Cordoba",
@@ -2014,7 +2017,7 @@
       "features": {
         "avg_shots": 8.894736842105264,
         "avg_possession": 45.1,
-        "avg_pass_accuracy": 81.76052631578946,
+        "avg_pass_accuracy": 81.76052631578948,
         "avg_shot_accuracy": 36.23157894736842,
         "avg_high_xg_shots": 0.6842105263157895,
         "avg_opponent_passes": 438.7894736842105,
@@ -2036,8 +2039,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 3,
-      "umap_x": 12.23387,
-      "umap_y": 5.90045
+      "umap_x": 10.07559,
+      "umap_y": -14.7365
     },
     {
       "team_name": "Cremonese",
@@ -2046,8 +2049,8 @@
       "matches": 76,
       "features": {
         "avg_shots": 10.671052631578947,
-        "avg_possession": 44.9921052631579,
-        "avg_pass_accuracy": 81.75131578947371,
+        "avg_possession": 44.992105263157896,
+        "avg_pass_accuracy": 81.7513157894737,
         "avg_shot_accuracy": 31.860526315789475,
         "avg_high_xg_shots": 1.0,
         "avg_opponent_passes": 439.6578947368421,
@@ -2065,8 +2068,8 @@
         "avg_first_goal_minute": 0.14473684210526316
       },
       "cluster_id": 4,
-      "umap_x": 10.01527,
-      "umap_y": 6.22439
+      "umap_x": 11.38478,
+      "umap_y": -5.32942
     },
     {
       "team_name": "Crotone",
@@ -2075,8 +2078,8 @@
       "matches": 114,
       "features": {
         "avg_shots": 10.543859649122806,
-        "avg_possession": 44.35614035087719,
-        "avg_pass_accuracy": 81.65614035087717,
+        "avg_possession": 44.3561403508772,
+        "avg_pass_accuracy": 81.65614035087718,
         "avg_shot_accuracy": 34.73245614035088,
         "avg_high_xg_shots": 0.9035087719298246,
         "avg_opponent_passes": 444.7543859649123,
@@ -2094,8 +2097,8 @@
         "avg_first_goal_minute": 0.09649122807017543
       },
       "cluster_id": 4,
-      "umap_x": 9.86493,
-      "umap_y": 5.42244
+      "umap_x": 5.98065,
+      "umap_y": -4.99567
     },
     {
       "team_name": "Crystal Palace",
@@ -2104,9 +2107,9 @@
       "matches": 456,
       "features": {
         "avg_shots": 13.421052631578947,
-        "avg_possession": 49.0245614035087,
-        "avg_pass_accuracy": 82.35350877192985,
-        "avg_shot_accuracy": 29.03267543859648,
+        "avg_possession": 49.02456140350878,
+        "avg_pass_accuracy": 82.35350877192982,
+        "avg_shot_accuracy": 29.032675438596492,
         "avg_high_xg_shots": 1.4144736842105263,
         "avg_opponent_passes": 407.4013157894737,
         "first_goal_rate": 0.47093023255813954,
@@ -2123,8 +2126,8 @@
         "avg_first_goal_minute": 0.17763157894736842
       },
       "cluster_id": 2,
-      "umap_x": 6.06507,
-      "umap_y": 8.78985
+      "umap_x": 7.94342,
+      "umap_y": 13.32484
     },
     {
       "team_name": "Darmstadt",
@@ -2133,9 +2136,9 @@
       "matches": 102,
       "features": {
         "avg_shots": 11.382352941176471,
-        "avg_possession": 44.43039215686275,
-        "avg_pass_accuracy": 81.66372549019607,
-        "avg_shot_accuracy": 30.44901960784313,
+        "avg_possession": 44.430392156862744,
+        "avg_pass_accuracy": 81.66372549019609,
+        "avg_shot_accuracy": 30.449019607843137,
         "avg_high_xg_shots": 1.0490196078431373,
         "avg_opponent_passes": 444.1372549019608,
         "first_goal_rate": 0.21875,
@@ -2152,8 +2155,8 @@
         "avg_first_goal_minute": 0.06862745098039216
       },
       "cluster_id": 4,
-      "umap_x": 9.4362,
-      "umap_y": 6.19607
+      "umap_x": 10.80067,
+      "umap_y": -2.84297
     },
     {
       "team_name": "Deportivo La Coruna",
@@ -2162,9 +2165,9 @@
       "matches": 152,
       "features": {
         "avg_shots": 12.138157894736842,
-        "avg_possession": 48.8875,
+        "avg_possession": 48.887499999999996,
         "avg_pass_accuracy": 82.33684210526316,
-        "avg_shot_accuracy": 31.190789473684223,
+        "avg_shot_accuracy": 31.19078947368421,
         "avg_high_xg_shots": 1.1842105263157894,
         "avg_opponent_passes": 408.48026315789474,
         "first_goal_rate": 0.45,
@@ -2185,8 +2188,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 8.46068,
-      "umap_y": 10.00787
+      "umap_x": 22.42928,
+      "umap_y": 17.12914
     },
     {
       "team_name": "Dijon",
@@ -2196,8 +2199,8 @@
       "features": {
         "avg_shots": 10.733333333333333,
         "avg_possession": 45.39388888888889,
-        "avg_pass_accuracy": 81.80666666666669,
-        "avg_shot_accuracy": 32.55388888888889,
+        "avg_pass_accuracy": 81.80666666666667,
+        "avg_shot_accuracy": 32.553888888888885,
         "avg_high_xg_shots": 0.9222222222222223,
         "avg_opponent_passes": 436.48333333333335,
         "first_goal_rate": 0.23529411764705882,
@@ -2214,8 +2217,8 @@
         "avg_first_goal_minute": 0.044444444444444446
       },
       "cluster_id": 4,
-      "umap_x": 9.47955,
-      "umap_y": 5.47323
+      "umap_x": 6.41993,
+      "umap_y": -3.53296
     },
     {
       "team_name": "Eibar",
@@ -2224,9 +2227,9 @@
       "matches": 266,
       "features": {
         "avg_shots": 12.368421052631579,
-        "avg_possession": 48.805263157894736,
+        "avg_possession": 48.80526315789474,
         "avg_pass_accuracy": 82.32255639097744,
-        "avg_shot_accuracy": 30.634586466165423,
+        "avg_shot_accuracy": 30.634586466165413,
         "avg_high_xg_shots": 1.2406015037593985,
         "avg_opponent_passes": 409.14285714285717,
         "first_goal_rate": 0.45,
@@ -2247,8 +2250,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 8.16091,
-      "umap_y": 9.79687
+      "umap_x": 20.34056,
+      "umap_y": 16.79055
     },
     {
       "team_name": "Eintracht Frankfurt",
@@ -2257,9 +2260,9 @@
       "matches": 408,
       "features": {
         "avg_shots": 15.654411764705882,
-        "avg_possession": 50.28700980392157,
-        "avg_pass_accuracy": 82.54289215686276,
-        "avg_shot_accuracy": 27.295588235294108,
+        "avg_possession": 50.28700980392156,
+        "avg_pass_accuracy": 82.54289215686275,
+        "avg_shot_accuracy": 27.29558823529412,
         "avg_high_xg_shots": 1.7720588235294117,
         "avg_opponent_passes": 397.3014705882353,
         "first_goal_rate": 0.4878048780487805,
@@ -2276,8 +2279,8 @@
         "avg_first_goal_minute": 0.19607843137254902
       },
       "cluster_id": 2,
-      "umap_x": 4.74928,
-      "umap_y": 10.84298
+      "umap_x": 1.65447,
+      "umap_y": 22.46864
     },
     {
       "team_name": "Elche",
@@ -2286,9 +2289,9 @@
       "matches": 190,
       "features": {
         "avg_shots": 11.205263157894738,
-        "avg_possession": 45.30736842105261,
-        "avg_pass_accuracy": 81.79789473684212,
-        "avg_shot_accuracy": 34.08631578947371,
+        "avg_possession": 45.30736842105263,
+        "avg_pass_accuracy": 81.79789473684211,
+        "avg_shot_accuracy": 34.08631578947368,
         "avg_high_xg_shots": 1.063157894736842,
         "avg_opponent_passes": 437.13684210526316,
         "first_goal_rate": 0.45,
@@ -2309,8 +2312,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 3,
-      "umap_x": 11.62182,
-      "umap_y": 6.68995
+      "umap_x": 15.18129,
+      "umap_y": -11.4201
     },
     {
       "team_name": "Empoli",
@@ -2319,9 +2322,9 @@
       "matches": 304,
       "features": {
         "avg_shots": 11.944078947368421,
-        "avg_possession": 46.90164473684208,
-        "avg_pass_accuracy": 82.03388157894734,
-        "avg_shot_accuracy": 30.7828947368421,
+        "avg_possession": 46.90164473684211,
+        "avg_pass_accuracy": 82.03388157894737,
+        "avg_shot_accuracy": 30.782894736842106,
         "avg_high_xg_shots": 1.144736842105263,
         "avg_opponent_passes": 424.38157894736844,
         "first_goal_rate": 0.4057971014492754,
@@ -2338,8 +2341,8 @@
         "avg_first_goal_minute": 0.18421052631578946
       },
       "cluster_id": 7,
-      "umap_x": 7.46326,
-      "umap_y": 6.90067
+      "umap_x": 18.29063,
+      "umap_y": 5.70172
     },
     {
       "team_name": "Espanyol",
@@ -2348,9 +2351,9 @@
       "matches": 380,
       "features": {
         "avg_shots": 12.205263157894738,
-        "avg_possession": 47.86921052631585,
-        "avg_pass_accuracy": 82.17815789473681,
-        "avg_shot_accuracy": 31.13105263157891,
+        "avg_possession": 47.86921052631579,
+        "avg_pass_accuracy": 82.17815789473684,
+        "avg_shot_accuracy": 31.131052631578946,
         "avg_high_xg_shots": 1.2210526315789474,
         "avg_opponent_passes": 416.63684210526316,
         "first_goal_rate": 0.45,
@@ -2371,8 +2374,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 8.73131,
-      "umap_y": 9.28175
+      "umap_x": 22.18791,
+      "umap_y": 14.14064
     },
     {
       "team_name": "Everton",
@@ -2381,9 +2384,9 @@
       "matches": 456,
       "features": {
         "avg_shots": 13.75438596491228,
-        "avg_possession": 49.22105263157893,
-        "avg_pass_accuracy": 82.38179824561406,
-        "avg_shot_accuracy": 28.04934210526315,
+        "avg_possession": 49.22105263157894,
+        "avg_pass_accuracy": 82.38179824561404,
+        "avg_shot_accuracy": 28.049342105263158,
         "avg_high_xg_shots": 1.4539473684210527,
         "avg_opponent_passes": 405.8179824561403,
         "first_goal_rate": 0.44,
@@ -2400,8 +2403,8 @@
         "avg_first_goal_minute": 0.16885964912280702
       },
       "cluster_id": 2,
-      "umap_x": 6.11688,
-      "umap_y": 10.26124
+      "umap_x": 8.19279,
+      "umap_y": 20.00823
     },
     {
       "team_name": "Evian Thonon Gaillard",
@@ -2412,7 +2415,7 @@
         "avg_shots": 10.157894736842104,
         "avg_possession": 46.59473684210526,
         "avg_pass_accuracy": 81.98421052631579,
-        "avg_shot_accuracy": 34.22894736842104,
+        "avg_shot_accuracy": 34.22894736842105,
         "avg_high_xg_shots": 0.868421052631579,
         "avg_opponent_passes": 426.7894736842105,
         "first_goal_rate": 0.45,
@@ -2433,8 +2436,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 3,
-      "umap_x": 12.11867,
-      "umap_y": 6.76196
+      "umap_x": 14.5714,
+      "umap_y": -15.08648
     },
     {
       "team_name": "FC Cologne",
@@ -2443,9 +2446,9 @@
       "matches": 340,
       "features": {
         "avg_shots": 13.894117647058824,
-        "avg_possession": 48.795294117647074,
-        "avg_pass_accuracy": 82.31764705882355,
-        "avg_shot_accuracy": 26.928529411764714,
+        "avg_possession": 48.79529411764706,
+        "avg_pass_accuracy": 82.31764705882352,
+        "avg_shot_accuracy": 26.928529411764707,
         "avg_high_xg_shots": 1.4911764705882353,
         "avg_opponent_passes": 409.2352941176471,
         "first_goal_rate": 0.392,
@@ -2462,8 +2465,8 @@
         "avg_first_goal_minute": 0.14411764705882352
       },
       "cluster_id": 0,
-      "umap_x": 6.13001,
-      "umap_y": 8.07953
+      "umap_x": 8.23855,
+      "umap_y": 9.6123
     },
     {
       "team_name": "FC Heidenheim",
@@ -2472,7 +2475,7 @@
       "matches": 102,
       "features": {
         "avg_shots": 13.901960784313726,
-        "avg_possession": 46.36568627450979,
+        "avg_possession": 46.365686274509805,
         "avg_pass_accuracy": 81.95392156862745,
         "avg_shot_accuracy": 26.98725490196078,
         "avg_high_xg_shots": 1.4509803921568627,
@@ -2491,8 +2494,8 @@
         "avg_first_goal_minute": 0.22549019607843138
       },
       "cluster_id": 7,
-      "umap_x": 8.76669,
-      "umap_y": 7.30468
+      "umap_x": 12.14343,
+      "umap_y": 3.6544
     },
     {
       "team_name": "Fiorentina",
@@ -2501,9 +2504,9 @@
       "matches": 456,
       "features": {
         "avg_shots": 15.052631578947368,
-        "avg_possession": 51.21337719298243,
-        "avg_pass_accuracy": 82.68223684210524,
-        "avg_shot_accuracy": 26.5280701754386,
+        "avg_possession": 51.213377192982456,
+        "avg_pass_accuracy": 82.68223684210525,
+        "avg_shot_accuracy": 26.528070175438597,
         "avg_high_xg_shots": 1.668859649122807,
         "avg_opponent_passes": 389.89473684210526,
         "first_goal_rate": 0.5307262569832403,
@@ -2520,8 +2523,8 @@
         "avg_first_goal_minute": 0.20833333333333334
       },
       "cluster_id": 2,
-      "umap_x": 4.46971,
-      "umap_y": 11.15462
+      "umap_x": -0.02772,
+      "umap_y": 23.26968
     },
     {
       "team_name": "Fortuna Duesseldorf",
@@ -2530,9 +2533,9 @@
       "matches": 68,
       "features": {
         "avg_shots": 13.279411764705882,
-        "avg_possession": 46.68088235294117,
+        "avg_possession": 46.68088235294118,
         "avg_pass_accuracy": 82.00147058823529,
-        "avg_shot_accuracy": 28.677941176470583,
+        "avg_shot_accuracy": 28.677941176470586,
         "avg_high_xg_shots": 1.4411764705882353,
         "avg_opponent_passes": 426.19117647058823,
         "first_goal_rate": 0.45,
@@ -2553,8 +2556,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 8.35906,
-      "umap_y": 8.0979
+      "umap_x": 14.47292,
+      "umap_y": 7.08642
     },
     {
       "team_name": "Freiburg",
@@ -2563,9 +2566,9 @@
       "matches": 374,
       "features": {
         "avg_shots": 14.344919786096257,
-        "avg_possession": 48.79197860962571,
-        "avg_pass_accuracy": 82.31871657754004,
-        "avg_shot_accuracy": 28.240909090909135,
+        "avg_possession": 48.79197860962567,
+        "avg_pass_accuracy": 82.31871657754012,
+        "avg_shot_accuracy": 28.240909090909092,
         "avg_high_xg_shots": 1.5828877005347595,
         "avg_opponent_passes": 409.26737967914437,
         "first_goal_rate": 0.5816993464052288,
@@ -2582,8 +2585,8 @@
         "avg_first_goal_minute": 0.23796791443850268
       },
       "cluster_id": 2,
-      "umap_x": 5.7228,
-      "umap_y": 9.16876
+      "umap_x": 8.87329,
+      "umap_y": 15.06885
     },
     {
       "team_name": "Frosinone",
@@ -2592,9 +2595,9 @@
       "matches": 114,
       "features": {
         "avg_shots": 11.37719298245614,
-        "avg_possession": 45.7517543859649,
-        "avg_pass_accuracy": 81.86491228070174,
-        "avg_shot_accuracy": 30.104385964912286,
+        "avg_possession": 45.75175438596491,
+        "avg_pass_accuracy": 81.86491228070176,
+        "avg_shot_accuracy": 30.104385964912282,
         "avg_high_xg_shots": 1.0350877192982457,
         "avg_opponent_passes": 433.5877192982456,
         "first_goal_rate": 0.36363636363636365,
@@ -2611,8 +2614,8 @@
         "avg_first_goal_minute": 0.10526315789473684
       },
       "cluster_id": 4,
-      "umap_x": 9.92043,
-      "umap_y": 6.50007
+      "umap_x": 12.46378,
+      "umap_y": -3.58701
     },
     {
       "team_name": "Fulham",
@@ -2621,9 +2624,9 @@
       "matches": 228,
       "features": {
         "avg_shots": 13.429824561403509,
-        "avg_possession": 47.76140350877191,
-        "avg_pass_accuracy": 82.16535087719296,
-        "avg_shot_accuracy": 27.646929824561408,
+        "avg_possession": 47.761403508771934,
+        "avg_pass_accuracy": 82.16535087719299,
+        "avg_shot_accuracy": 27.646929824561404,
         "avg_high_xg_shots": 1.4298245614035088,
         "avg_opponent_passes": 417.5131578947368,
         "first_goal_rate": 0.4782608695652174,
@@ -2640,8 +2643,8 @@
         "avg_first_goal_minute": 0.2894736842105263
       },
       "cluster_id": 7,
-      "umap_x": 6.97929,
-      "umap_y": 8.41946
+      "umap_x": 12.43904,
+      "umap_y": 10.29943
     },
     {
       "team_name": "GFC Ajaccio",
@@ -2652,7 +2655,7 @@
         "avg_shots": 9.842105263157896,
         "avg_possession": 46.857894736842105,
         "avg_pass_accuracy": 82.02894736842104,
-        "avg_shot_accuracy": 37.77894736842106,
+        "avg_shot_accuracy": 37.77894736842105,
         "avg_high_xg_shots": 0.8157894736842105,
         "avg_opponent_passes": 424.6842105263158,
         "first_goal_rate": 0.45,
@@ -2673,8 +2676,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 3,
-      "umap_x": 12.56022,
-      "umap_y": 6.28175
+      "umap_x": 10.87853,
+      "umap_y": -17.78999
     },
     {
       "team_name": "Genoa",
@@ -2683,9 +2686,9 @@
       "matches": 418,
       "features": {
         "avg_shots": 12.495215311004785,
-        "avg_possession": 47.954306220095724,
-        "avg_pass_accuracy": 82.19377990430615,
-        "avg_shot_accuracy": 30.55167464114833,
+        "avg_possession": 47.954306220095695,
+        "avg_pass_accuracy": 82.19377990430623,
+        "avg_shot_accuracy": 30.551674641148328,
         "avg_high_xg_shots": 1.263157894736842,
         "avg_opponent_passes": 415.988038277512,
         "first_goal_rate": 0.3582089552238806,
@@ -2702,8 +2705,8 @@
         "avg_first_goal_minute": 0.11483253588516747
       },
       "cluster_id": 0,
-      "umap_x": 6.70828,
-      "umap_y": 7.07169
+      "umap_x": 22.68991,
+      "umap_y": 5.89383
     },
     {
       "team_name": "Getafe",
@@ -2713,7 +2716,7 @@
       "features": {
         "avg_shots": 11.545454545454545,
         "avg_possession": 48.65813397129186,
-        "avg_pass_accuracy": 82.29904306220094,
+        "avg_pass_accuracy": 82.29904306220095,
         "avg_shot_accuracy": 31.467703349282296,
         "avg_high_xg_shots": 1.11244019138756,
         "avg_opponent_passes": 410.3492822966507,
@@ -2735,8 +2738,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 8.73223,
-      "umap_y": 10.01145
+      "umap_x": 24.2582,
+      "umap_y": 16.54084
     },
     {
       "team_name": "Girona",
@@ -2745,9 +2748,9 @@
       "matches": 228,
       "features": {
         "avg_shots": 14.846491228070175,
-        "avg_possession": 49.60614035087718,
-        "avg_pass_accuracy": 82.44429824561405,
-        "avg_shot_accuracy": 27.3407894736842,
+        "avg_possession": 49.6061403508772,
+        "avg_pass_accuracy": 82.44429824561404,
+        "avg_shot_accuracy": 27.34078947368421,
         "avg_high_xg_shots": 1.6535087719298245,
         "avg_opponent_passes": 402.7719298245614,
         "first_goal_rate": 0.45,
@@ -2768,8 +2771,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 2,
-      "umap_x": 5.41617,
-      "umap_y": 10.46717
+      "umap_x": 5.08043,
+      "umap_y": 21.40833
     },
     {
       "team_name": "Granada",
@@ -2779,8 +2782,8 @@
       "features": {
         "avg_shots": 11.503759398496241,
         "avg_possession": 46.24511278195489,
-        "avg_pass_accuracy": 81.93421052631575,
-        "avg_shot_accuracy": 32.792105263157914,
+        "avg_pass_accuracy": 81.9342105263158,
+        "avg_shot_accuracy": 32.7921052631579,
         "avg_high_xg_shots": 1.0977443609022557,
         "avg_opponent_passes": 429.60526315789474,
         "first_goal_rate": 0.45,
@@ -2801,8 +2804,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 11.34367,
-      "umap_y": 7.59204
+      "umap_x": 19.44395,
+      "umap_y": -11.04461
     },
     {
       "team_name": "Greuther Fuerth",
@@ -2812,7 +2815,7 @@
       "features": {
         "avg_shots": 10.029411764705882,
         "avg_possession": 43.1,
-        "avg_pass_accuracy": 81.45882352941177,
+        "avg_pass_accuracy": 81.45882352941176,
         "avg_shot_accuracy": 35.31470588235294,
         "avg_high_xg_shots": 0.7647058823529411,
         "avg_opponent_passes": 454.70588235294116,
@@ -2830,8 +2833,8 @@
         "avg_first_goal_minute": 0.3235294117647059
       },
       "cluster_id": 3,
-      "umap_x": 10.79211,
-      "umap_y": 5.52024
+      "umap_x": 8.29753,
+      "umap_y": -9.02684
     },
     {
       "team_name": "Guingamp",
@@ -2840,9 +2843,9 @@
       "matches": 190,
       "features": {
         "avg_shots": 11.83157894736842,
-        "avg_possession": 48.59052631578947,
-        "avg_pass_accuracy": 82.28842105263153,
-        "avg_shot_accuracy": 32.38526315789475,
+        "avg_possession": 48.590526315789475,
+        "avg_pass_accuracy": 82.28842105263158,
+        "avg_shot_accuracy": 32.385263157894734,
         "avg_high_xg_shots": 1.1578947368421053,
         "avg_opponent_passes": 410.87894736842105,
         "first_goal_rate": 0.45,
@@ -2863,8 +2866,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 8.91611,
-      "umap_y": 9.90378
+      "umap_x": 23.71296,
+      "umap_y": 15.27333
     },
     {
       "team_name": "Hamburger SV",
@@ -2873,9 +2876,9 @@
       "matches": 170,
       "features": {
         "avg_shots": 11.594117647058823,
-        "avg_possession": 46.30235294117649,
-        "avg_pass_accuracy": 81.94529411764704,
-        "avg_shot_accuracy": 31.254117647058806,
+        "avg_possession": 46.302352941176466,
+        "avg_pass_accuracy": 81.94529411764707,
+        "avg_shot_accuracy": 31.254117647058823,
         "avg_high_xg_shots": 1.1235294117647059,
         "avg_opponent_passes": 429.20588235294116,
         "first_goal_rate": 0.45,
@@ -2896,8 +2899,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 10.55533,
-      "umap_y": 7.85115
+      "umap_x": 20.38684,
+      "umap_y": -7.38226
     },
     {
       "team_name": "Hannover 96",
@@ -2906,9 +2909,9 @@
       "matches": 136,
       "features": {
         "avg_shots": 11.602941176470589,
-        "avg_possession": 45.860294117647044,
-        "avg_pass_accuracy": 81.87720588235297,
-        "avg_shot_accuracy": 30.395588235294138,
+        "avg_possession": 45.86029411764706,
+        "avg_pass_accuracy": 81.87720588235294,
+        "avg_shot_accuracy": 30.39558823529412,
         "avg_high_xg_shots": 1.1102941176470589,
         "avg_opponent_passes": 432.74264705882354,
         "first_goal_rate": 0.45,
@@ -2929,8 +2932,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 10.22062,
-      "umap_y": 7.54836
+      "umap_x": 18.74611,
+      "umap_y": -4.27733
     },
     {
       "team_name": "Hertha Berlin",
@@ -2939,9 +2942,9 @@
       "matches": 306,
       "features": {
         "avg_shots": 12.637254901960784,
-        "avg_possession": 47.79281045751635,
-        "avg_pass_accuracy": 82.16960784313724,
-        "avg_shot_accuracy": 31.017973856209128,
+        "avg_possession": 47.79281045751634,
+        "avg_pass_accuracy": 82.16960784313726,
+        "avg_shot_accuracy": 31.01797385620915,
         "avg_high_xg_shots": 1.2973856209150327,
         "avg_opponent_passes": 417.2843137254902,
         "first_goal_rate": 0.375,
@@ -2958,8 +2961,8 @@
         "avg_first_goal_minute": 0.11764705882352941
       },
       "cluster_id": 0,
-      "umap_x": 7.29427,
-      "umap_y": 7.06425
+      "umap_x": 20.1578,
+      "umap_y": 6.408
     },
     {
       "team_name": "Hoffenheim",
@@ -2968,9 +2971,9 @@
       "matches": 408,
       "features": {
         "avg_shots": 16.53186274509804,
-        "avg_possession": 50.081862745098,
+        "avg_possession": 50.08186274509804,
         "avg_pass_accuracy": 82.51127450980391,
-        "avg_shot_accuracy": 25.763725490196077,
+        "avg_shot_accuracy": 25.76372549019608,
         "avg_high_xg_shots": 1.8774509803921569,
         "avg_opponent_passes": 398.9313725490196,
         "first_goal_rate": 0.3950617283950617,
@@ -2987,8 +2990,8 @@
         "avg_first_goal_minute": 0.1568627450980392
       },
       "cluster_id": 2,
-      "umap_x": 5.42322,
-      "umap_y": 11.46541
+      "umap_x": 3.75793,
+      "umap_y": 27.31322
     },
     {
       "team_name": "Holstein Kiel",
@@ -2998,8 +3001,8 @@
       "features": {
         "avg_shots": 13.764705882352942,
         "avg_possession": 45.30294117647059,
-        "avg_pass_accuracy": 81.80294117647058,
-        "avg_shot_accuracy": 28.4970588235294,
+        "avg_pass_accuracy": 81.8029411764706,
+        "avg_shot_accuracy": 28.49705882352941,
         "avg_high_xg_shots": 1.411764705882353,
         "avg_opponent_passes": 437.20588235294116,
         "first_goal_rate": 0.3333333333333333,
@@ -3016,8 +3019,8 @@
         "avg_first_goal_minute": 0.3235294117647059
       },
       "cluster_id": 4,
-      "umap_x": 9.19304,
-      "umap_y": 6.84038
+      "umap_x": 10.38108,
+      "umap_y": 1.19636
     },
     {
       "team_name": "Huddersfield",
@@ -3026,7 +3029,7 @@
       "matches": 76,
       "features": {
         "avg_shots": 9.131578947368421,
-        "avg_possession": 44.146052631578954,
+        "avg_possession": 44.14605263157895,
         "avg_pass_accuracy": 81.625,
         "avg_shot_accuracy": 36.96315789473684,
         "avg_high_xg_shots": 0.7236842105263158,
@@ -3049,8 +3052,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 3,
-      "umap_x": 12.04884,
-      "umap_y": 5.70078
+      "umap_x": 8.39361,
+      "umap_y": -13.27502
     },
     {
       "team_name": "Hull",
@@ -3059,9 +3062,9 @@
       "matches": 76,
       "features": {
         "avg_shots": 9.907894736842104,
-        "avg_possession": 45.13421052631578,
-        "avg_pass_accuracy": 81.7684210526316,
-        "avg_shot_accuracy": 34.411842105263176,
+        "avg_possession": 45.13421052631579,
+        "avg_pass_accuracy": 81.76842105263158,
+        "avg_shot_accuracy": 34.41184210526316,
         "avg_high_xg_shots": 0.7894736842105263,
         "avg_opponent_passes": 438.4868421052632,
         "first_goal_rate": 0.45,
@@ -3082,8 +3085,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 3,
-      "umap_x": 11.87267,
-      "umap_y": 6.14349
+      "umap_x": 11.96729,
+      "umap_y": -13.22962
     },
     {
       "team_name": "Ingolstadt",
@@ -3092,9 +3095,9 @@
       "matches": 68,
       "features": {
         "avg_shots": 13.102941176470589,
-        "avg_possession": 48.5441176470588,
-        "avg_pass_accuracy": 82.28529411764707,
-        "avg_shot_accuracy": 28.85882352941176,
+        "avg_possession": 48.544117647058826,
+        "avg_pass_accuracy": 82.28529411764706,
+        "avg_shot_accuracy": 28.858823529411765,
         "avg_high_xg_shots": 1.3676470588235294,
         "avg_opponent_passes": 411.3382352941176,
         "first_goal_rate": 0.45,
@@ -3115,8 +3118,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 6.81958,
-      "umap_y": 9.60693
+      "umap_x": 13.66944,
+      "umap_y": 17.39975
     },
     {
       "team_name": "Inter",
@@ -3125,9 +3128,9 @@
       "matches": 456,
       "features": {
         "avg_shots": 19.239035087719298,
-        "avg_possession": 55.509649122807026,
-        "avg_pass_accuracy": 83.32785087719297,
-        "avg_shot_accuracy": 22.853070175438585,
+        "avg_possession": 55.50964912280702,
+        "avg_pass_accuracy": 83.32785087719299,
+        "avg_shot_accuracy": 22.853070175438596,
         "avg_high_xg_shots": 2.370614035087719,
         "avg_opponent_passes": 355.5043859649123,
         "first_goal_rate": 0.7351351351351352,
@@ -3144,8 +3147,8 @@
         "avg_first_goal_minute": 0.2982456140350877
       },
       "cluster_id": 1,
-      "umap_x": 2.78714,
-      "umap_y": 14.40856
+      "umap_x": -21.82918,
+      "umap_y": 12.48193
     },
     {
       "team_name": "Ipswich",
@@ -3154,7 +3157,7 @@
       "matches": 38,
       "features": {
         "avg_shots": 11.447368421052632,
-        "avg_possession": 43.44736842105262,
+        "avg_possession": 43.44736842105263,
         "avg_pass_accuracy": 81.51315789473684,
         "avg_shot_accuracy": 30.923684210526314,
         "avg_high_xg_shots": 1.1578947368421053,
@@ -3173,8 +3176,8 @@
         "avg_first_goal_minute": 0.3684210526315789
       },
       "cluster_id": 4,
-      "umap_x": 10.10231,
-      "umap_y": 5.73794
+      "umap_x": 7.90795,
+      "umap_y": -6.38012
     },
     {
       "team_name": "Juventus",
@@ -3183,9 +3186,9 @@
       "matches": 456,
       "features": {
         "avg_shots": 17.61842105263158,
-        "avg_possession": 56.308333333333366,
-        "avg_pass_accuracy": 83.44539473684212,
-        "avg_shot_accuracy": 24.666885964912275,
+        "avg_possession": 56.30833333333333,
+        "avg_pass_accuracy": 83.4453947368421,
+        "avg_shot_accuracy": 24.666885964912282,
         "avg_high_xg_shots": 2.087719298245614,
         "avg_opponent_passes": 349.11622807017545,
         "first_goal_rate": 0.6573033707865169,
@@ -3202,8 +3205,8 @@
         "avg_first_goal_minute": 0.2565789473684211
       },
       "cluster_id": 1,
-      "umap_x": 2.60839,
-      "umap_y": 13.91583
+      "umap_x": -17.99452,
+      "umap_y": 12.38447
     },
     {
       "team_name": "Las Palmas",
@@ -3212,9 +3215,9 @@
       "matches": 190,
       "features": {
         "avg_shots": 11.142105263157895,
-        "avg_possession": 45.662631578947355,
-        "avg_pass_accuracy": 81.85421052631581,
-        "avg_shot_accuracy": 32.32000000000002,
+        "avg_possession": 45.66263157894737,
+        "avg_pass_accuracy": 81.85421052631578,
+        "avg_shot_accuracy": 32.32,
         "avg_high_xg_shots": 1.0,
         "avg_opponent_passes": 434.3263157894737,
         "first_goal_rate": 0.45,
@@ -3235,8 +3238,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 3,
-      "umap_x": 11.18389,
-      "umap_y": 7.09842
+      "umap_x": 17.47066,
+      "umap_y": -10.18909
     },
     {
       "team_name": "Lazio",
@@ -3245,9 +3248,9 @@
       "matches": 456,
       "features": {
         "avg_shots": 16.19078947368421,
-        "avg_possession": 52.37127192982459,
-        "avg_pass_accuracy": 82.85438596491223,
-        "avg_shot_accuracy": 26.595175438596463,
+        "avg_possession": 52.37127192982456,
+        "avg_pass_accuracy": 82.85438596491228,
+        "avg_shot_accuracy": 26.595175438596492,
         "avg_high_xg_shots": 1.8706140350877194,
         "avg_opponent_passes": 380.6381578947368,
         "first_goal_rate": 0.6574585635359116,
@@ -3264,8 +3267,8 @@
         "avg_first_goal_minute": 0.26096491228070173
       },
       "cluster_id": 1,
-      "umap_x": 3.54667,
-      "umap_y": 12.96569
+      "umap_x": -14.94484,
+      "umap_y": 17.99911
     },
     {
       "team_name": "Le Havre",
@@ -3275,8 +3278,8 @@
       "features": {
         "avg_shots": 12.676470588235293,
         "avg_possession": 46.73823529411765,
-        "avg_pass_accuracy": 82.01078431372548,
-        "avg_shot_accuracy": 28.960784313725494,
+        "avg_pass_accuracy": 82.0107843137255,
+        "avg_shot_accuracy": 28.96078431372549,
         "avg_high_xg_shots": 1.303921568627451,
         "avg_opponent_passes": 425.7450980392157,
         "first_goal_rate": 0.2857142857142857,
@@ -3293,8 +3296,8 @@
         "avg_first_goal_minute": 0.17647058823529413
       },
       "cluster_id": 4,
-      "umap_x": 9.04757,
-      "umap_y": 6.7444
+      "umap_x": 11.81547,
+      "umap_y": 0.44138
     },
     {
       "team_name": "Lecce",
@@ -3304,8 +3307,8 @@
       "features": {
         "avg_shots": 11.826315789473684,
         "avg_possession": 46.26052631578948,
-        "avg_pass_accuracy": 81.93578947368427,
-        "avg_shot_accuracy": 29.07736842105264,
+        "avg_pass_accuracy": 81.93578947368421,
+        "avg_shot_accuracy": 29.07736842105263,
         "avg_high_xg_shots": 1.1421052631578947,
         "avg_opponent_passes": 429.4947368421053,
         "first_goal_rate": 0.36538461538461536,
@@ -3322,8 +3325,8 @@
         "avg_first_goal_minute": 0.2
       },
       "cluster_id": 0,
-      "umap_x": 6.82766,
-      "umap_y": 6.69923
+      "umap_x": 21.44683,
+      "umap_y": 3.16725
     },
     {
       "team_name": "Leeds",
@@ -3333,7 +3336,7 @@
       "features": {
         "avg_shots": 14.796052631578947,
         "avg_possession": 48.59473684210526,
-        "avg_pass_accuracy": 82.2907894736842,
+        "avg_pass_accuracy": 82.29078947368421,
         "avg_shot_accuracy": 27.35855263157895,
         "avg_high_xg_shots": 1.631578947368421,
         "avg_opponent_passes": 410.8421052631579,
@@ -3351,8 +3354,8 @@
         "avg_first_goal_minute": 0.3223684210526316
       },
       "cluster_id": 2,
-      "umap_x": 5.89677,
-      "umap_y": 11.06686
+      "umap_x": 7.55475,
+      "umap_y": 25.16049
     },
     {
       "team_name": "Leganes",
@@ -3363,7 +3366,7 @@
         "avg_shots": 10.973684210526315,
         "avg_possession": 48.1178947368421,
         "avg_pass_accuracy": 82.21894736842106,
-        "avg_shot_accuracy": 32.11263157894737,
+        "avg_shot_accuracy": 32.112631578947365,
         "avg_high_xg_shots": 1.0210526315789474,
         "avg_opponent_passes": 414.6684210526316,
         "first_goal_rate": 0.45,
@@ -3384,8 +3387,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 9.22602,
-      "umap_y": 9.82467
+      "umap_x": 25.34502,
+      "umap_y": 14.30048
     },
     {
       "team_name": "Leicester",
@@ -3394,9 +3397,9 @@
       "matches": 380,
       "features": {
         "avg_shots": 14.378947368421052,
-        "avg_possession": 49.29921052631583,
-        "avg_pass_accuracy": 82.39315789473689,
-        "avg_shot_accuracy": 28.965263157894743,
+        "avg_possession": 49.29921052631579,
+        "avg_pass_accuracy": 82.39315789473685,
+        "avg_shot_accuracy": 28.965263157894736,
         "avg_high_xg_shots": 1.5736842105263158,
         "avg_opponent_passes": 405.2263157894737,
         "first_goal_rate": 0.40540540540540543,
@@ -3413,8 +3416,8 @@
         "avg_first_goal_minute": 0.15789473684210525
       },
       "cluster_id": 2,
-      "umap_x": 6.3944,
-      "umap_y": 10.71789
+      "umap_x": 10.54621,
+      "umap_y": 22.38354
     },
     {
       "team_name": "Lens",
@@ -3423,9 +3426,9 @@
       "matches": 254,
       "features": {
         "avg_shots": 16.433070866141733,
-        "avg_possession": 52.046062992126,
-        "avg_pass_accuracy": 82.80748031496066,
-        "avg_shot_accuracy": 24.71811023622049,
+        "avg_possession": 52.04606299212599,
+        "avg_pass_accuracy": 82.80748031496063,
+        "avg_shot_accuracy": 24.718110236220472,
         "avg_high_xg_shots": 1.937007874015748,
         "avg_opponent_passes": 383.2165354330709,
         "first_goal_rate": 0.5789473684210527,
@@ -3442,8 +3445,8 @@
         "avg_first_goal_minute": 0.38976377952755903
       },
       "cluster_id": 1,
-      "umap_x": 3.3368,
-      "umap_y": 12.66851
+      "umap_x": -14.19471,
+      "umap_y": 16.85511
     },
     {
       "team_name": "Levante",
@@ -3452,9 +3455,9 @@
       "matches": 304,
       "features": {
         "avg_shots": 13.200657894736842,
-        "avg_possession": 47.37500000000002,
-        "avg_pass_accuracy": 82.10789473684203,
-        "avg_shot_accuracy": 28.600328947368414,
+        "avg_possession": 47.375,
+        "avg_pass_accuracy": 82.1078947368421,
+        "avg_shot_accuracy": 28.60032894736842,
         "avg_high_xg_shots": 1.3651315789473684,
         "avg_opponent_passes": 420.6282894736842,
         "first_goal_rate": 0.45,
@@ -3475,8 +3478,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 7.71722,
-      "umap_y": 8.54876
+      "umap_x": 15.04516,
+      "umap_y": 10.79139
     },
     {
       "team_name": "Lille",
@@ -3485,8 +3488,8 @@
       "matches": 434,
       "features": {
         "avg_shots": 14.732718894009217,
-        "avg_possession": 52.3435483870967,
-        "avg_pass_accuracy": 82.85138248847925,
+        "avg_possession": 52.343548387096774,
+        "avg_pass_accuracy": 82.85138248847926,
         "avg_shot_accuracy": 26.964285714285715,
         "avg_high_xg_shots": 1.6267281105990783,
         "avg_opponent_passes": 380.86175115207374,
@@ -3504,8 +3507,8 @@
         "avg_first_goal_minute": 0.2557603686635945
       },
       "cluster_id": 1,
-      "umap_x": 3.77174,
-      "umap_y": 12.87018
+      "umap_x": -13.06753,
+      "umap_y": 18.46057
     },
     {
       "team_name": "Liverpool",
@@ -3514,9 +3517,9 @@
       "matches": 456,
       "features": {
         "avg_shots": 19.94078947368421,
-        "avg_possession": 55.562280701754375,
-        "avg_pass_accuracy": 83.33508771929822,
-        "avg_shot_accuracy": 22.71666666666665,
+        "avg_possession": 55.56228070175439,
+        "avg_pass_accuracy": 83.33508771929826,
+        "avg_shot_accuracy": 22.716666666666665,
         "avg_high_xg_shots": 2.4890350877192984,
         "avg_opponent_passes": 355.1074561403509,
         "first_goal_rate": 0.6010928961748634,
@@ -3533,8 +3536,8 @@
         "avg_first_goal_minute": 0.2412280701754386
       },
       "cluster_id": 1,
-      "umap_x": 2.27482,
-      "umap_y": 13.99144
+      "umap_x": -18.85184,
+      "umap_y": 10.4703
     },
     {
       "team_name": "Lorient",
@@ -3543,9 +3546,9 @@
       "matches": 296,
       "features": {
         "avg_shots": 12.702702702702704,
-        "avg_possession": 47.601689189189194,
-        "avg_pass_accuracy": 82.13783783783785,
-        "avg_shot_accuracy": 31.202702702702698,
+        "avg_possession": 47.60168918918919,
+        "avg_pass_accuracy": 82.13783783783784,
+        "avg_shot_accuracy": 31.2027027027027,
         "avg_high_xg_shots": 1.2702702702702702,
         "avg_opponent_passes": 418.8006756756757,
         "first_goal_rate": 0.4148148148148148,
@@ -3562,8 +3565,8 @@
         "avg_first_goal_minute": 0.1891891891891892
       },
       "cluster_id": 7,
-      "umap_x": 8.36877,
-      "umap_y": 9.57186
+      "umap_x": 19.65703,
+      "umap_y": 20.26557
     },
     {
       "team_name": "Luton",
@@ -3591,8 +3594,8 @@
         "avg_first_goal_minute": 0.2894736842105263
       },
       "cluster_id": 4,
-      "umap_x": 9.3495,
-      "umap_y": 6.6304
+      "umap_x": 11.01585,
+      "umap_y": -0.693
     },
     {
       "team_name": "Lyon",
@@ -3601,9 +3604,9 @@
       "matches": 434,
       "features": {
         "avg_shots": 18.055299539170505,
-        "avg_possession": 53.50852534562211,
-        "avg_pass_accuracy": 83.02419354838707,
-        "avg_shot_accuracy": 24.58917050691246,
+        "avg_possession": 53.50852534562212,
+        "avg_pass_accuracy": 83.0241935483871,
+        "avg_shot_accuracy": 24.589170506912446,
         "avg_high_xg_shots": 2.1566820276497696,
         "avg_opponent_passes": 371.5299539170507,
         "first_goal_rate": 0.5470588235294118,
@@ -3620,8 +3623,8 @@
         "avg_first_goal_minute": 0.21428571428571427
       },
       "cluster_id": 1,
-      "umap_x": 2.68428,
-      "umap_y": 13.06346
+      "umap_x": -14.83489,
+      "umap_y": 13.01258
     },
     {
       "team_name": "Mainz 05",
@@ -3630,9 +3633,9 @@
       "matches": 408,
       "features": {
         "avg_shots": 14.762254901960784,
-        "avg_possession": 49.44607843137258,
-        "avg_pass_accuracy": 82.41642156862748,
-        "avg_shot_accuracy": 26.90784313725491,
+        "avg_possession": 49.44607843137255,
+        "avg_pass_accuracy": 82.41642156862746,
+        "avg_shot_accuracy": 26.9078431372549,
         "avg_high_xg_shots": 1.6299019607843137,
         "avg_opponent_passes": 404.0367647058824,
         "first_goal_rate": 0.50625,
@@ -3649,8 +3652,8 @@
         "avg_first_goal_minute": 0.19852941176470587
       },
       "cluster_id": 2,
-      "umap_x": 5.27699,
-      "umap_y": 11.08915
+      "umap_x": 4.7076,
+      "umap_y": 24.95071
     },
     {
       "team_name": "Malaga",
@@ -3659,8 +3662,8 @@
       "matches": 152,
       "features": {
         "avg_shots": 11.894736842105264,
-        "avg_possession": 48.27631578947367,
-        "avg_pass_accuracy": 82.2361842105263,
+        "avg_possession": 48.276315789473685,
+        "avg_pass_accuracy": 82.23618421052632,
         "avg_shot_accuracy": 30.10328947368421,
         "avg_high_xg_shots": 1.1513157894736843,
         "avg_opponent_passes": 413.35526315789474,
@@ -3682,8 +3685,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 8.30428,
-      "umap_y": 9.39211
+      "umap_x": 20.11877,
+      "umap_y": 14.87939
     },
     {
       "team_name": "Mallorca",
@@ -3692,9 +3695,9 @@
       "matches": 228,
       "features": {
         "avg_shots": 11.899122807017545,
-        "avg_possession": 47.53377192982453,
+        "avg_possession": 47.53377192982457,
         "avg_pass_accuracy": 82.13026315789475,
-        "avg_shot_accuracy": 30.363157894736865,
+        "avg_shot_accuracy": 30.363157894736844,
         "avg_high_xg_shots": 1.1929824561403508,
         "avg_opponent_passes": 419.31140350877195,
         "first_goal_rate": 0.45,
@@ -3715,8 +3718,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 8.85991,
-      "umap_y": 9.07362
+      "umap_x": 20.07596,
+      "umap_y": 12.12273
     },
     {
       "team_name": "Manchester City",
@@ -3725,9 +3728,9 @@
       "matches": 456,
       "features": {
         "avg_shots": 21.973684210526315,
-        "avg_possession": 58.06074561403504,
-        "avg_pass_accuracy": 83.70964912280691,
-        "avg_shot_accuracy": 21.505482456140346,
+        "avg_possession": 58.06074561403509,
+        "avg_pass_accuracy": 83.70964912280701,
+        "avg_shot_accuracy": 21.50548245614035,
         "avg_high_xg_shots": 2.817982456140351,
         "avg_opponent_passes": 335.1359649122807,
         "first_goal_rate": 0.7445652173913043,
@@ -3744,8 +3747,8 @@
         "avg_first_goal_minute": 0.30043859649122806
       },
       "cluster_id": 5,
-      "umap_x": 2.33669,
-      "umap_y": 14.57481
+      "umap_x": -20.98668,
+      "umap_y": 8.3293
     },
     {
       "team_name": "Manchester United",
@@ -3754,9 +3757,9 @@
       "matches": 456,
       "features": {
         "avg_shots": 16.44298245614035,
-        "avg_possession": 52.421052631578966,
+        "avg_possession": 52.421052631578945,
         "avg_pass_accuracy": 82.86206140350878,
-        "avg_shot_accuracy": 24.9890350877193,
+        "avg_shot_accuracy": 24.989035087719298,
         "avg_high_xg_shots": 1.894736842105263,
         "avg_opponent_passes": 380.2127192982456,
         "first_goal_rate": 0.5314285714285715,
@@ -3773,8 +3776,8 @@
         "avg_first_goal_minute": 0.20394736842105263
       },
       "cluster_id": 1,
-      "umap_x": 3.32376,
-      "umap_y": 12.44685
+      "umap_x": -11.99813,
+      "umap_y": 16.15655
     },
     {
       "team_name": "Marseille",
@@ -3783,9 +3786,9 @@
       "matches": 434,
       "features": {
         "avg_shots": 16.882488479262673,
-        "avg_possession": 53.0175115207373,
-        "avg_pass_accuracy": 82.95092165898606,
-        "avg_shot_accuracy": 25.652534562212026,
+        "avg_possession": 53.01751152073732,
+        "avg_pass_accuracy": 82.95092165898618,
+        "avg_shot_accuracy": 25.652534562211983,
         "avg_high_xg_shots": 1.9723502304147464,
         "avg_opponent_passes": 375.463133640553,
         "first_goal_rate": 0.5606936416184971,
@@ -3802,8 +3805,8 @@
         "avg_first_goal_minute": 0.22350230414746544
       },
       "cluster_id": 1,
-      "umap_x": 2.96013,
-      "umap_y": 12.93884
+      "umap_x": -13.1225,
+      "umap_y": 15.21947
     },
     {
       "team_name": "Metz",
@@ -3813,7 +3816,7 @@
       "features": {
         "avg_shots": 10.618881118881118,
         "avg_possession": 45.55979020979021,
-        "avg_pass_accuracy": 81.83566433566429,
+        "avg_pass_accuracy": 81.83566433566433,
         "avg_shot_accuracy": 32.789510489510484,
         "avg_high_xg_shots": 0.972027972027972,
         "avg_opponent_passes": 435.1083916083916,
@@ -3831,8 +3834,8 @@
         "avg_first_goal_minute": 0.14335664335664336
       },
       "cluster_id": 3,
-      "umap_x": 11.10996,
-      "umap_y": 6.78783
+      "umap_x": 15.52048,
+      "umap_y": -8.73674
     },
     {
       "team_name": "Middlesbrough",
@@ -3841,9 +3844,9 @@
       "matches": 38,
       "features": {
         "avg_shots": 9.18421052631579,
-        "avg_possession": 45.76315789473685,
+        "avg_possession": 45.76315789473684,
         "avg_pass_accuracy": 81.86052631578947,
-        "avg_shot_accuracy": 35.834210526315786,
+        "avg_shot_accuracy": 35.83421052631579,
         "avg_high_xg_shots": 0.7105263157894737,
         "avg_opponent_passes": 433.5,
         "first_goal_rate": 0.45,
@@ -3864,8 +3867,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 3,
-      "umap_x": 12.36663,
-      "umap_y": 6.04368
+      "umap_x": 9.72373,
+      "umap_y": -16.39385
     },
     {
       "team_name": "Monaco",
@@ -3874,8 +3877,8 @@
       "matches": 434,
       "features": {
         "avg_shots": 17.63364055299539,
-        "avg_possession": 53.43525345622119,
-        "avg_pass_accuracy": 83.01635944700469,
+        "avg_possession": 53.435253456221204,
+        "avg_pass_accuracy": 83.0163594470046,
         "avg_shot_accuracy": 24.65552995391705,
         "avg_high_xg_shots": 2.108294930875576,
         "avg_opponent_passes": 372.1221198156682,
@@ -3893,8 +3896,8 @@
         "avg_first_goal_minute": 0.2511520737327189
       },
       "cluster_id": 1,
-      "umap_x": 3.18969,
-      "umap_y": 13.41973
+      "umap_x": -17.61722,
+      "umap_y": 15.36017
     },
     {
       "team_name": "Montpellier",
@@ -3903,9 +3906,9 @@
       "matches": 400,
       "features": {
         "avg_shots": 13.065,
-        "avg_possession": 48.80349999999999,
-        "avg_pass_accuracy": 82.32174999999998,
-        "avg_shot_accuracy": 29.922999999999984,
+        "avg_possession": 48.80350000000001,
+        "avg_pass_accuracy": 82.32175,
+        "avg_shot_accuracy": 29.923000000000002,
         "avg_high_xg_shots": 1.3425,
         "avg_opponent_passes": 409.175,
         "first_goal_rate": 0.4418604651162791,
@@ -3922,8 +3925,8 @@
         "avg_first_goal_minute": 0.19
       },
       "cluster_id": 7,
-      "umap_x": 7.27651,
-      "umap_y": 10.22043
+      "umap_x": 15.04893,
+      "umap_y": 21.18832
     },
     {
       "team_name": "Monza",
@@ -3932,9 +3935,9 @@
       "matches": 114,
       "features": {
         "avg_shots": 11.578947368421053,
-        "avg_possession": 46.24210526315792,
-        "avg_pass_accuracy": 81.93596491228075,
-        "avg_shot_accuracy": 30.95263157894738,
+        "avg_possession": 46.242105263157896,
+        "avg_pass_accuracy": 81.93596491228071,
+        "avg_shot_accuracy": 30.95263157894737,
         "avg_high_xg_shots": 1.1228070175438596,
         "avg_opponent_passes": 429.70175438596493,
         "first_goal_rate": 0.37735849056603776,
@@ -3951,8 +3954,8 @@
         "avg_first_goal_minute": 0.3508771929824561
       },
       "cluster_id": 0,
-      "umap_x": 7.61356,
-      "umap_y": 6.5206
+      "umap_x": 18.47729,
+      "umap_y": 3.58897
     },
     {
       "team_name": "Nancy",
@@ -3961,9 +3964,9 @@
       "matches": 38,
       "features": {
         "avg_shots": 9.657894736842104,
-        "avg_possession": 45.73684210526315,
+        "avg_possession": 45.73684210526316,
         "avg_pass_accuracy": 81.85526315789474,
-        "avg_shot_accuracy": 35.678947368421056,
+        "avg_shot_accuracy": 35.67894736842105,
         "avg_high_xg_shots": 0.868421052631579,
         "avg_opponent_passes": 433.7368421052632,
         "first_goal_rate": 0.45,
@@ -3984,8 +3987,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 3,
-      "umap_x": 12.09486,
-      "umap_y": 6.04956
+      "umap_x": 12.01422,
+      "umap_y": -15.42074
     },
     {
       "team_name": "Nantes",
@@ -3994,9 +3997,9 @@
       "matches": 434,
       "features": {
         "avg_shots": 12.117511520737327,
-        "avg_possession": 48.91175115207375,
+        "avg_possession": 48.911751152073734,
         "avg_pass_accuracy": 82.33571428571427,
-        "avg_shot_accuracy": 30.006912442396334,
+        "avg_shot_accuracy": 30.006912442396313,
         "avg_high_xg_shots": 1.205069124423963,
         "avg_opponent_passes": 408.29493087557603,
         "first_goal_rate": 0.41317365269461076,
@@ -4013,8 +4016,8 @@
         "avg_first_goal_minute": 0.15898617511520738
       },
       "cluster_id": 7,
-      "umap_x": 7.75963,
-      "umap_y": 9.98167
+      "umap_x": 20.11222,
+      "umap_y": 17.89719
     },
     {
       "team_name": "Napoli",
@@ -4023,9 +4026,9 @@
       "matches": 456,
       "features": {
         "avg_shots": 18.06359649122807,
-        "avg_possession": 56.19539473684212,
-        "avg_pass_accuracy": 83.43070175438602,
-        "avg_shot_accuracy": 23.95350877192985,
+        "avg_possession": 56.195394736842104,
+        "avg_pass_accuracy": 83.43070175438596,
+        "avg_shot_accuracy": 23.953508771929823,
         "avg_high_xg_shots": 2.142543859649123,
         "avg_opponent_passes": 350.0394736842105,
         "first_goal_rate": 0.6703910614525139,
@@ -4042,8 +4045,8 @@
         "avg_first_goal_minute": 0.2631578947368421
       },
       "cluster_id": 1,
-      "umap_x": 2.46513,
-      "umap_y": 14.15869
+      "umap_x": -19.58553,
+      "umap_y": 12.1859
     },
     {
       "team_name": "Newcastle United",
@@ -4052,9 +4055,9 @@
       "matches": 418,
       "features": {
         "avg_shots": 14.435406698564593,
-        "avg_possession": 48.657894736842124,
-        "avg_pass_accuracy": 82.29856459330138,
-        "avg_shot_accuracy": 30.019377990430637,
+        "avg_possession": 48.6578947368421,
+        "avg_pass_accuracy": 82.29856459330144,
+        "avg_shot_accuracy": 30.019377990430623,
         "avg_high_xg_shots": 1.562200956937799,
         "avg_opponent_passes": 410.33014354066984,
         "first_goal_rate": 0.5388888888888889,
@@ -4071,8 +4074,8 @@
         "avg_first_goal_minute": 0.23205741626794257
       },
       "cluster_id": 2,
-      "umap_x": 5.87094,
-      "umap_y": 9.08198
+      "umap_x": 9.04151,
+      "umap_y": 13.96103
     },
     {
       "team_name": "Nice",
@@ -4081,9 +4084,9 @@
       "matches": 434,
       "features": {
         "avg_shots": 14.472350230414747,
-        "avg_possession": 50.53617511520734,
-        "avg_pass_accuracy": 82.58225806451614,
-        "avg_shot_accuracy": 27.27718894009215,
+        "avg_possession": 50.53617511520738,
+        "avg_pass_accuracy": 82.58225806451613,
+        "avg_shot_accuracy": 27.277188940092163,
         "avg_high_xg_shots": 1.5829493087557605,
         "avg_opponent_passes": 395.3041474654378,
         "first_goal_rate": 0.5670731707317073,
@@ -4100,8 +4103,8 @@
         "avg_first_goal_minute": 0.21428571428571427
       },
       "cluster_id": 2,
-      "umap_x": 5.04221,
-      "umap_y": 9.55392
+      "umap_x": 3.50808,
+      "umap_y": 15.80645
     },
     {
       "team_name": "Nimes",
@@ -4111,8 +4114,8 @@
       "features": {
         "avg_shots": 12.432692307692308,
         "avg_possession": 47.90384615384615,
-        "avg_pass_accuracy": 82.18269230769229,
-        "avg_shot_accuracy": 29.42884615384616,
+        "avg_pass_accuracy": 82.1826923076923,
+        "avg_shot_accuracy": 29.428846153846152,
         "avg_high_xg_shots": 1.2788461538461537,
         "avg_opponent_passes": 416.4326923076923,
         "first_goal_rate": 0.3783783783783784,
@@ -4129,8 +4132,8 @@
         "avg_first_goal_minute": 0.1346153846153846
       },
       "cluster_id": 0,
-      "umap_x": 6.49627,
-      "umap_y": 6.95564
+      "umap_x": 22.14955,
+      "umap_y": 3.97974
     },
     {
       "team_name": "Norwich",
@@ -4139,9 +4142,9 @@
       "matches": 114,
       "features": {
         "avg_shots": 10.403508771929825,
-        "avg_possession": 44.37982456140349,
-        "avg_pass_accuracy": 81.6605263157895,
-        "avg_shot_accuracy": 31.51754385964912,
+        "avg_possession": 44.37982456140351,
+        "avg_pass_accuracy": 81.66052631578947,
+        "avg_shot_accuracy": 31.517543859649123,
         "avg_high_xg_shots": 0.8947368421052632,
         "avg_opponent_passes": 444.56140350877195,
         "first_goal_rate": 0.20588235294117646,
@@ -4158,8 +4161,8 @@
         "avg_first_goal_minute": 0.06140350877192982
       },
       "cluster_id": 4,
-      "umap_x": 9.60682,
-      "umap_y": 5.87328
+      "umap_x": 9.26078,
+      "umap_y": -3.5267
     },
     {
       "team_name": "Nottingham Forest",
@@ -4168,9 +4171,9 @@
       "matches": 152,
       "features": {
         "avg_shots": 13.427631578947368,
-        "avg_possession": 47.73552631578946,
-        "avg_pass_accuracy": 82.16118421052629,
-        "avg_shot_accuracy": 28.822368421052637,
+        "avg_possession": 47.73552631578948,
+        "avg_pass_accuracy": 82.16118421052632,
+        "avg_shot_accuracy": 28.82236842105263,
         "avg_high_xg_shots": 1.388157894736842,
         "avg_opponent_passes": 417.74342105263156,
         "first_goal_rate": 0.5363636363636364,
@@ -4187,8 +4190,8 @@
         "avg_first_goal_minute": 0.3881578947368421
       },
       "cluster_id": 7,
-      "umap_x": 6.63595,
-      "umap_y": 9.36308
+      "umap_x": 12.68272,
+      "umap_y": 15.28768
     },
     {
       "team_name": "Nuernberg",
@@ -4197,9 +4200,9 @@
       "matches": 34,
       "features": {
         "avg_shots": 11.088235294117647,
-        "avg_possession": 45.929411764705875,
-        "avg_pass_accuracy": 81.89411764705885,
-        "avg_shot_accuracy": 31.900000000000006,
+        "avg_possession": 45.92941176470588,
+        "avg_pass_accuracy": 81.89411764705882,
+        "avg_shot_accuracy": 31.9,
         "avg_high_xg_shots": 1.088235294117647,
         "avg_opponent_passes": 432.1470588235294,
         "first_goal_rate": 0.45,
@@ -4220,8 +4223,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 10.96555,
-      "umap_y": 7.44804
+      "umap_x": 19.42553,
+      "umap_y": -8.91404
     },
     {
       "team_name": "Osasuna",
@@ -4230,9 +4233,9 @@
       "matches": 304,
       "features": {
         "avg_shots": 12.381578947368421,
-        "avg_possession": 48.13486842105262,
+        "avg_possession": 48.13486842105263,
         "avg_pass_accuracy": 82.2220394736842,
-        "avg_shot_accuracy": 31.11546052631582,
+        "avg_shot_accuracy": 31.11546052631579,
         "avg_high_xg_shots": 1.25,
         "avg_opponent_passes": 414.51973684210526,
         "first_goal_rate": 0.45,
@@ -4253,8 +4256,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 8.5507,
-      "umap_y": 9.43427
+      "umap_x": 21.72477,
+      "umap_y": 15.9973
     },
     {
       "team_name": "Paderborn",
@@ -4263,9 +4266,9 @@
       "matches": 68,
       "features": {
         "avg_shots": 11.764705882352942,
-        "avg_possession": 45.68382352941176,
-        "avg_pass_accuracy": 81.84999999999998,
-        "avg_shot_accuracy": 29.089705882352938,
+        "avg_possession": 45.68382352941177,
+        "avg_pass_accuracy": 81.85000000000001,
+        "avg_shot_accuracy": 29.08970588235294,
         "avg_high_xg_shots": 1.1176470588235294,
         "avg_opponent_passes": 434.11764705882354,
         "first_goal_rate": 0.45,
@@ -4286,8 +4289,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 9.86139,
-      "umap_y": 7.74501
+      "umap_x": 21.56377,
+      "umap_y": -2.15111
     },
     {
       "team_name": "Palermo",
@@ -4296,9 +4299,9 @@
       "matches": 114,
       "features": {
         "avg_shots": 11.535087719298245,
-        "avg_possession": 46.698245614035066,
-        "avg_pass_accuracy": 82.00877192982453,
-        "avg_shot_accuracy": 32.13070175438596,
+        "avg_possession": 46.69824561403509,
+        "avg_pass_accuracy": 82.00877192982456,
+        "avg_shot_accuracy": 32.13070175438597,
         "avg_high_xg_shots": 1.0701754385964912,
         "avg_opponent_passes": 426.0,
         "first_goal_rate": 0.45,
@@ -4319,8 +4322,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 11.03522,
-      "umap_y": 8.09561
+      "umap_x": 21.74403,
+      "umap_y": -10.14542
     },
     {
       "team_name": "Paris FC",
@@ -4330,8 +4333,8 @@
       "features": {
         "avg_shots": 15.029411764705882,
         "avg_possession": 48.891176470588235,
-        "avg_pass_accuracy": 82.32941176470591,
-        "avg_shot_accuracy": 25.311764705882347,
+        "avg_pass_accuracy": 82.32941176470588,
+        "avg_shot_accuracy": 25.311764705882354,
         "avg_high_xg_shots": 1.6764705882352942,
         "avg_opponent_passes": 408.4117647058824,
         "first_goal_rate": 0.45,
@@ -4352,8 +4355,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 2,
-      "umap_x": 5.52805,
-      "umap_y": 10.77906
+      "umap_x": 6.48318,
+      "umap_y": 23.03265
     },
     {
       "team_name": "Paris Saint Germain",
@@ -4362,9 +4365,9 @@
       "matches": 433,
       "features": {
         "avg_shots": 23.17782909930716,
-        "avg_possession": 58.36143187066976,
-        "avg_pass_accuracy": 83.75334872979212,
-        "avg_shot_accuracy": 21.174364896073882,
+        "avg_possession": 58.36143187066975,
+        "avg_pass_accuracy": 83.75334872979214,
+        "avg_shot_accuracy": 21.174364896073904,
         "avg_high_xg_shots": 3.016166281755196,
         "avg_opponent_passes": 332.715935334873,
         "first_goal_rate": 0.7471264367816092,
@@ -4381,8 +4384,8 @@
         "avg_first_goal_minute": 0.3002309468822171
       },
       "cluster_id": 5,
-      "umap_x": 2.14033,
-      "umap_y": 14.43675
+      "umap_x": -21.32446,
+      "umap_y": 9.61831
     },
     {
       "team_name": "Parma",
@@ -4391,8 +4394,8 @@
       "matches": 38,
       "features": {
         "avg_shots": 9.526315789473685,
-        "avg_possession": 44.09473684210527,
-        "avg_pass_accuracy": 81.61315789473686,
+        "avg_possession": 44.09473684210526,
+        "avg_pass_accuracy": 81.61315789473684,
         "avg_shot_accuracy": 35.83157894736842,
         "avg_high_xg_shots": 0.7894736842105263,
         "avg_opponent_passes": 446.86842105263156,
@@ -4414,8 +4417,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 3,
-      "umap_x": 11.90269,
-      "umap_y": 5.8181
+      "umap_x": 9.89688,
+      "umap_y": -12.5576
     },
     {
       "team_name": "Parma Calcio 1913",
@@ -4424,9 +4427,9 @@
       "matches": 190,
       "features": {
         "avg_shots": 12.173684210526316,
-        "avg_possession": 46.08421052631582,
-        "avg_pass_accuracy": 81.91000000000001,
-        "avg_shot_accuracy": 31.387894736842096,
+        "avg_possession": 46.084210526315786,
+        "avg_pass_accuracy": 81.91,
+        "avg_shot_accuracy": 31.387894736842103,
         "avg_high_xg_shots": 1.2105263157894737,
         "avg_opponent_passes": 430.92105263157896,
         "first_goal_rate": 0.39705882352941174,
@@ -4443,8 +4446,8 @@
         "avg_first_goal_minute": 0.14210526315789473
       },
       "cluster_id": 4,
-      "umap_x": 9.65321,
-      "umap_y": 5.24546
+      "umap_x": 7.49325,
+      "umap_y": -3.20295
     },
     {
       "team_name": "Pescara",
@@ -4453,9 +4456,9 @@
       "matches": 38,
       "features": {
         "avg_shots": 12.0,
-        "avg_possession": 46.33157894736843,
-        "avg_pass_accuracy": 81.94473684210524,
-        "avg_shot_accuracy": 27.652631578947375,
+        "avg_possession": 46.33157894736842,
+        "avg_pass_accuracy": 81.94473684210527,
+        "avg_shot_accuracy": 27.652631578947368,
         "avg_high_xg_shots": 1.2105263157894737,
         "avg_opponent_passes": 428.8157894736842,
         "first_goal_rate": 0.45,
@@ -4476,8 +4479,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 9.23435,
-      "umap_y": 8.16608
+      "umap_x": 21.72245,
+      "umap_y": -0.55906
     },
     {
       "team_name": "Pisa",
@@ -4509,8 +4512,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 9.73569,
-      "umap_y": 7.92977
+      "umap_x": 20.60395,
+      "umap_y": -2.44359
     },
     {
       "team_name": "Queens Park Rangers",
@@ -4520,8 +4523,8 @@
       "features": {
         "avg_shots": 12.763157894736842,
         "avg_possession": 46.20263157894737,
-        "avg_pass_accuracy": 81.93157894736841,
-        "avg_shot_accuracy": 29.49210526315789,
+        "avg_pass_accuracy": 81.93157894736842,
+        "avg_shot_accuracy": 29.492105263157896,
         "avg_high_xg_shots": 1.263157894736842,
         "avg_opponent_passes": 430.0,
         "first_goal_rate": 0.45,
@@ -4542,8 +4545,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 9.11367,
-      "umap_y": 7.80068
+      "umap_x": 19.74455,
+      "umap_y": -0.97906
     },
     {
       "team_name": "RasenBallsport Leipzig",
@@ -4552,8 +4555,8 @@
       "matches": 340,
       "features": {
         "avg_shots": 19.361764705882354,
-        "avg_possession": 54.06235294117653,
-        "avg_pass_accuracy": 83.10852941176469,
+        "avg_possession": 54.06235294117647,
+        "avg_pass_accuracy": 83.1085294117647,
         "avg_shot_accuracy": 23.313235294117646,
         "avg_high_xg_shots": 2.385294117647059,
         "avg_opponent_passes": 367.09705882352944,
@@ -4571,8 +4574,8 @@
         "avg_first_goal_minute": 0.29411764705882354
       },
       "cluster_id": 1,
-      "umap_x": 2.79401,
-      "umap_y": 14.04062
+      "umap_x": -20.56496,
+      "umap_y": 13.25725
     },
     {
       "team_name": "Rayo Vallecano",
@@ -4581,9 +4584,9 @@
       "matches": 304,
       "features": {
         "avg_shots": 13.467105263157896,
-        "avg_possession": 48.85032894736845,
-        "avg_pass_accuracy": 82.32763157894742,
-        "avg_shot_accuracy": 27.6950657894737,
+        "avg_possession": 48.85032894736842,
+        "avg_pass_accuracy": 82.32763157894736,
+        "avg_shot_accuracy": 27.69506578947368,
         "avg_high_xg_shots": 1.424342105263158,
         "avg_opponent_passes": 408.79605263157896,
         "first_goal_rate": 0.45,
@@ -4604,8 +4607,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 2,
-      "umap_x": 6.29633,
-      "umap_y": 9.99049
+      "umap_x": 9.84334,
+      "umap_y": 18.98997
     },
     {
       "team_name": "Real Betis",
@@ -4614,9 +4617,9 @@
       "matches": 418,
       "features": {
         "avg_shots": 13.997607655502392,
-        "avg_possession": 49.969617224880345,
-        "avg_pass_accuracy": 82.49425837320567,
-        "avg_shot_accuracy": 28.304306220095686,
+        "avg_possession": 49.96961722488038,
+        "avg_pass_accuracy": 82.49425837320574,
+        "avg_shot_accuracy": 28.304306220095697,
         "avg_high_xg_shots": 1.5191387559808613,
         "avg_opponent_passes": 399.82775119617224,
         "first_goal_rate": 0.45,
@@ -4637,8 +4640,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 2,
-      "umap_x": 5.44082,
-      "umap_y": 10.09566
+      "umap_x": 6.07846,
+      "umap_y": 20.0579
     },
     {
       "team_name": "Real Madrid",
@@ -4647,9 +4650,9 @@
       "matches": 456,
       "features": {
         "avg_shots": 21.517543859649123,
-        "avg_possession": 56.27741228070178,
-        "avg_pass_accuracy": 83.44013157894742,
-        "avg_shot_accuracy": 21.75328947368419,
+        "avg_possession": 56.27741228070175,
+        "avg_pass_accuracy": 83.44013157894736,
+        "avg_shot_accuracy": 21.75328947368421,
         "avg_high_xg_shots": 2.7258771929824563,
         "avg_opponent_passes": 349.37280701754383,
         "first_goal_rate": 0.45,
@@ -4670,8 +4673,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 5,
-      "umap_x": 2.1907,
-      "umap_y": 13.6275
+      "umap_x": -17.62362,
+      "umap_y": 9.96331
     },
     {
       "team_name": "Real Oviedo",
@@ -4681,8 +4684,8 @@
       "features": {
         "avg_shots": 11.394736842105264,
         "avg_possession": 45.607894736842105,
-        "avg_pass_accuracy": 81.83947368421055,
-        "avg_shot_accuracy": 27.986842105263165,
+        "avg_pass_accuracy": 81.83947368421053,
+        "avg_shot_accuracy": 27.986842105263158,
         "avg_high_xg_shots": 1.131578947368421,
         "avg_opponent_passes": 434.7894736842105,
         "first_goal_rate": 0.45,
@@ -4703,8 +4706,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 9.64769,
-      "umap_y": 8.14711
+      "umap_x": 22.83591,
+      "umap_y": -1.46143
     },
     {
       "team_name": "Real Sociedad",
@@ -4713,9 +4716,9 @@
       "matches": 456,
       "features": {
         "avg_shots": 14.232456140350877,
-        "avg_possession": 51.22105263157896,
-        "avg_pass_accuracy": 82.68442982456142,
-        "avg_shot_accuracy": 28.02785087719297,
+        "avg_possession": 51.22105263157894,
+        "avg_pass_accuracy": 82.6844298245614,
+        "avg_shot_accuracy": 28.027850877192986,
         "avg_high_xg_shots": 1.5482456140350878,
         "avg_opponent_passes": 389.80263157894734,
         "first_goal_rate": 0.45,
@@ -4736,8 +4739,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 2,
-      "umap_x": 4.88629,
-      "umap_y": 10.3149
+      "umap_x": 2.5718,
+      "umap_y": 20.4782
     },
     {
       "team_name": "Real Valladolid",
@@ -4746,9 +4749,9 @@
       "matches": 190,
       "features": {
         "avg_shots": 10.884210526315789,
-        "avg_possession": 45.87631578947366,
+        "avg_possession": 45.876315789473686,
         "avg_pass_accuracy": 81.88421052631578,
-        "avg_shot_accuracy": 30.841052631578957,
+        "avg_shot_accuracy": 30.841052631578947,
         "avg_high_xg_shots": 0.9842105263157894,
         "avg_opponent_passes": 432.5684210526316,
         "first_goal_rate": 0.45,
@@ -4769,8 +4772,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 10.71742,
-      "umap_y": 7.48038
+      "umap_x": 18.60755,
+      "umap_y": -6.97869
     },
     {
       "team_name": "Reims",
@@ -4780,8 +4783,8 @@
       "features": {
         "avg_shots": 12.358024691358025,
         "avg_possession": 48.37006172839506,
-        "avg_pass_accuracy": 82.25679012345682,
-        "avg_shot_accuracy": 29.903086419753123,
+        "avg_pass_accuracy": 82.2567901234568,
+        "avg_shot_accuracy": 29.903086419753087,
         "avg_high_xg_shots": 1.2222222222222223,
         "avg_opponent_passes": 412.62345679012344,
         "first_goal_rate": 0.5477707006369427,
@@ -4798,8 +4801,8 @@
         "avg_first_goal_minute": 0.2654320987654321
       },
       "cluster_id": 7,
-      "umap_x": 6.7849,
-      "umap_y": 9.19993
+      "umap_x": 13.3436,
+      "umap_y": 14.99879
     },
     {
       "team_name": "Rennes",
@@ -4808,9 +4811,9 @@
       "matches": 434,
       "features": {
         "avg_shots": 14.573732718894009,
-        "avg_possession": 51.260599078340995,
-        "avg_pass_accuracy": 82.69055299539173,
-        "avg_shot_accuracy": 27.683870967741925,
+        "avg_possession": 51.26059907834101,
+        "avg_pass_accuracy": 82.6905529953917,
+        "avg_shot_accuracy": 27.683870967741935,
         "avg_high_xg_shots": 1.5944700460829493,
         "avg_opponent_passes": 389.5046082949309,
         "first_goal_rate": 0.5657142857142857,
@@ -4827,8 +4830,8 @@
         "avg_first_goal_minute": 0.22811059907834103
       },
       "cluster_id": 2,
-      "umap_x": 4.7494,
-      "umap_y": 11.27252
+      "umap_x": 0.81903,
+      "umap_y": 24.55866
     },
     {
       "team_name": "Roma",
@@ -4837,8 +4840,8 @@
       "matches": 456,
       "features": {
         "avg_shots": 17.67105263157895,
-        "avg_possession": 53.978728070175414,
-        "avg_pass_accuracy": 83.0969298245615,
+        "avg_possession": 53.978728070175436,
+        "avg_pass_accuracy": 83.0969298245614,
         "avg_shot_accuracy": 24.347149122807014,
         "avg_high_xg_shots": 2.094298245614035,
         "avg_opponent_passes": 367.76973684210526,
@@ -4856,8 +4859,8 @@
         "avg_first_goal_minute": 0.2236842105263158
       },
       "cluster_id": 1,
-      "umap_x": 2.87834,
-      "umap_y": 13.10984
+      "umap_x": -14.84199,
+      "umap_y": 14.38797
     },
     {
       "team_name": "SC Bastia",
@@ -4866,8 +4869,8 @@
       "matches": 114,
       "features": {
         "avg_shots": 9.350877192982455,
-        "avg_possession": 46.37807017543861,
-        "avg_pass_accuracy": 81.95350877192985,
+        "avg_possession": 46.3780701754386,
+        "avg_pass_accuracy": 81.95350877192983,
         "avg_shot_accuracy": 37.90438596491229,
         "avg_high_xg_shots": 0.7105263157894737,
         "avg_opponent_passes": 428.60526315789474,
@@ -4889,8 +4892,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 3,
-      "umap_x": 12.64598,
-      "umap_y": 6.03366
+      "umap_x": 11.48518,
+      "umap_y": -16.82751
     },
     {
       "team_name": "SD Huesca",
@@ -4899,8 +4902,8 @@
       "matches": 76,
       "features": {
         "avg_shots": 12.407894736842104,
-        "avg_possession": 48.3657894736842,
-        "avg_pass_accuracy": 82.25526315789477,
+        "avg_possession": 48.36578947368421,
+        "avg_pass_accuracy": 82.25526315789473,
         "avg_shot_accuracy": 29.448684210526313,
         "avg_high_xg_shots": 1.25,
         "avg_opponent_passes": 412.7236842105263,
@@ -4922,8 +4925,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 7.65483,
-      "umap_y": 9.447
+      "umap_x": 17.0177,
+      "umap_y": 16.16711
     },
     {
       "team_name": "SPAL 2013",
@@ -4932,9 +4935,9 @@
       "matches": 114,
       "features": {
         "avg_shots": 11.18421052631579,
-        "avg_possession": 45.56754385964913,
-        "avg_pass_accuracy": 81.83771929824566,
-        "avg_shot_accuracy": 31.944736842105264,
+        "avg_possession": 45.56754385964912,
+        "avg_pass_accuracy": 81.83771929824562,
+        "avg_shot_accuracy": 31.94473684210526,
         "avg_high_xg_shots": 0.9649122807017544,
         "avg_opponent_passes": 435.0263157894737,
         "first_goal_rate": 0.45,
@@ -4955,8 +4958,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 3,
-      "umap_x": 11.05219,
-      "umap_y": 7.29501
+      "umap_x": 17.51049,
+      "umap_y": -9.12691
     },
     {
       "team_name": "Saint-Etienne",
@@ -4965,9 +4968,9 @@
       "matches": 328,
       "features": {
         "avg_shots": 12.975609756097562,
-        "avg_possession": 49.10609756097563,
-        "avg_pass_accuracy": 82.36585365853657,
-        "avg_shot_accuracy": 29.721951219512203,
+        "avg_possession": 49.106097560975606,
+        "avg_pass_accuracy": 82.36585365853658,
+        "avg_shot_accuracy": 29.721951219512192,
         "avg_high_xg_shots": 1.3170731707317074,
         "avg_opponent_passes": 406.7225609756098,
         "first_goal_rate": 0.3557692307692308,
@@ -4984,8 +4987,8 @@
         "avg_first_goal_minute": 0.11280487804878049
       },
       "cluster_id": 7,
-      "umap_x": 7.29189,
-      "umap_y": 10.52793
+      "umap_x": 15.84279,
+      "umap_y": 22.84642
     },
     {
       "team_name": "Salernitana",
@@ -4996,7 +4999,7 @@
         "avg_shots": 10.447368421052632,
         "avg_possession": 43.39298245614035,
         "avg_pass_accuracy": 81.50438596491227,
-        "avg_shot_accuracy": 34.13245614035088,
+        "avg_shot_accuracy": 34.132456140350875,
         "avg_high_xg_shots": 0.9035087719298246,
         "avg_opponent_passes": 452.4298245614035,
         "first_goal_rate": 0.32727272727272727,
@@ -5013,8 +5016,8 @@
         "avg_first_goal_minute": 0.3157894736842105
       },
       "cluster_id": 4,
-      "umap_x": 10.52136,
-      "umap_y": 5.68539
+      "umap_x": 9.36012,
+      "umap_y": -7.31699
     },
     {
       "team_name": "Sampdoria",
@@ -5023,9 +5026,9 @@
       "matches": 342,
       "features": {
         "avg_shots": 12.883040935672515,
-        "avg_possession": 47.66900584795324,
+        "avg_possession": 47.669005847953215,
         "avg_pass_accuracy": 82.14999999999999,
-        "avg_shot_accuracy": 29.820467836257304,
+        "avg_shot_accuracy": 29.82046783625731,
         "avg_high_xg_shots": 1.2894736842105263,
         "avg_opponent_passes": 418.2426900584795,
         "first_goal_rate": 0.39090909090909093,
@@ -5042,8 +5045,8 @@
         "avg_first_goal_minute": 0.12573099415204678
       },
       "cluster_id": 7,
-      "umap_x": 7.85097,
-      "umap_y": 10.19964
+      "umap_x": 17.51566,
+      "umap_y": 20.9277
     },
     {
       "team_name": "Sassuolo",
@@ -5052,9 +5055,9 @@
       "matches": 418,
       "features": {
         "avg_shots": 14.002392344497608,
-        "avg_possession": 48.82799043062205,
-        "avg_pass_accuracy": 82.32440191387558,
-        "avg_shot_accuracy": 28.067703349282286,
+        "avg_possession": 48.82799043062201,
+        "avg_pass_accuracy": 82.32440191387559,
+        "avg_shot_accuracy": 28.067703349282294,
         "avg_high_xg_shots": 1.5047846889952152,
         "avg_opponent_passes": 408.97607655502395,
         "first_goal_rate": 0.4657534246575342,
@@ -5071,8 +5074,8 @@
         "avg_first_goal_minute": 0.16267942583732056
       },
       "cluster_id": 2,
-      "umap_x": 6.27564,
-      "umap_y": 10.84583
+      "umap_x": 10.57305,
+      "umap_y": 24.30021
     },
     {
       "team_name": "Schalke 04",
@@ -5081,9 +5084,9 @@
       "matches": 272,
       "features": {
         "avg_shots": 12.893382352941176,
-        "avg_possession": 48.03933823529411,
-        "avg_pass_accuracy": 82.20441176470592,
-        "avg_shot_accuracy": 29.628676470588246,
+        "avg_possession": 48.03933823529412,
+        "avg_pass_accuracy": 82.20441176470588,
+        "avg_shot_accuracy": 29.628676470588236,
         "avg_high_xg_shots": 1.3345588235294117,
         "avg_opponent_passes": 415.3014705882353,
         "first_goal_rate": 0.26229508196721313,
@@ -5100,8 +5103,8 @@
         "avg_first_goal_minute": 0.058823529411764705
       },
       "cluster_id": 4,
-      "umap_x": 8.80137,
-      "umap_y": 6.36153
+      "umap_x": 8.36604,
+      "umap_y": 1.49402
     },
     {
       "team_name": "Sevilla",
@@ -5110,8 +5113,8 @@
       "matches": 456,
       "features": {
         "avg_shots": 15.164473684210526,
-        "avg_possession": 51.43574561403507,
-        "avg_pass_accuracy": 82.71491228070185,
+        "avg_possession": 51.43574561403509,
+        "avg_pass_accuracy": 82.71491228070175,
         "avg_shot_accuracy": 26.900877192982456,
         "avg_high_xg_shots": 1.6907894736842106,
         "avg_opponent_passes": 388.1206140350877,
@@ -5133,8 +5136,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 2,
-      "umap_x": 4.33625,
-      "umap_y": 10.68307
+      "umap_x": 0.21811,
+      "umap_y": 20.8303
     },
     {
       "team_name": "Sheffield United",
@@ -5143,9 +5146,9 @@
       "matches": 114,
       "features": {
         "avg_shots": 11.263157894736842,
-        "avg_possession": 45.20614035087718,
-        "avg_pass_accuracy": 81.7824561403509,
-        "avg_shot_accuracy": 31.0561403508772,
+        "avg_possession": 45.20614035087719,
+        "avg_pass_accuracy": 81.78245614035089,
+        "avg_shot_accuracy": 31.056140350877193,
         "avg_high_xg_shots": 1.1140350877192982,
         "avg_opponent_passes": 437.94736842105266,
         "first_goal_rate": 0.27631578947368424,
@@ -5162,8 +5165,8 @@
         "avg_first_goal_minute": 0.18421052631578946
       },
       "cluster_id": 0,
-      "umap_x": 7.97727,
-      "umap_y": 6.38017
+      "umap_x": 16.87023,
+      "umap_y": 1.2375
     },
     {
       "team_name": "Southampton",
@@ -5172,9 +5175,9 @@
       "matches": 380,
       "features": {
         "avg_shots": 13.236842105263158,
-        "avg_possession": 48.892105263157916,
-        "avg_pass_accuracy": 82.33473684210523,
-        "avg_shot_accuracy": 27.542368421052615,
+        "avg_possession": 48.892105263157895,
+        "avg_pass_accuracy": 82.33473684210527,
+        "avg_shot_accuracy": 27.542368421052632,
         "avg_high_xg_shots": 1.394736842105263,
         "avg_opponent_passes": 408.4789473684211,
         "first_goal_rate": 0.3931034482758621,
@@ -5191,8 +5194,8 @@
         "avg_first_goal_minute": 0.15
       },
       "cluster_id": 2,
-      "umap_x": 6.87194,
-      "umap_y": 10.72721
+      "umap_x": 13.75387,
+      "umap_y": 23.68166
     },
     {
       "team_name": "Spezia",
@@ -5201,9 +5204,9 @@
       "matches": 114,
       "features": {
         "avg_shots": 12.201754385964913,
-        "avg_possession": 46.17456140350876,
-        "avg_pass_accuracy": 81.9280701754386,
-        "avg_shot_accuracy": 29.850877192982463,
+        "avg_possession": 46.17456140350877,
+        "avg_pass_accuracy": 81.92807017543859,
+        "avg_shot_accuracy": 29.850877192982455,
         "avg_high_xg_shots": 1.219298245614035,
         "avg_opponent_passes": 430.1842105263158,
         "first_goal_rate": 0.3490566037735849,
@@ -5220,8 +5223,8 @@
         "avg_first_goal_minute": 0.32456140350877194
       },
       "cluster_id": 7,
-      "umap_x": 9.57516,
-      "umap_y": 6.93738
+      "umap_x": 13.96148,
+      "umap_y": -1.58162
     },
     {
       "team_name": "Sporting Gijon",
@@ -5231,8 +5234,8 @@
       "features": {
         "avg_shots": 11.421052631578947,
         "avg_possession": 45.57236842105263,
-        "avg_pass_accuracy": 81.83684210526314,
-        "avg_shot_accuracy": 33.81973684210526,
+        "avg_pass_accuracy": 81.83684210526316,
+        "avg_shot_accuracy": 33.819736842105264,
         "avg_high_xg_shots": 1.0263157894736843,
         "avg_opponent_passes": 435.05263157894734,
         "first_goal_rate": 0.45,
@@ -5253,8 +5256,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 3,
-      "umap_x": 11.74362,
-      "umap_y": 6.83923
+      "umap_x": 16.67757,
+      "umap_y": -12.31086
     },
     {
       "team_name": "St. Pauli",
@@ -5263,9 +5266,9 @@
       "matches": 68,
       "features": {
         "avg_shots": 11.485294117647058,
-        "avg_possession": 45.70147058823528,
-        "avg_pass_accuracy": 81.85735294117646,
-        "avg_shot_accuracy": 29.61617647058823,
+        "avg_possession": 45.70147058823529,
+        "avg_pass_accuracy": 81.85735294117647,
+        "avg_shot_accuracy": 29.616176470588236,
         "avg_high_xg_shots": 1.1176470588235294,
         "avg_opponent_passes": 434.04411764705884,
         "first_goal_rate": 0.26666666666666666,
@@ -5282,8 +5285,8 @@
         "avg_first_goal_minute": 0.11764705882352941
       },
       "cluster_id": 4,
-      "umap_x": 9.50285,
-      "umap_y": 6.4169
+      "umap_x": 10.55883,
+      "umap_y": -2.07249
     },
     {
       "team_name": "Stoke",
@@ -5292,9 +5295,9 @@
       "matches": 152,
       "features": {
         "avg_shots": 12.217105263157896,
-        "avg_possession": 48.53618421052632,
+        "avg_possession": 48.536184210526315,
         "avg_pass_accuracy": 82.28289473684211,
-        "avg_shot_accuracy": 29.89144736842106,
+        "avg_shot_accuracy": 29.89144736842105,
         "avg_high_xg_shots": 1.263157894736842,
         "avg_opponent_passes": 411.3486842105263,
         "first_goal_rate": 0.45,
@@ -5315,8 +5318,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 7.70355,
-      "umap_y": 9.55831
+      "umap_x": 18.58142,
+      "umap_y": 16.77762
     },
     {
       "team_name": "Strasbourg",
@@ -5325,9 +5328,9 @@
       "matches": 319,
       "features": {
         "avg_shots": 14.410658307210031,
-        "avg_possession": 49.699373040752384,
-        "avg_pass_accuracy": 82.45391849529776,
-        "avg_shot_accuracy": 28.382131661442017,
+        "avg_possession": 49.699373040752356,
+        "avg_pass_accuracy": 82.4539184952978,
+        "avg_shot_accuracy": 28.382131661442006,
         "avg_high_xg_shots": 1.573667711598746,
         "avg_opponent_passes": 402.01567398119124,
         "first_goal_rate": 0.48554913294797686,
@@ -5344,8 +5347,8 @@
         "avg_first_goal_minute": 0.26332288401253917
       },
       "cluster_id": 2,
-      "umap_x": 5.35451,
-      "umap_y": 9.29197
+      "umap_x": 5.78932,
+      "umap_y": 14.74509
     },
     {
       "team_name": "Sunderland",
@@ -5354,8 +5357,8 @@
       "matches": 152,
       "features": {
         "avg_shots": 11.151315789473685,
-        "avg_possession": 46.6296052631579,
-        "avg_pass_accuracy": 81.9947368421053,
+        "avg_possession": 46.62960526315789,
+        "avg_pass_accuracy": 81.99473684210527,
         "avg_shot_accuracy": 30.053947368421053,
         "avg_high_xg_shots": 1.013157894736842,
         "avg_opponent_passes": 426.5986842105263,
@@ -5377,8 +5380,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 7,
-      "umap_x": 10.30051,
-      "umap_y": 8.32972
+      "umap_x": 21.99982,
+      "umap_y": -5.84759
     },
     {
       "team_name": "Swansea",
@@ -5387,9 +5390,9 @@
       "matches": 152,
       "features": {
         "avg_shots": 10.953947368421053,
-        "avg_possession": 45.724999999999994,
-        "avg_pass_accuracy": 81.85921052631582,
-        "avg_shot_accuracy": 34.32631578947371,
+        "avg_possession": 45.725,
+        "avg_pass_accuracy": 81.85921052631579,
+        "avg_shot_accuracy": 34.32631578947369,
         "avg_high_xg_shots": 0.9671052631578947,
         "avg_opponent_passes": 433.80263157894734,
         "first_goal_rate": 0.45,
@@ -5410,8 +5413,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 3,
-      "umap_x": 11.90936,
-      "umap_y": 6.67561
+      "umap_x": 14.85269,
+      "umap_y": -13.14376
     },
     {
       "team_name": "Torino",
@@ -5420,9 +5423,9 @@
       "matches": 456,
       "features": {
         "avg_shots": 13.385964912280702,
-        "avg_possession": 49.71337719298254,
-        "avg_pass_accuracy": 82.45679824561394,
-        "avg_shot_accuracy": 28.65526315789472,
+        "avg_possession": 49.713377192982456,
+        "avg_pass_accuracy": 82.45679824561404,
+        "avg_shot_accuracy": 28.655263157894737,
         "avg_high_xg_shots": 1.3837719298245614,
         "avg_opponent_passes": 401.8925438596491,
         "first_goal_rate": 0.45614035087719296,
@@ -5439,8 +5442,8 @@
         "avg_first_goal_minute": 0.17105263157894737
       },
       "cluster_id": 0,
-      "umap_x": 5.72963,
-      "umap_y": 8.40602
+      "umap_x": 7.15334,
+      "umap_y": 11.45387
     },
     {
       "team_name": "Tottenham",
@@ -5449,9 +5452,9 @@
       "matches": 456,
       "features": {
         "avg_shots": 16.657894736842106,
-        "avg_possession": 51.928070175438606,
-        "avg_pass_accuracy": 82.78750000000001,
-        "avg_shot_accuracy": 26.065131578947334,
+        "avg_possession": 51.9280701754386,
+        "avg_pass_accuracy": 82.7875,
+        "avg_shot_accuracy": 26.06513157894737,
         "avg_high_xg_shots": 1.9100877192982457,
         "avg_opponent_passes": 384.1951754385965,
         "first_goal_rate": 0.5376344086021505,
@@ -5468,8 +5471,8 @@
         "avg_first_goal_minute": 0.21929824561403508
       },
       "cluster_id": 1,
-      "umap_x": 4.40822,
-      "umap_y": 11.68587
+      "umap_x": -1.61942,
+      "umap_y": 24.88694
     },
     {
       "team_name": "Toulouse",
@@ -5479,7 +5482,7 @@
       "features": {
         "avg_shots": 13.268156424581006,
         "avg_possession": 49.75977653631285,
-        "avg_pass_accuracy": 82.46620111731846,
+        "avg_pass_accuracy": 82.46620111731843,
         "avg_shot_accuracy": 28.063687150837985,
         "avg_high_xg_shots": 1.4217877094972067,
         "avg_opponent_passes": 401.50837988826817,
@@ -5497,8 +5500,8 @@
         "avg_first_goal_minute": 0.12011173184357542
       },
       "cluster_id": 2,
-      "umap_x": 5.77004,
-      "umap_y": 9.72611
+      "umap_x": 7.17562,
+      "umap_y": 18.08052
     },
     {
       "team_name": "Troyes",
@@ -5507,9 +5510,9 @@
       "matches": 152,
       "features": {
         "avg_shots": 10.842105263157896,
-        "avg_possession": 45.11315789473685,
-        "avg_pass_accuracy": 81.76710526315789,
-        "avg_shot_accuracy": 32.28026315789475,
+        "avg_possession": 45.113157894736844,
+        "avg_pass_accuracy": 81.7671052631579,
+        "avg_shot_accuracy": 32.28026315789474,
         "avg_high_xg_shots": 0.9736842105263158,
         "avg_opponent_passes": 438.7105263157895,
         "first_goal_rate": 0.40540540540540543,
@@ -5526,8 +5529,8 @@
         "avg_first_goal_minute": 0.19736842105263158
       },
       "cluster_id": 3,
-      "umap_x": 10.83205,
-      "umap_y": 6.82595
+      "umap_x": 14.22393,
+      "umap_y": -8.54312
     },
     {
       "team_name": "Udinese",
@@ -5536,9 +5539,9 @@
       "matches": 456,
       "features": {
         "avg_shots": 12.730263157894736,
-        "avg_possession": 48.30899122807011,
+        "avg_possession": 48.30899122807018,
         "avg_pass_accuracy": 82.2469298245614,
-        "avg_shot_accuracy": 29.868859649122786,
+        "avg_shot_accuracy": 29.868859649122808,
         "avg_high_xg_shots": 1.3201754385964912,
         "avg_opponent_passes": 413.11622807017545,
         "first_goal_rate": 0.46551724137931033,
@@ -5555,8 +5558,8 @@
         "avg_first_goal_minute": 0.17763157894736842
       },
       "cluster_id": 7,
-      "umap_x": 7.32052,
-      "umap_y": 9.06012
+      "umap_x": 15.79518,
+      "umap_y": 14.1754
     },
     {
       "team_name": "Union Berlin",
@@ -5565,9 +5568,9 @@
       "matches": 238,
       "features": {
         "avg_shots": 13.861344537815127,
-        "avg_possession": 49.72899159663862,
-        "avg_pass_accuracy": 82.46554621848732,
-        "avg_shot_accuracy": 27.599159663865557,
+        "avg_possession": 49.72899159663866,
+        "avg_pass_accuracy": 82.46554621848739,
+        "avg_shot_accuracy": 27.59915966386555,
         "avg_high_xg_shots": 1.4747899159663866,
         "avg_opponent_passes": 401.75210084033614,
         "first_goal_rate": 0.477124183006536,
@@ -5584,8 +5587,8 @@
         "avg_first_goal_minute": 0.3067226890756303
       },
       "cluster_id": 2,
-      "umap_x": 5.45565,
-      "umap_y": 9.58971
+      "umap_x": 5.64723,
+      "umap_y": 17.00011
     },
     {
       "team_name": "Valencia",
@@ -5594,9 +5597,9 @@
       "matches": 456,
       "features": {
         "avg_shots": 13.942982456140351,
-        "avg_possession": 49.92982456140347,
-        "avg_pass_accuracy": 82.48903508771927,
-        "avg_shot_accuracy": 28.35526315789474,
+        "avg_possession": 49.92982456140351,
+        "avg_pass_accuracy": 82.4890350877193,
+        "avg_shot_accuracy": 28.355263157894736,
         "avg_high_xg_shots": 1.513157894736842,
         "avg_opponent_passes": 400.17324561403507,
         "first_goal_rate": 0.45,
@@ -5617,8 +5620,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 2,
-      "umap_x": 5.57431,
-      "umap_y": 10.1986
+      "umap_x": 5.11035,
+      "umap_y": 19.31482
     },
     {
       "team_name": "Venezia",
@@ -5629,7 +5632,7 @@
         "avg_shots": 11.078947368421053,
         "avg_possession": 44.472368421052636,
         "avg_pass_accuracy": 81.66973684210525,
-        "avg_shot_accuracy": 31.274999999999995,
+        "avg_shot_accuracy": 31.275000000000002,
         "avg_high_xg_shots": 1.0263157894736843,
         "avg_opponent_passes": 443.85526315789474,
         "first_goal_rate": 0.37142857142857144,
@@ -5646,8 +5649,8 @@
         "avg_first_goal_minute": 0.34210526315789475
       },
       "cluster_id": 4,
-      "umap_x": 9.95449,
-      "umap_y": 5.4425
+      "umap_x": 8.4689,
+      "umap_y": -5.05373
     },
     {
       "team_name": "Verona",
@@ -5656,9 +5659,9 @@
       "matches": 380,
       "features": {
         "avg_shots": 12.028947368421052,
-        "avg_possession": 46.88842105263161,
+        "avg_possession": 46.88842105263158,
         "avg_pass_accuracy": 82.03263157894737,
-        "avg_shot_accuracy": 30.92447368421052,
+        "avg_shot_accuracy": 30.924473684210525,
         "avg_high_xg_shots": 1.194736842105263,
         "avg_opponent_passes": 424.4894736842105,
         "first_goal_rate": 0.42696629213483145,
@@ -5675,8 +5678,8 @@
         "avg_first_goal_minute": 0.2
       },
       "cluster_id": 7,
-      "umap_x": 7.56884,
-      "umap_y": 7.22833
+      "umap_x": 18.69579,
+      "umap_y": 7.39975
     },
     {
       "team_name": "VfB Stuttgart",
@@ -5685,9 +5688,9 @@
       "matches": 340,
       "features": {
         "avg_shots": 16.361764705882354,
-        "avg_possession": 50.29529411764705,
-        "avg_pass_accuracy": 82.54441176470584,
-        "avg_shot_accuracy": 25.65029411764707,
+        "avg_possession": 50.29529411764706,
+        "avg_pass_accuracy": 82.54441176470588,
+        "avg_shot_accuracy": 25.65029411764706,
         "avg_high_xg_shots": 1.911764705882353,
         "avg_opponent_passes": 397.22352941176473,
         "first_goal_rate": 0.5,
@@ -5704,8 +5707,8 @@
         "avg_first_goal_minute": 0.2411764705882353
       },
       "cluster_id": 2,
-      "umap_x": 4.73298,
-      "umap_y": 11.5881
+      "umap_x": 0.17265,
+      "umap_y": 26.05924
     },
     {
       "team_name": "Villarreal",
@@ -5714,9 +5717,9 @@
       "matches": 456,
       "features": {
         "avg_shots": 16.212719298245613,
-        "avg_possession": 51.85548245614029,
+        "avg_possession": 51.85548245614035,
         "avg_pass_accuracy": 82.7780701754386,
-        "avg_shot_accuracy": 26.14166666666665,
+        "avg_shot_accuracy": 26.141666666666666,
         "avg_high_xg_shots": 1.888157894736842,
         "avg_opponent_passes": 384.7785087719298,
         "first_goal_rate": 0.45,
@@ -5737,8 +5740,8 @@
         "avg_first_goal_minute"
       ],
       "cluster_id": 2,
-      "umap_x": 4.11077,
-      "umap_y": 11.25028
+      "umap_x": -2.28916,
+      "umap_y": 21.25811
     },
     {
       "team_name": "Watford",
@@ -5747,8 +5750,8 @@
       "matches": 228,
       "features": {
         "avg_shots": 12.37719298245614,
-        "avg_possession": 47.655701754386,
-        "avg_pass_accuracy": 82.15087719298243,
+        "avg_possession": 47.655701754385966,
+        "avg_pass_accuracy": 82.15087719298246,
         "avg_shot_accuracy": 29.55964912280702,
         "avg_high_xg_shots": 1.2456140350877194,
         "avg_opponent_passes": 418.38157894736844,
@@ -5766,8 +5769,8 @@
         "avg_first_goal_minute": 0.03508771929824561
       },
       "cluster_id": 4,
-      "umap_x": 9.00849,
-      "umap_y": 5.88886
+      "umap_x": 7.89494,
+      "umap_y": 0.01431
     },
     {
       "team_name": "Werder Bremen",
@@ -5776,9 +5779,9 @@
       "matches": 374,
       "features": {
         "avg_shots": 13.72192513368984,
-        "avg_possession": 47.95668449197854,
-        "avg_pass_accuracy": 82.194385026738,
-        "avg_shot_accuracy": 29.124598930481312,
+        "avg_possession": 47.956684491978606,
+        "avg_pass_accuracy": 82.19438502673798,
+        "avg_shot_accuracy": 29.124598930481284,
         "avg_high_xg_shots": 1.4331550802139037,
         "avg_opponent_passes": 415.9197860962567,
         "first_goal_rate": 0.4461538461538462,
@@ -5795,8 +5798,8 @@
         "avg_first_goal_minute": 0.15508021390374332
       },
       "cluster_id": 0,
-      "umap_x": 6.6053,
-      "umap_y": 8.24417
+      "umap_x": 11.07948,
+      "umap_y": 9.83528
     },
     {
       "team_name": "West Bromwich Albion",
@@ -5805,9 +5808,9 @@
       "matches": 190,
       "features": {
         "avg_shots": 10.81578947368421,
-        "avg_possession": 46.66052631578948,
-        "avg_pass_accuracy": 82.0010526315789,
-        "avg_shot_accuracy": 32.87263157894738,
+        "avg_possession": 46.660526315789475,
+        "avg_pass_accuracy": 82.00105263157896,
+        "avg_shot_accuracy": 32.87263157894737,
         "avg_high_xg_shots": 1.0263157894736843,
         "avg_opponent_passes": 426.3315789473684,
         "first_goal_rate": 0.34285714285714286,
@@ -5824,8 +5827,8 @@
         "avg_first_goal_minute": 0.06315789473684211
       },
       "cluster_id": 4,
-      "umap_x": 9.3914,
-      "umap_y": 5.42147
+      "umap_x": 6.56464,
+      "umap_y": -2.59277
     },
     {
       "team_name": "West Ham",
@@ -5834,9 +5837,9 @@
       "matches": 456,
       "features": {
         "avg_shots": 13.953947368421053,
-        "avg_possession": 48.19298245614033,
-        "avg_pass_accuracy": 82.2309210526316,
-        "avg_shot_accuracy": 28.423464912280693,
+        "avg_possession": 48.19298245614035,
+        "avg_pass_accuracy": 82.23092105263159,
+        "avg_shot_accuracy": 28.423464912280703,
         "avg_high_xg_shots": 1.4846491228070176,
         "avg_opponent_passes": 414.0657894736842,
         "first_goal_rate": 0.45604395604395603,
@@ -5853,8 +5856,8 @@
         "avg_first_goal_minute": 0.18201754385964913
       },
       "cluster_id": 0,
-      "umap_x": 6.17479,
-      "umap_y": 8.34318
+      "umap_x": 9.53148,
+      "umap_y": 10.56575
     },
     {
       "team_name": "Wolfsburg",
@@ -5864,8 +5867,8 @@
       "features": {
         "avg_shots": 15.036764705882353,
         "avg_possession": 50.08700980392157,
-        "avg_pass_accuracy": 82.51250000000005,
-        "avg_shot_accuracy": 27.183088235294115,
+        "avg_pass_accuracy": 82.5125,
+        "avg_shot_accuracy": 27.183088235294118,
         "avg_high_xg_shots": 1.6764705882352942,
         "avg_opponent_passes": 398.9264705882353,
         "first_goal_rate": 0.5,
@@ -5882,8 +5885,8 @@
         "avg_first_goal_minute": 0.19607843137254902
       },
       "cluster_id": 2,
-      "umap_x": 5.29087,
-      "umap_y": 11.64625
+      "umap_x": 2.6076,
+      "umap_y": 27.96816
     },
     {
       "team_name": "Wolverhampton Wanderers",
@@ -5892,9 +5895,9 @@
       "matches": 304,
       "features": {
         "avg_shots": 12.414473684210526,
-        "avg_possession": 47.99309210526317,
+        "avg_possession": 47.99309210526316,
         "avg_pass_accuracy": 82.19967105263159,
-        "avg_shot_accuracy": 29.324671052631587,
+        "avg_shot_accuracy": 29.324671052631583,
         "avg_high_xg_shots": 1.236842105263158,
         "avg_opponent_passes": 415.63486842105266,
         "first_goal_rate": 0.4111111111111111,
@@ -5911,8 +5914,8 @@
         "avg_first_goal_minute": 0.24342105263157895
       },
       "cluster_id": 0,
-      "umap_x": 6.70294,
-      "umap_y": 7.25884
+      "umap_x": 21.59296,
+      "umap_y": 6.9904
     }
   ]
 }

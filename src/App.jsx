@@ -40,14 +40,9 @@ class ErrorBoundary extends Component {
 }
 
 function MainApp() {
-  const [theme, setTheme] = useState(() => localStorage.getItem('site-theme') || 'dark');
   const [matchesData, setMatchesData] = useState([]);
   const [jleagueHistoryData, setJleagueHistoryData] = useState([]);
   const [dataLoadState, setDataLoadState] = useState({ loading: true, error: null });
-
-  useEffect(() => {
-    localStorage.setItem('site-theme', theme);
-  }, [theme]);
 
   useEffect(() => {
     let active = true;
@@ -77,7 +72,13 @@ function MainApp() {
   ].map(normalizeMatch), [matchesData, jleagueHistoryData]);
   const [legalModal, setLegalModal] = useState(null);
   const [showTeamList, setShowTeamList] = useState(false);
+  const [showSiteGuide, setShowSiteGuide] = useState(false);
   const [requestedMatchAnalysis, setRequestedMatchAnalysis] = useState(null);
+  const [requestedUpcomingTeam, setRequestedUpcomingTeam] = useState(null);
+  const [openTool, setOpenTool] = useState(null);
+  const [showAdvancedTools, setShowAdvancedTools] = useState(false);
+  const [selectedMapTeam, setSelectedMapTeam] = useState(null);
+  const [journeyStep, setJourneyStep] = useState(0);
   const [selectedLeague, setSelectedLeague] = useState('ALL');
   const [selectedSeason, setSelectedSeason] = useState('ALL');
 
@@ -319,6 +320,37 @@ function MainApp() {
 
   const getMetricInfo = (id) => METRICS.find(m => m.id === id);
 
+  const moveToJourneyStep = (step) => {
+    if (step > 0 && !selectedMapTeam) return;
+    if (step === 0) {
+      setRequestedMatchAnalysis(null);
+      setOpenTool(null);
+      setJourneyStep(0);
+      window.setTimeout(() => document.getElementById('team-clusters')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
+      return;
+    }
+    if (step === 1) {
+      setRequestedMatchAnalysis(null);
+      setOpenTool('team-insights');
+      setJourneyStep(1);
+      window.setTimeout(() => document.getElementById('team-insights')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
+      return;
+    }
+    if (step === 2) {
+      setRequestedMatchAnalysis(null);
+      setRequestedUpcomingTeam(selectedMapTeam?.displayName || null);
+      setOpenTool('upcoming-matches');
+      setJourneyStep(2);
+      window.setTimeout(() => document.getElementById('upcoming-matches')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
+      return;
+    }
+    if (step === 3 && requestedMatchAnalysis) {
+      setOpenTool('team-insights');
+      setJourneyStep(3);
+      window.setTimeout(() => document.getElementById('team-insights')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
+    }
+  };
+
   if (dataLoadState.loading) {
     return (
       <div style={{ display: 'grid', placeItems: 'center', minHeight: '100vh', padding: '24px', background: '#0f172a', color: '#f8fafc', fontFamily: 'sans-serif' }}>
@@ -343,17 +375,21 @@ function MainApp() {
   }
 
   return (
-    <div className={theme === 'light' ? 'site-theme light-theme' : 'site-theme'} style={{ padding: '30px', backgroundColor: '#0f172a', color: '#f8fafc', minHeight: '100vh', fontFamily: 'sans-serif' }}>
-      <button
-        type="button"
-        className="theme-toggle"
-        onClick={() => setTheme(current => current === 'dark' ? 'light' : 'dark')}
-        aria-label={theme === 'dark' ? 'ライトモードに切り替える' : 'ダークモードに切り替える'}
-      >
-        {theme === 'dark' ? '☀ ライトモード' : '☾ ダークモード'}
-      </button>
+    <div className="site-theme light-theme" style={{ padding: '30px', backgroundColor: '#0f172a', color: '#f8fafc', minHeight: '100vh', fontFamily: 'sans-serif' }}>
       <div style={{ marginBottom: '20px', borderBottom: '1px solid #334155', paddingBottom: '15px' }}>
-        <h1 style={{ margin: 0, fontSize: '22px', color: '#38bdf8' }}>サッカー試合データ勝率予想・分析</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
+          <h1 style={{ margin: 0, fontSize: '22px', color: '#38bdf8' }}>サッカー・プレースタイルマップ</h1>
+          <button
+            type="button"
+            aria-label="このサイトの使い方"
+            aria-expanded={showSiteGuide}
+            title="このサイトの使い方"
+            onClick={() => setShowSiteGuide(current => !current)}
+            style={{ display: 'inline-grid', placeItems: 'center', width: '25px', height: '25px', padding: 0, borderRadius: '50%', border: '1px solid #38bdf8', background: showSiteGuide ? '#0284c7' : 'transparent', color: showSiteGuide ? '#fff' : '#38bdf8', fontWeight: 'bold', cursor: 'pointer' }}
+          >
+            ?
+          </button>
+        </div>
         <p style={{ color: '#94a3b8', fontSize: '13px', marginTop: '6px' }}>
           対象データ数: 全 {matches.length} 試合 / {teams.length} チーム
         </p>
@@ -377,24 +413,24 @@ function MainApp() {
         )}
       </div>
 
-      <section style={{ marginBottom: '20px', padding: '22px', borderRadius: '10px', background: 'linear-gradient(135deg, #082f49 0%, #172554 100%)', border: '1px solid #0369a1' }}>
+      {showSiteGuide && <section style={{ marginBottom: '20px', padding: '22px', borderRadius: '10px', background: 'linear-gradient(135deg, #082f49 0%, #172554 100%)', border: '1px solid #0369a1' }}>
         <div style={{ maxWidth: '850px' }}>
           <div style={{ display: 'inline-block', marginBottom: '8px', padding: '3px 8px', borderRadius: '999px', background: 'rgba(56, 189, 248, 0.15)', color: '#7dd3fc', fontSize: '11px', fontWeight: 'bold' }}>
-            過去の試合データを、次の観戦に役立てる
+            データから、チームの個性と次の見どころを発見する
           </div>
-          <h2 style={{ margin: '0 0 9px', fontSize: '21px', color: '#f8fafc' }}>チームの勝ち方と、試合の注目ポイントが分かるサイトです</h2>
+          <h2 style={{ margin: '0 0 9px', fontSize: '21px', color: '#f8fafc' }}>似たプレースタイルのチームを探し、試合の見方を深めるサイトです</h2>
           <p style={{ margin: 0, color: '#cbd5e1', fontSize: '13px', lineHeight: 1.8 }}>
-            過去の試合結果やスタッツをもとに、特定の条件で勝率がどう変わるかを分析します。
-            チームごとの得意な展開や注意すべき条件を知り、試合前の勝敗予想、観戦中のチェックポイント、試合後の振り返りに利用できます。
+            シュート、支配率、パス、先制傾向などからチームを分類し、プレースタイルの近さを地図のように可視化します。
+            気になるチームを起点に、特徴の比較、条件別勝率、対戦カードの観戦ポイント、試合予想へ進めます。
           </p>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '10px', marginTop: '18px' }}>
           {[
-            { number: '1', title: '実際のデータと比較して振り返る', text: '試合後の支配率、シュート数、先制時間などを条件別勝率と比較し、予想した展開と実際の試合がどう違ったかを振り返れます。' },
-            { number: '2', title: 'チームの特徴を知る', text: '通常勝率との差から、そのチームの勝率が上がる条件や敗れやすい展開を確認します。' },
-            { number: '3', title: '次の試合の見どころを探す', text: '対戦する2チームを比較し、試合前に注目したいポイントを見つけます。' },
-            { number: '4', title: '実際の試合を予想する', text: '今後の試合でホーム勝利・引き分け・アウェイ勝利から結果を予想して投票できます。試合終了後は自分の予想が当たったか、これまでの的中率と一緒に確認できます。' }
+            { number: '1', title: 'スタイルマップから探す', text: '気になるチームを検索し、どのプレースタイルに属するか、どのチームと似ているかを確認します。' },
+            { number: '2', title: '特徴と観戦ポイントを知る', text: 'チームの強みや傾向を比較し、試合中に注目したいプレーを見つけます。' },
+            { number: '3', title: '今後の試合を選ぶ', text: '選択したチームが出場する試合を探し、対戦相手を確認します。' },
+            { number: '4', title: '対戦を比較・予想する', text: '2チームの特徴と観戦ポイントを比べ、試合結果を予想します。' }
           ].map(item => (
             <div key={item.number} style={{ padding: '13px', borderRadius: '7px', background: 'rgba(15, 23, 42, 0.72)', border: '1px solid rgba(125, 211, 252, 0.2)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
@@ -409,9 +445,132 @@ function MainApp() {
         <p style={{ margin: '14px 0 0', color: '#94a3b8', fontSize: '11px', lineHeight: 1.6 }}>
           ※ 分析結果は過去データの傾向であり、将来の試合結果を保証するものではありません。
         </p>
+      </section>}
+
+      <section id="team-clusters" style={{ marginTop: '20px', padding: '20px', background: '#1e293b', border: '1px solid #334155', borderRadius: '9px' }}>
+        <div style={{ marginBottom: '16px' }}>
+          <h2 style={{ margin: '4px 0 5px', fontSize: '20px' }}>プレースタイルマップからチームを探す</h2>
+          <p style={{ margin: 0, color: '#94a3b8', fontSize: '12px' }}>まずチームを選び、似ているチームと特徴的なプレーを確認してください。</p>
+        </div>
+        <div className="cluster-main-flow" aria-label="現在のステップ" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '7px', marginBottom: '18px' }}>
+          {[
+            ['1', 'チームを選ぶ'],
+            ['2', '特徴を知る'],
+            ['3', '今後の試合を選ぶ'],
+            ['4', '対戦を比較・予想する'],
+          ].map(([number, title], index) => {
+            const currentStep = journeyStep;
+            const isCurrent = index === currentStep;
+            const isDone = index < currentStep;
+            const canNavigate = index <= currentStep
+              || ((index === 1 || index === 2) && Boolean(selectedMapTeam))
+              || (index === 3 && Boolean(requestedMatchAnalysis));
+            return (
+            <button type="button" key={number} disabled={!canNavigate} onClick={() => moveToJourneyStep(index)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 10px', border: `1px solid ${isCurrent ? '#2563eb' : '#dbe3ee'}`, borderRadius: '7px', background: isCurrent ? '#eff6ff' : '#f8fafc', opacity: canNavigate ? 1 : 0.58, cursor: canNavigate ? 'pointer' : 'not-allowed', textAlign: 'left' }}>
+              <span style={{ display: 'inline-flex', flex: '0 0 auto', width: '22px', height: '22px', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: isDone ? '#16a34a' : isCurrent ? '#2563eb' : '#94a3b8', color: '#fff', fontSize: '11px', fontWeight: 'bold' }}>{isDone ? '✓' : number}</span>
+              <strong style={{ color: '#1e293b', fontSize: '11px' }}>{isCurrent ? `次にすること：${title}` : title}</strong>
+            </button>
+          )})}
+        </div>
+        <TeamClusterChart onTeamSelect={(team) => {
+          setSelectedMapTeam(team);
+          setJourneyStep(team ? 1 : 0);
+          if (!team || team.teamName !== selectedMapTeam?.teamName) setRequestedMatchAnalysis(null);
+        }} />
       </section>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'end', marginBottom: '20px', padding: '14px', background: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}>
+      <section style={{ margin: '12px 0 24px', padding: '13px', border: '1px solid #334155', borderRadius: '8px', background: '#0f172a' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: '7px', marginBottom: '10px' }}>
+          <strong style={{ fontSize: '13px' }}>選択中：{selectedMapTeam?.displayName || 'チームを選択してください'}</strong>
+          {selectedMapTeam && <span style={{ color: '#94a3b8', fontSize: '11px' }}>{selectedMapTeam.clusterName}・{selectedMapTeam.league}</span>}
+        </div>
+        <div style={{ marginBottom: '7px', color: '#64748b', fontSize: '11px', fontWeight: 'bold' }}>{selectedMapTeam ? '次のステップ' : 'まずチームを選択してください'}</div>
+        <nav aria-label="選択したチームの詳細" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+        {[
+          { target: 'team-insights', title: '次のステップへ：特徴・観戦ポイントを見る →' },
+        ].map(item => (
+          <button
+            key={item.target}
+            type="button"
+            disabled={!selectedMapTeam}
+            aria-expanded={openTool === item.target}
+            onClick={() => {
+              setOpenTool(item.target);
+              setJourneyStep(1);
+              window.setTimeout(() => document.getElementById(item.target)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
+            }}
+            style={{ padding: '8px 13px', border: '1px solid #2563eb', borderRadius: '6px', background: '#2563eb', color: '#fff', cursor: selectedMapTeam ? 'pointer' : 'not-allowed', opacity: selectedMapTeam ? 1 : 0.45, fontSize: '12px', fontWeight: 'bold' }}
+          >
+            {item.title}
+          </button>
+        ))}
+        <button
+          type="button"
+          disabled={!selectedMapTeam}
+          onClick={() => {
+            if (!selectedMapTeam) return;
+            setRequestedUpcomingTeam(selectedMapTeam.displayName);
+            setOpenTool('upcoming-matches');
+            setJourneyStep(2);
+            window.setTimeout(() => document.getElementById('upcoming-matches')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
+          }}
+          style={{ padding: '7px 12px', border: '1px solid #334155', borderRadius: '6px', background: '#1e293b', color: '#f8fafc', cursor: selectedMapTeam ? 'pointer' : 'not-allowed', opacity: selectedMapTeam ? 1 : 0.45, fontSize: '12px', fontWeight: 'bold' }}
+        >
+          このチームの今後の試合を見る
+        </button>
+        </nav>
+      </section>
+
+      <section style={{ margin: '-12px 0 24px', padding: '13px', border: '1px solid #334155', borderRadius: '8px', background: '#0f172a' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+          <div>
+            <strong style={{ display: 'block', fontSize: '13px', marginBottom: '3px' }}>今後の試合を予想する</strong>
+            <span style={{ color: '#94a3b8', fontSize: '11px' }}>受付中の試合を選び、勝敗を予想・投票します。</span>
+          </div>
+          <button
+            type="button"
+            aria-expanded={openTool === 'upcoming-matches'}
+            onClick={() => {
+              const nextTool = openTool === 'upcoming-matches' ? null : 'upcoming-matches';
+              if (nextTool) setRequestedUpcomingTeam(null);
+              setOpenTool(nextTool);
+              if (nextTool && selectedMapTeam) setJourneyStep(2);
+              if (nextTool) window.setTimeout(() => document.getElementById(nextTool)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
+            }}
+            style={{ padding: '7px 12px', border: `1px solid ${openTool === 'upcoming-matches' ? '#38bdf8' : '#334155'}`, borderRadius: '6px', background: openTool === 'upcoming-matches' ? '#0284c7' : '#1e293b', color: '#f8fafc', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+          >
+            {openTool === 'upcoming-matches' ? '試合予想を閉じる' : '試合予想を開く'}
+          </button>
+        </div>
+      </section>
+
+      <section style={{ margin: '-12px 0 24px', padding: '13px', border: '1px solid #334155', borderRadius: '8px', background: '#0f172a' }}>
+        <button type="button" aria-expanded={showAdvancedTools} onClick={() => setShowAdvancedTools(current => !current)} style={{ width: '100%', padding: '7px 0', border: 0, background: 'transparent', color: '#f8fafc', cursor: 'pointer', textAlign: 'left', fontSize: '13px', fontWeight: 'bold' }}>
+          {showAdvancedTools ? '− もっと詳しく調べる' : '＋ もっと詳しく調べる'}
+        </button>
+        {showAdvancedTools && <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginTop: '9px', paddingTop: '10px', borderTop: '1px solid #334155' }}>
+          <div>
+            <span style={{ display: 'block', color: '#64748b', fontSize: '10px', fontWeight: 'bold', marginBottom: '2px' }}>補助データ分析</span>
+            <strong style={{ display: 'block', fontSize: '13px', marginBottom: '3px' }}>全チームの条件別勝率</strong>
+            <span style={{ color: '#94a3b8', fontSize: '11px' }}>選択中のチームとは連動せず、リーグ・シーズン全体の試合を集計します。</span>
+          </div>
+          <button
+            type="button"
+            aria-expanded={openTool === 'win-rate-analysis'}
+            onClick={() => {
+              const nextTool = openTool === 'win-rate-analysis' ? null : 'win-rate-analysis';
+              setOpenTool(nextTool);
+              if (nextTool) window.setTimeout(() => document.getElementById(nextTool)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
+            }}
+            style={{ padding: '7px 12px', border: `1px solid ${openTool === 'win-rate-analysis' ? '#38bdf8' : '#334155'}`, borderRadius: '6px', background: openTool === 'win-rate-analysis' ? '#0284c7' : '#1e293b', color: '#f8fafc', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+          >
+            {openTool === 'win-rate-analysis' ? '勝率分析を閉じる' : '勝率分析を開く'}
+          </button>
+        </div>}
+      </section>
+
+      {openTool === 'win-rate-analysis' && <>
+      <div id="win-rate-analysis" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'end', marginBottom: '20px', padding: '14px', background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', scrollMarginTop: '20px' }}>
         <label style={{ minWidth: '220px', fontSize: '12px', color: '#cbd5e1' }}>
           リーグ
           <select value={selectedLeague} onChange={event => { setSelectedLeague(event.target.value); setSelectedSeason('ALL'); }} style={{ display: 'block', width: '100%', marginTop: '5px', padding: '8px', borderRadius: '5px', background: '#0f172a', color: '#fff', border: '1px solid #475569' }}>
@@ -434,6 +593,8 @@ function MainApp() {
 
       <div style={{ display: 'flex', gap: '10px', marginBottom: '25px', background: '#0f172a', border: '1px solid #334155', padding: '4px', borderRadius: '8px', width: 'fit-content' }}>
         <button
+          className="winrate-mode-tab"
+          data-active={mode === 'single'}
           onClick={() => setMode('single')}
           style={{
             padding: '8px 20px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px',
@@ -443,6 +604,8 @@ function MainApp() {
           単一条件
         </button>
         <button
+          className="winrate-mode-tab"
+          data-active={mode === 'multi'}
           onClick={() => setMode('multi')}
           style={{
             padding: '8px 20px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px',
@@ -469,6 +632,8 @@ function MainApp() {
               { id: 'passAcc', label: 'パス成功率' }
             ].map(tab => (
               <button
+                className="winrate-metric-tab"
+                data-active={activeTab === tab.id}
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 disabled={!metricAvailability[tab.id]?.available}
@@ -730,22 +895,56 @@ function MainApp() {
           </div>
         </div>
       )}
+      </>}
 
-      <TeamInsights matches={matches} requestedMatch={requestedMatchAnalysis} />
-
-      <section id="team-clusters" style={{ marginTop: '28px', padding: '20px', background: '#1e293b', border: '1px solid #334155', borderRadius: '9px' }}>
-        <TeamClusterChart />
-      </section>
+      {openTool === 'team-insights' && <>
+        <div style={{ marginBottom: '10px' }}>
+          <button
+            type="button"
+            onClick={() => moveToJourneyStep(journeyStep === 3 ? 2 : 0)}
+            style={{ padding: '9px 14px', border: '1px solid #cbd5e1', borderRadius: '6px', background: '#fff', color: '#334155', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+          >
+            ← 一つ前のステップに戻る
+          </button>
+        </div>
+        <TeamInsights matches={matches} requestedMatch={requestedMatchAnalysis} requestedTeam={selectedMapTeam?.teamName} />
+        <div style={{ display: 'flex', justifyContent: 'flex-end', flexWrap: 'wrap', gap: '8px', margin: '-10px 0 24px' }}>
+          <button
+            type="button"
+            onClick={() => {
+              setRequestedUpcomingTeam(requestedMatchAnalysis ? null : selectedMapTeam?.displayName || null);
+              setOpenTool('upcoming-matches');
+              setRequestedMatchAnalysis(null);
+              setJourneyStep(2);
+              window.setTimeout(() => document.getElementById('upcoming-matches')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
+            }}
+            style={{ padding: '9px 14px', border: '1px solid #2563eb', borderRadius: '6px', background: '#2563eb', color: '#fff', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+          >
+            次のステップ：{requestedMatchAnalysis ? '試合予想へ戻る' : 'このチームの今後の試合を見る'} →
+          </button>
+        </div>
+      </>}
 
       {/* ★ここに今週の試合予想コンポーネントを配置 */}
-      <UpcomingMatches onAnalyzeMatch={(match) => {
-        const normalizedMatch = canonicalizeRequestedMatch(match);
-        setRequestedMatchAnalysis({ homeTeam: normalizedMatch.home_team, awayTeam: normalizedMatch.away_team, requestId: Date.now() });
-        window.setTimeout(() => document.getElementById('team-insights')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
-      }} />
+      {openTool === 'upcoming-matches' && <div id="upcoming-matches" style={{ scrollMarginTop: '20px' }}>
+        {selectedMapTeam && <button
+          type="button"
+          onClick={() => moveToJourneyStep(1)}
+          style={{ marginBottom: '10px', padding: '9px 14px', border: '1px solid #cbd5e1', borderRadius: '6px', background: '#fff', color: '#334155', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+        >
+          ← 一つ前のステップに戻る
+        </button>}
+        <UpcomingMatches requestedTeam={requestedUpcomingTeam} onAnalyzeMatch={(match) => {
+          const normalizedMatch = canonicalizeRequestedMatch(match);
+          setRequestedMatchAnalysis({ homeTeam: normalizedMatch.home_team, awayTeam: normalizedMatch.away_team, requestId: Date.now() });
+          setOpenTool('team-insights');
+          setJourneyStep(3);
+          window.setTimeout(() => document.getElementById('team-insights')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
+        }} />
+      </div>}
 
       <footer style={{ marginTop: '28px', paddingTop: '18px', borderTop: '1px solid #334155', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '12px', color: '#94a3b8', fontSize: '12px' }}>
-        <span>© 2026 サッカー試合データ勝率予想・分析</span>
+        <span>© 2026 サッカー・プレースタイルマップ</span>
         <nav aria-label="法的情報" style={{ display: 'flex', gap: '16px' }}>
           <a href="/privacy-policy.html" onClick={(event) => { event.preventDefault(); setLegalModal('privacy'); }} style={{ color: '#7dd3fc' }}>プライバシーポリシー</a>
           <a href="/terms.html" onClick={(event) => { event.preventDefault(); setLegalModal('terms'); }} style={{ color: '#7dd3fc' }}>利用規約</a>
@@ -838,7 +1037,7 @@ function OutcomeSegment({ label, rate, teams = [], color, textColor = '#fff', al
     >
       {label} {rate}%
       {showTooltip && (
-        <div style={{ ...tooltipPosition, position: 'absolute', top: 'calc(100% + 8px)', zIndex: 20, width: '280px', maxWidth: '80vw', padding: '10px', background: '#020617', color: '#f8fafc', border: `1px solid ${color}`, borderRadius: '7px', boxShadow: '0 10px 25px rgba(0,0,0,0.45)', fontWeight: 'normal', whiteSpace: 'normal' }}>
+        <div className="outcome-tooltip" style={{ ...tooltipPosition, position: 'absolute', top: 'calc(100% + 8px)', zIndex: 20, width: '280px', maxWidth: '80vw', padding: '10px', background: '#020617', color: '#f8fafc', border: `1px solid ${color}`, borderRadius: '7px', boxShadow: '0 10px 25px rgba(0,0,0,0.45)', fontWeight: 'normal', whiteSpace: 'normal' }}>
           <div style={{ fontWeight: 'bold', color, marginBottom: '7px' }}>{label}に含まれるチーム（{teams.length}）</div>
           <div style={{ maxHeight: '220px', overflowY: 'auto' }}>
             {teams.map(team => (

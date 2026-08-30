@@ -15,7 +15,7 @@ const sections = {
         <h3>保存期間と削除</h3>
         <p>情報は機能提供に必要な期間保存します。ログイン後の「アカウントと投票データを削除」から、保存された投票と本サイトの認証アカウントを削除できます。</p>
         <h3>問い合わせ</h3>
-        <p>運営者は、公開前にここへ連絡可能なメールアドレスを記載してください。</p>
+        <p><a href="mailto:chya24076@g.nihon-u.ac.jp">chya24076@g.nihon-u.ac.jp</a> までお問い合わせください。</p>
         <p><small>制定日: 2026年8月29日</small></p>
       </>
     ),
@@ -42,11 +42,11 @@ export default function LegalModal({ type, onClose }) {
   const section = sections[type];
 
   return (
-    <div role="dialog" aria-modal="true" aria-labelledby="legal-title" onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.72)', display: 'grid', placeItems: 'center', padding: '20px' }}>
-      <article onClick={(event) => event.stopPropagation()} style={{ width: 'min(720px, 100%)', maxHeight: '85vh', overflowY: 'auto', background: '#172033', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '12px', padding: '24px', lineHeight: 1.75 }}>
+    <div role="dialog" aria-modal="true" aria-labelledby="legal-title" onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(15, 23, 42, .38)', display: 'grid', placeItems: 'center', padding: '20px' }}>
+      <article onClick={(event) => event.stopPropagation()} style={{ width: 'min(720px, 100%)', maxHeight: '85vh', overflowY: 'auto', background: '#fff', color: '#1e293b', border: '1px solid #cbd5e1', borderRadius: '12px', padding: '24px', lineHeight: 1.75, boxShadow: '0 18px 48px rgba(15, 23, 42, .18)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '16px', alignItems: 'start' }}>
           <h2 id="legal-title" style={{ marginTop: 0 }}>{section.title}</h2>
-          <button type="button" onClick={onClose} aria-label="閉じる" style={{ background: '#334155', color: '#fff', border: 0, borderRadius: '6px', padding: '6px 10px', cursor: 'pointer' }}>閉じる</button>
+          <button type="button" onClick={onClose} aria-label="閉じる" style={{ background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', borderRadius: '6px', padding: '6px 10px', cursor: 'pointer', fontWeight: 'bold' }}>閉じる</button>
         </div>
         {section.content}
       </article>

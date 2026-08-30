@@ -154,6 +154,15 @@ function WatchPointChart({ profile }) {
         </div>
         <div style={{ fontSize: '11px', color: '#94a3b8' }}><span style={{ color: '#f87171' }}>← 注意</span>　通常　<span style={{ color: '#4ade80' }}>勝利サイン →</span></div>
       </div>
+      <details className="watch-point-formula" style={{ margin: '-2px 0 12px', fontSize: '11px' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>ポイントの計算方法を見る</summary>
+        <div style={{ marginTop: '7px', padding: '9px 11px', borderRadius: '6px', lineHeight: 1.7 }}>
+          <div><strong>右側（＋）：</strong>その条件での勝率 − チームの通常勝率</div>
+          <div><strong>左側（−）：</strong>その条件での敗率 − チームの通常敗率</div>
+          <div>「pt」はパーセントポイントです。例：通常勝率40%で条件時60%なら <strong>＋20pt</strong> です。</div>
+          <div>信頼度は対象試合数で判定します（高：30試合以上、中：15〜29試合、低：14試合以下）。</div>
+        </div>
+      </details>
       <div style={{ display: 'grid', gap: '10px' }}>
         {points.map(point => {
           const width = Math.max(4, Math.min(50, (Math.abs(point.impact) / maxImpact) * 48));
@@ -167,7 +176,7 @@ function WatchPointChart({ profile }) {
               <div style={{ position: 'relative', height: '24px', background: '#1e293b', borderRadius: '5px', overflow: 'hidden' }}>
                 <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: '1px', background: '#64748b', zIndex: 2 }} />
                 <div style={{ position: 'absolute', top: '4px', bottom: '4px', left: positive ? '50%' : `${50 - width}%`, width: `${width}%`, background: positive ? '#16a34a' : '#dc2626', borderRadius: positive ? '0 4px 4px 0' : '4px 0 0 4px' }} />
-                <span style={{ position: 'absolute', zIndex: 3, top: '4px', left: positive ? `calc(50% + 7px)` : '7px', color: '#fff', fontSize: '10px', fontWeight: 'bold' }}>
+                <span className="watch-impact-label" style={{ position: 'absolute', zIndex: 3, top: '4px', ...(positive ? { left: 'calc(50% + 7px)' } : { right: 'calc(50% + 7px)' }), fontSize: '10px', fontWeight: 'bold' }}>
                   {positive ? '+' : '−'}{fixed(Math.abs(point.impact))}pt
                 </span>
               </div>
@@ -175,8 +184,8 @@ function WatchPointChart({ profile }) {
           );
         })}
       </div>
-      <div style={{ marginTop: '13px', padding: '10px 12px', borderRadius: '6px', background: '#082f49', fontSize: '12px', lineHeight: 1.7 }}>
-        <strong style={{ color: '#7dd3fc' }}>まず見るポイント：</strong>
+      <div className="insight-callout" style={{ marginTop: '13px', padding: '10px 12px', borderRadius: '6px', fontSize: '12px', lineHeight: 1.7 }}>
+        <strong>まず見るポイント：</strong>
         {primary.type === 'positive'
           ? `「${primary.label}」へ近づいているか確認してください。過去データでは通常より勝率が${fixed(primary.winDiff)}ポイント高い条件です。`
           : `「${primary.label}」の展開に注意してください。過去データでは通常より敗率が${fixed(primary.lossDiff)}ポイント高い条件です。`}
@@ -185,11 +194,11 @@ function WatchPointChart({ profile }) {
   );
 }
 
-function RateBox({ label, summary, color = '#38bdf8' }) {
+function RateBox({ label, summary }) {
   return (
     <div style={{ background: '#0f172a', border: '1px solid #334155', borderRadius: '7px', padding: '12px' }}>
       <div style={{ color: '#94a3b8', fontSize: '11px' }}>{label}</div>
-      <div style={{ color, fontSize: '22px', fontWeight: 'bold', margin: '5px 0' }}>{fixed(summary.winRate)}%</div>
+      <div style={{ color: '#111827', fontSize: '22px', fontWeight: 'bold', margin: '5px 0' }}>{fixed(summary.winRate)}%</div>
       <div style={{ color: '#94a3b8', fontSize: '11px' }}>{summary.total}試合 {summary.wins}勝 {summary.draws}分 {summary.losses}敗</div>
     </div>
   );
@@ -217,42 +226,20 @@ function PatternList({ title, items, type }) {
 
 function TeamProfile({ profile }) {
   if (!profile) return <div style={{ padding: '18px', color: '#fbbf24', background: '#422006', borderRadius: '7px' }}>このチームの過去試合データはありません。</div>;
-  const top = profile.positivePatterns[0];
   return (
     <div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(145px, 1fr))', gap: '10px' }}>
         <RateBox label="全データの基本勝率" summary={profile.baseline} />
-        <RateBox label="ホーム勝率" summary={profile.home} color="#4ade80" />
-        <RateBox label="アウェイ勝率" summary={profile.away} color="#fbbf24" />
-        <RateBox label="データ上の直近5試合" summary={profile.recent} color="#c084fc" />
+        <RateBox label="ホーム勝率" summary={profile.home} />
+        <RateBox label="アウェイ勝率" summary={profile.away} />
+        <RateBox label="データ上の直近5試合" summary={profile.recent} />
       </div>
 
       <WatchPointChart profile={profile} />
 
-      <div style={{ marginTop: '12px', padding: '12px', borderRadius: '7px', background: '#082f49', border: '1px solid #0369a1', fontSize: '13px', lineHeight: 1.7 }}>
-        <strong style={{ color: '#7dd3fc' }}>観戦ポイント：</strong>
-        {top ? `${top.label}の試合では通常より勝率が${fixed(top.winDiff)}ポイント高くなっています。試合中は「${top.metric}」に注目してください。` : '明確な勝利条件を判定できるだけのデータがありません。'}
-      </div>
-
-      <h3 style={{ fontSize: '15px', margin: '20px 0 10px' }}>勝った試合・負けた試合の違い</h3>
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
-          <thead><tr style={{ color: '#94a3b8' }}><th style={{ textAlign: 'left', padding: '7px' }}>指標</th><th>全試合</th><th>勝利時</th><th>敗北時</th></tr></thead>
-          <tbody>{METRIC_DEFINITIONS.map(metric => (
-            <tr key={metric.key} style={{ borderTop: '1px solid #334155' }}>
-              <td style={{ padding: '8px 7px' }}>{metric.label}</td>
-              <td style={{ textAlign: 'center' }}>{fixed(profile.averages[metric.key])}{metric.unit}</td>
-              <td style={{ textAlign: 'center', color: '#4ade80' }}>{fixed(profile.winAverages[metric.key])}{metric.unit}</td>
-              <td style={{ textAlign: 'center', color: '#f87171' }}>{fixed(profile.lossAverages[metric.key])}{metric.unit}</td>
-            </tr>
-          ))}</tbody>
-        </table>
-      </div>
-
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '10px', marginTop: '16px' }}>
         <PatternList title="勝率が上がる条件" items={profile.positivePatterns} type="positive" />
-        <PatternList title="敗率が上がる注意条件" items={profile.negativePatterns} type="negative" />
-        <PatternList title="勝率への影響が小さい条件" items={profile.neutralPatterns} type="neutral" />
+        <PatternList title="負けやすい注意条件" items={profile.negativePatterns} type="negative" />
       </div>
     </div>
   );
@@ -286,9 +273,9 @@ function Comparison({ home, away }) {
   );
 }
 
-export default function TeamInsights({ matches, requestedMatch }) {
+export default function TeamInsights({ matches, requestedMatch, requestedTeam }) {
   const teams = useMemo(() => [...new Set(matches.flatMap(match => [match.teamA, match.teamB]).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ja')), [matches]);
-  const [mode, setMode] = useState('team');
+  const [mode, setMode] = useState(requestedMatch ? 'comparison' : 'team');
   const [team, setTeam] = useState(teams[0] || '');
   const [homeTeam, setHomeTeam] = useState(teams[0] || '');
   const [awayTeam, setAwayTeam] = useState(teams[1] || teams[0] || '');
@@ -300,6 +287,12 @@ export default function TeamInsights({ matches, requestedMatch }) {
     setMode('comparison');
   }, [requestedMatch]);
 
+  useEffect(() => {
+    if (requestedMatch || !requestedTeam || !teams.includes(requestedTeam)) return;
+    setTeam(requestedTeam);
+    setMode('team');
+  }, [requestedTeam, requestedMatch, teams]);
+
   const profile = useMemo(() => buildTeamProfile(matches, team), [matches, team]);
   const homeProfile = useMemo(() => buildTeamProfile(matches, homeTeam), [matches, homeTeam]);
   const awayProfile = useMemo(() => buildTeamProfile(matches, awayTeam), [matches, awayTeam]);
@@ -307,9 +300,9 @@ export default function TeamInsights({ matches, requestedMatch }) {
 
   return (
     <section id="team-insights" style={{ marginTop: '28px', padding: '20px', background: '#1e293b', border: '1px solid #334155', borderRadius: '9px' }}>
-      <h2 style={{ margin: '0 0 6px', color: '#38bdf8', fontSize: '19px' }}>チーム特徴・試合前観戦ガイド</h2>
+      <h2 style={{ margin: '0 0 6px', color: '#38bdf8', fontSize: '19px' }}>チームの特徴と観戦ポイント</h2>
       <p style={{ margin: '0 0 15px', color: '#94a3b8', fontSize: '12px', lineHeight: 1.6 }}>
-        過去{matches.length}試合から、各チームの通常勝率との差が大きい条件を抽出します。条件は試合前の確定予想ではなく、試合中に注目するポイントとして利用してください。日付がない試合の直近判定にはmatch_id順を使用します。
+        過去{matches.length}試合をもとに、成績の傾向と試合中に注目したいプレーを表示します。
       </p>
       <div style={{ display: 'flex', gap: '8px', marginBottom: '15px' }}>
         <button onClick={() => setMode('team')} style={{ padding: '7px 13px', border: 0, borderRadius: '5px', cursor: 'pointer', color: '#fff', background: mode === 'team' ? '#0284c7' : '#334155' }}>チーム別特徴</button>

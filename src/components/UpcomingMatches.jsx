@@ -5,6 +5,8 @@ import { signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, delet
 import upcomingData from '../upcoming_matches.json';
 import jleagueData from '../jleague_matches.json';
 import { auth, db } from '../firebase';
+import { isMatchLocked } from '../matchAvailability';
+import { canonicalTeamName } from '../dataNormalization';
 
 const provider = new GoogleAuthProvider();
 provider.setCustomParameters({ prompt: 'select_account' });
@@ -25,35 +27,7 @@ const getFirebaseMatchId = (matchId) => {
   return String(matchId).replace(/[.#$[\]\/]/g, '_');
 };
 
-// Jリーグ / 欧州5大リーグの日時文字列を試合開始時刻(ms)へ変換
-const getMatchStartTime = (datetime) => {
-  if (!datetime) return null;
-
-  // Jリーグ: 2026-08-29 18:00
-  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(datetime)) {
-    const time = new Date(`${datetime.replace(' ', 'T')}:00+09:00`).getTime();
-    return Number.isNaN(time) ? null : time;
-  }
-
-  // 欧州: 2026年 08/23（日） 22:00
-  const match = datetime.match(/(\d{4})年\s*(\d{2})\/(\d{2})（.+?）\s*(\d{2}):(\d{2})/);
-  if (match) {
-    const [, year, month, day, hour, minute] = match;
-    const time = new Date(`${year}-${month}-${day}T${hour}:${minute}:00+09:00`).getTime();
-    return Number.isNaN(time) ? null : time;
-  }
-
-  return null;
-};
-
-// 結果が出ている、または試合開始時刻を過ぎていれば投票締切
-const isMatchLocked = (match) => {
-  if (match.result) return true;
-  const startTime = getMatchStartTime(match.datetime);
-  return startTime !== null && Date.now() >= startTime;
-};
-
-export default function UpcomingMatches({ onAnalyzeMatch }) {
+export default function UpcomingMatches({ onAnalyzeMatch, requestedTeam }) {
   const [regionTab, setRegionTab] = useState('jleague');
   const [pickupFilter, setPickupFilter] = useState('most_voted');
 
@@ -63,7 +37,20 @@ export default function UpcomingMatches({ onAnalyzeMatch }) {
 
   const [selectedLeague, setSelectedLeague] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
   const [sortBy, setSortBy] = useState('date_asc');
+
+  useEffect(() => {
+    if (!requestedTeam) return;
+    const teamName = canonicalTeamName(requestedTeam);
+    const isJLeagueTeam = (jleagueData || []).some(match =>
+      canonicalTeamName(match.home_team) === teamName || canonicalTeamName(match.away_team) === teamName
+    );
+    setRegionTab(isJLeagueTeam ? 'jleague' : 'europe');
+    setSelectedLeague('ALL');
+    setSearchQuery(teamName);
+    setShowSearchSuggestions(false);
+  }, [requestedTeam]);
   
   // 履歴表示モーダル/アコーディオンの開閉状態
   const [showHistory, setShowHistory] = useState(false);
@@ -79,6 +66,13 @@ export default function UpcomingMatches({ onAnalyzeMatch }) {
 
   const rawData = getRawData();
   const allMatches = [...(upcomingData || []), ...(jleagueData || [])];
+  const normalizedSearchQuery = canonicalTeamName(searchQuery).trim().toLocaleLowerCase('ja');
+  const teamSuggestions = normalizedSearchQuery
+    ? [...new Set(rawData.flatMap(match => [canonicalTeamName(match.home_team), canonicalTeamName(match.away_team)]).filter(Boolean))]
+      .filter(teamName => teamName.toLocaleLowerCase('ja').includes(normalizedSearchQuery))
+      .sort((a, b) => a.localeCompare(b, 'ja'))
+      .slice(0, 8)
+    : [];
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
@@ -274,9 +268,9 @@ export default function UpcomingMatches({ onAnalyzeMatch }) {
     .filter(m => {
       if (selectedLeague !== 'ALL' && m.league !== selectedLeague) return false;
       if (searchQuery.trim() !== '') {
-        const query = searchQuery.toLowerCase();
-        const home = m.home_team.toLowerCase();
-        const away = m.away_team.toLowerCase();
+        const query = canonicalTeamName(searchQuery).toLocaleLowerCase('ja');
+        const home = canonicalTeamName(m.home_team).toLocaleLowerCase('ja');
+        const away = canonicalTeamName(m.away_team).toLocaleLowerCase('ja');
         if (!home.includes(query) && !away.includes(query)) return false;
       }
       return true;
@@ -309,7 +303,7 @@ export default function UpcomingMatches({ onAnalyzeMatch }) {
         style={{ 
           background: isFeatured ? '#22221e' : '#1e1e1e', 
           border: isFeatured 
-            ? '1px solid #d4a373' 
+            ? '1px solid #2563eb'
             : (isFinished ? (isHit ? '1px solid #4caf50' : '1px solid #333') : (userChoice ? '1px solid #2196f3' : '1px solid #333')),
           borderRadius: '8px', 
           padding: '16px', 
@@ -319,7 +313,7 @@ export default function UpcomingMatches({ onAnalyzeMatch }) {
       >
         <div style={{ position: 'absolute', top: '12px', right: '12px', display: 'flex', gap: '6px' }}>
           {isFeatured && (
-            <span style={{ background: '#d4a373', color: '#000', fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', fontWeight: 'bold' }}>
+            <span style={{ background: '#2563eb', color: '#fff', fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', fontWeight: 'bold' }}>
               PICK UP
             </span>
           )}
@@ -329,11 +323,11 @@ export default function UpcomingMatches({ onAnalyzeMatch }) {
               試合終了
             </span>
           ) : isLocked ? (
-            <span style={{ background: '#4a2a2a', color: '#ef9a9a', fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', border: '1px solid #633' }}>
+            <span style={{ background: '#2563eb', color: '#fff', fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', border: '1px solid #2563eb', fontWeight: 'bold' }}>
               受付終了
             </span>
           ) : (
-            <span style={{ background: '#1b5e20', color: '#81c784', fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px' }}>
+            <span style={{ background: '#eff6ff', color: '#2563eb', fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', border: '1px solid #93c5fd', fontWeight: 'bold' }}>
               受付中
             </span>
           )}
@@ -543,11 +537,11 @@ export default function UpcomingMatches({ onAnalyzeMatch }) {
                               </span>
                             )
                           ) : isLocked ? (
-                            <span style={{ background: '#4a2a2a', color: '#ef9a9a', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '4px' }}>
+                            <span style={{ background: '#2563eb', color: '#fff', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid #2563eb', fontWeight: 'bold' }}>
                               受付終了
                             </span>
                           ) : (
-                            <span style={{ background: '#1565c0', color: '#fff', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '4px' }}>
+                            <span style={{ background: '#eff6ff', color: '#2563eb', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid #93c5fd', fontWeight: 'bold' }}>
                               受付中
                             </span>
                           )}
@@ -570,7 +564,7 @@ export default function UpcomingMatches({ onAnalyzeMatch }) {
       <div style={{ marginBottom: '25px', background: '#181818', padding: '16px', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <h3 style={{ fontSize: '1.05rem', color: '#d4a373', margin: 0, fontWeight: 'bold' }}>
+            <h3 style={{ fontSize: '1.05rem', color: '#2563eb', margin: 0, fontWeight: 'bold' }}>
               注目の試合 
             </h3>
 
@@ -605,8 +599,8 @@ export default function UpcomingMatches({ onAnalyzeMatch }) {
               onClick={() => setPickupFilter('most_voted')}
               style={{
                 padding: '4px 10px', borderRadius: '4px', border: 'none', fontSize: '0.75rem',
-                background: pickupFilter === 'most_voted' ? '#d4a373' : '#2a2a2a',
-                color: pickupFilter === 'most_voted' ? '#000' : '#aaa',
+                background: pickupFilter === 'most_voted' ? '#2563eb' : '#f8fafc',
+                color: pickupFilter === 'most_voted' ? '#fff' : '#475569',
                 fontWeight: 'bold', cursor: 'pointer'
               }}
             >
@@ -616,8 +610,8 @@ export default function UpcomingMatches({ onAnalyzeMatch }) {
               onClick={() => setPickupFilter('close_match')}
               style={{
                 padding: '4px 10px', borderRadius: '4px', border: 'none', fontSize: '0.75rem',
-                background: pickupFilter === 'close_match' ? '#d4a373' : '#2a2a2a',
-                color: pickupFilter === 'close_match' ? '#000' : '#aaa',
+                background: pickupFilter === 'close_match' ? '#2563eb' : '#f8fafc',
+                color: pickupFilter === 'close_match' ? '#fff' : '#475569',
                 fontWeight: 'bold', cursor: 'pointer'
               }}
             >
@@ -627,8 +621,8 @@ export default function UpcomingMatches({ onAnalyzeMatch }) {
               onClick={() => setPickupFilter('one_sided')}
               style={{
                 padding: '4px 10px', borderRadius: '4px', border: 'none', fontSize: '0.75rem',
-                background: pickupFilter === 'one_sided' ? '#d4a373' : '#2a2a2a',
-                color: pickupFilter === 'one_sided' ? '#000' : '#aaa',
+                background: pickupFilter === 'one_sided' ? '#2563eb' : '#f8fafc',
+                color: pickupFilter === 'one_sided' ? '#fff' : '#475569',
                 fontWeight: 'bold', cursor: 'pointer'
               }}
             >
@@ -702,14 +696,36 @@ export default function UpcomingMatches({ onAnalyzeMatch }) {
       )}
 
       {/* 検索コントロール */}
-      <div style={{ background: '#1a1a1a', padding: '10px', borderRadius: '6px', marginBottom: '15px' }}>
+      {requestedTeam && searchQuery === canonicalTeamName(requestedTeam) && (
+        <div style={{ marginBottom: '10px', padding: '9px 11px', border: '1px solid #93c5fd', borderRadius: '6px', background: '#eff6ff', color: '#1e3a8a', fontSize: '0.82rem' }}>
+          <strong>{canonicalTeamName(requestedTeam)}</strong> の試合に絞り込んでいます。試合カードから2チームの比較と観戦ポイントを確認できます。
+        </div>
+      )}
+      <div style={{ position: 'relative', background: '#1a1a1a', padding: '10px', borderRadius: '6px', marginBottom: '15px' }}>
         <input
           type="text"
           placeholder="クラブ名で検索..."
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onFocus={() => setShowSearchSuggestions(true)}
+          onBlur={() => window.setTimeout(() => setShowSearchSuggestions(false), 120)}
+          onChange={(e) => { setSearchQuery(e.target.value); setShowSearchSuggestions(true); }}
           style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', boxSizing: 'border-box' }}
         />
+        {showSearchSuggestions && teamSuggestions.length > 0 && (
+          <div className="upcoming-search-suggestions" style={{ position: 'absolute', zIndex: 20, top: 'calc(100% - 10px)', left: '10px', right: '10px', border: '1px solid #cbd5e1', borderRadius: '0 0 6px 6px', background: '#fff', boxShadow: '0 8px 20px rgba(15, 23, 42, 0.14)', overflow: 'hidden' }}>
+            {teamSuggestions.map(teamName => (
+              <button
+                key={teamName}
+                type="button"
+                onMouseDown={event => event.preventDefault()}
+                onClick={() => { setSearchQuery(teamName); setShowSearchSuggestions(false); }}
+                style={{ display: 'block', width: '100%', padding: '9px 12px', border: 0, borderTop: '1px solid #e2e8f0', background: '#fff', color: '#1e293b', textAlign: 'left', cursor: 'pointer', fontSize: '0.86rem' }}
+              >
+                {teamName}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* 試合一覧表示エリア */}
