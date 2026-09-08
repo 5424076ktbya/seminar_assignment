@@ -161,9 +161,7 @@ def cluster_model(team_rows, feature_keys, args):
     return {"k": selected_k, "silhouette_scores": scores, "n_neighbors": neighbors}
 
 
-def main():
-    args = parse_args()
-    matches = read_matches(args.shots_data) + read_matches(args.jleague_history)
+def build_cluster_dataset(matches, args):
     records, leagues, team_models = collect_team_records(matches)
     teams_by_model = defaultdict(list)
     for team_name in sorted(records):
@@ -188,8 +186,31 @@ def main():
         }
         all_teams.extend(rows)
 
-    output = {
-        "generated_at": datetime.now(timezone.utc).isoformat(), "team_count": len(all_teams),
+    return {"team_count": len(all_teams), "models": model_metadata, "teams": all_teams}
+
+
+def main():
+    args = parse_args()
+    matches = read_matches(args.shots_data) + read_matches(args.jleague_history)
+    output = build_cluster_dataset(matches, args)
+    seasons = sorted({int(match["season"]) for match in matches if match.get("season") is not None})
+    periods = []
+    if seasons:
+        recent_seasons = seasons[-3:]
+        recent_matches = [match for match in matches if match.get("season") in recent_seasons]
+        periods.append({
+            "id": "recent_3", "label": f"直近3シーズン（{recent_seasons[0]}〜{recent_seasons[-1]}）",
+            "seasons": recent_seasons, **build_cluster_dataset(recent_matches, args),
+        })
+        for season in reversed(seasons):
+            season_matches = [match for match in matches if match.get("season") == season]
+            periods.append({
+                "id": f"season_{season}", "label": f"{season}シーズン", "seasons": [season],
+                **build_cluster_dataset(season_matches, args),
+            })
+
+    output.update({
+        "generated_at": datetime.now(timezone.utc).isoformat(),
         "clustering": {"algorithm": "kmeans", "random_state": args.seed},
         "projection": {
             "algorithm": "umap", "n_neighbors": args.umap_neighbors,
@@ -197,8 +218,8 @@ def main():
             "repulsion_strength": args.umap_repulsion_strength,
             "random_state": args.seed,
         },
-        "models": model_metadata, "teams": all_teams,
-    }
+        "periods": periods,
+    })
     atomic_write_json(args.output, output)
     print(f"完了: {len(all_teams)}チームをプレースタイルで分類しました")
 

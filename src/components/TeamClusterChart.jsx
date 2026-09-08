@@ -86,16 +86,58 @@ function clusterFeatureAverages(clusterTeams, stats, definitions) {
 
 function similarTeams(selected, teams, stats, definitions) {
   return teams.filter(team => team.team_name !== selected.team_name).map(team => {
+    const comparisons = definitions.map(feature => ({
+      label: feature.label,
+      difference: Math.abs(zScore(selected, feature.key, stats) - zScore(team, feature.key, stats)),
+      selectedValue: feature.format(Number(selected.features[feature.key])),
+      teamValue: feature.format(Number(team.features[feature.key])),
+    }));
+    const distance = Math.sqrt(comparisons.reduce((sum, feature) => {
+      return sum + feature.difference ** 2;
+    }, 0));
+    const shared = [...comparisons].sort((a, b) => a.difference - b.difference).slice(0, 2);
+    const different = [...comparisons].sort((a, b) => b.difference - a.difference).slice(0, 1);
+    return { ...team, distance, shared, different };
+  }).sort((a, b) => a.distance - b.distance).slice(0, 5);
+}
+
+function clusterMembership(selected, teams, stats, definitions) {
+  const clusterIds = [...new Set(teams.map(team => team.cluster_id))];
+  const centroids = clusterIds.map(clusterId => {
+    const members = teams.filter(team => team.cluster_id === clusterId);
+    const values = Object.fromEntries(definitions.map(feature => [
+      feature.key,
+      members.reduce((sum, team) => sum + zScore(team, feature.key, stats), 0) / members.length,
+    ]));
     const distance = Math.sqrt(definitions.reduce((sum, feature) => {
-      const difference = zScore(selected, feature.key, stats) - zScore(team, feature.key, stats);
+      const difference = zScore(selected, feature.key, stats) - values[feature.key];
       return sum + difference ** 2;
     }, 0));
-    const shared = definitions.map(feature => ({
-      label: feature.label,
-      difference: Math.abs(zScore(selected, feature.key, stats) - zScore(team, feature.key, stats))
-    })).sort((a, b) => a.difference - b.difference).slice(0, 2).map(item => item.label);
-    return { ...team, distance, shared };
-  }).sort((a, b) => a.distance - b.distance).slice(0, 5);
+    const representative = members.map(team => ({
+      team,
+      distance: Math.sqrt(definitions.reduce((sum, feature) => {
+        const difference = zScore(team, feature.key, stats) - values[feature.key];
+        return sum + difference ** 2;
+      }, 0)),
+    })).sort((a, b) => a.distance - b.distance)[0]?.team;
+    return { clusterId, distance, representative };
+  }).sort((a, b) => a.distance - b.distance);
+
+  const own = centroids.find(item => item.clusterId === selected.cluster_id);
+  const nearestOther = centroids.filter(item => item.clusterId !== selected.cluster_id)[0];
+  const confidence = own && nearestOther
+    ? Math.round(100 * nearestOther.distance / Math.max(own.distance + nearestOther.distance, 0.0001))
+    : 100;
+  const type = confidence < 58 ? '境界型' : confidence < 68 ? '複合型' : '典型型';
+  return { confidence: Math.max(0, Math.min(100, confidence)), type, representative: own?.representative, nearestOther };
+}
+
+function withinClusterDifferences(selected, clusterTeams, stats, definitions) {
+  return definitions.map(feature => {
+    const clusterMean = clusterTeams.reduce((sum, team) => sum + Number(team.features[feature.key]), 0) / clusterTeams.length;
+    const difference = (Number(selected.features[feature.key]) - clusterMean) / stats[feature.key].std;
+    return { ...feature, difference, clusterMean };
+  }).sort((a, b) => Math.abs(b.difference) - Math.abs(a.difference)).slice(0, 4);
 }
 
 function ClusterTooltip({ active, payload, definitions }) {
@@ -125,8 +167,14 @@ function ClusterNode({ cx, cy, fill, payload, selectedName, isActiveCluster, sho
 export default function TeamClusterChart({ onTeamSelect }) {
   const chartRef = useRef(null);
   const panStateRef = useRef(null);
-  const teams = clusterData.teams || [];
-  const modelIds = Object.keys(clusterData.models || {});
+  const [selectedPeriod, setSelectedPeriod] = useState('all');
+  const periodOptions = [
+    { id: 'all', label: '全期間', seasons: [], models: clusterData.models, teams: clusterData.teams },
+    ...(clusterData.periods || []),
+  ];
+  const activeData = periodOptions.find(period => period.id === selectedPeriod) || periodOptions[0];
+  const teams = activeData.teams || [];
+  const modelIds = Object.keys(activeData.models || {});
   const [selectedModel, setSelectedModel] = useState(modelIds.includes('j1_style') ? 'j1_style' : modelIds[0] || '');
   const modelTeams = teams.filter(team => team.model_id === selectedModel);
   const colors = selectedModel === 'j1_style' ? J1_COLORS : EUROPE_COLORS;
@@ -145,7 +193,7 @@ export default function TeamClusterChart({ onTeamSelect }) {
       .map(canonicalTeamName)
   ), []);
   const openMatchTeams = teams.filter(team => openMatchTeamNames.has(canonicalTeamName(team.team_name)));
-  const modelFeatureKeys = clusterData.models?.[selectedModel]?.features || [];
+  const modelFeatureKeys = activeData.models?.[selectedModel]?.features || [];
   const definitions = FEATURE_DEFINITIONS.filter(feature => modelFeatureKeys.includes(feature.key));
   const stats = useMemo(() => globalStats(modelTeams, definitions), [selectedModel, teams]);
   const visibleTeams = teamScope === 'open' ? modelTeams.filter(team => openMatchTeamNames.has(canonicalTeamName(team.team_name))) : modelTeams;
@@ -161,6 +209,9 @@ export default function TeamClusterChart({ onTeamSelect }) {
     const clusterTeams = modelTeams.filter(team => team.cluster_id === clusterId);
     return [clusterId, clusterFeatureAverages(clusterTeams, stats, definitions)];
   }));
+  const selectedClusterTeams = selected ? modelTeams.filter(team => team.cluster_id === selected.cluster_id) : [];
+  const membership = selected ? clusterMembership(selected, modelTeams, stats, definitions) : null;
+  const selectedDifferences = selected ? withinClusterDifferences(selected, selectedClusterTeams, stats, definitions) : [];
   useEffect(() => {
     if (!selected) {
       onTeamSelect?.(null);
@@ -240,7 +291,14 @@ export default function TeamClusterChart({ onTeamSelect }) {
   useEffect(() => {
     setChartZoom(1);
     setViewCenter(null);
-  }, [selectedModel, teamScope]);
+  }, [selectedModel, teamScope, selectedPeriod]);
+
+  useEffect(() => {
+    if (!modelIds.includes(selectedModel)) setSelectedModel(modelIds.includes('j1_style') ? 'j1_style' : modelIds[0] || '');
+    setSelectedName('');
+    setSelectedCluster(null);
+    setSearchQuery('');
+  }, [selectedPeriod]);
 
   if (!teams.length || !modelIds.length) {
     return (
@@ -255,6 +313,17 @@ export default function TeamClusterChart({ onTeamSelect }) {
     <div>
       <h2 style={{ margin: '0 0 6px', color: '#38bdf8', fontSize: '19px' }}>似たチームを見つける</h2>
       <p style={{ margin: '0 0 14px', color: '#94a3b8', fontSize: '12px', lineHeight: 1.6 }}>シュート、支配率、パス精度、CK、FK、先制傾向など、試合で現れる特徴が似ているチームを分類しています。点が近いほどプレースタイルの数値傾向が似ています。</p>
+      <label style={{ display: 'block', maxWidth: '360px', marginBottom: '14px', color: '#475569', fontSize: '12px', fontWeight: 'bold' }}>
+        分析するシーズン・期間
+        <select
+          value={selectedPeriod}
+          onChange={event => setSelectedPeriod(event.target.value)}
+          style={{ display: 'block', width: '100%', marginTop: '6px', padding: '9px', borderRadius: '5px', background: '#fff', color: '#0f172a', border: '1px solid #cbd5e1' }}
+        >
+          {periodOptions.map(period => <option key={period.id} value={period.id}>{period.label}</option>)}
+        </select>
+        {periodOptions.length === 1 && <span style={{ display: 'block', marginTop: '5px', color: '#64748b', fontSize: '10px', fontWeight: 'normal' }}>シーズン別データは次回のクラスタ再生成後に選択できます。</span>}
+      </label>
       <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
         <span style={{ marginRight: '3px', color: '#64748b', fontSize: '11px', fontWeight: 'bold' }}>表示するチーム</span>
         <button type="button" onClick={() => changeTeamScope('all')} style={{ padding: '6px 11px', borderRadius: '6px', border: `1px solid ${teamScope === 'all' ? '#2563eb' : '#cbd5e1'}`, background: teamScope === 'all' ? '#2563eb' : '#fff', color: teamScope === 'all' ? '#fff' : '#475569', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>すべてのチーム</button>
@@ -384,25 +453,55 @@ export default function TeamClusterChart({ onTeamSelect }) {
           <span style={{ width: '100%', textAlign: 'center' }}>中央付近は全チームの平均と同程度です</span>
         </div>
       </section>}
-      {selected ? <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '10px', marginTop: '12px' }}>
-        <div style={{ padding: '13px', background: '#0f172a', border: '1px solid #334155', borderRadius: '7px' }}>
-          <h3 style={{ margin: '0 0 8px', fontSize: '14px' }}>{clusterIdentities[activeCluster]?.name}のプレー傾向</h3>
-          <p style={{ margin: 0, color: '#cbd5e1', fontSize: '12px', lineHeight: 1.7 }}>{clusterIdentities[activeCluster]?.description}</p>
-        </div>
-        <div style={{ padding: '13px', background: '#0f172a', border: '1px solid #334155', borderRadius: '7px' }}>
-          <h3 style={{ margin: '0 0 8px', fontSize: '14px' }}>{canonicalTeamName(selected.team_name)}に似ているチーム</h3>
+      {selected ? <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: '10px', marginTop: '12px' }}>
+        <section style={{ padding: '15px', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '7px', color: '#0f172a' }}>
+          <h3 style={{ margin: '0 0 8px', fontSize: '15px' }}>{clusterIdentities[activeCluster]?.name}</h3>
+          <p style={{ margin: '0 0 12px', color: '#475569', fontSize: '12px', lineHeight: 1.7 }}>{clusterIdentities[activeCluster]?.description}</p>
+          <div style={{ padding: '10px', borderRadius: '6px', background: '#eff6ff', color: '#1e3a8a', fontSize: '12px', lineHeight: 1.6 }}>
+            <strong>このタイプの典型チーム：</strong>{canonicalTeamName(membership?.representative?.team_name || selected.team_name)}
+          </div>
+        </section>
+
+        <section style={{ padding: '15px', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '7px', color: '#0f172a' }}>
+          <h3 style={{ margin: '0 0 8px', fontSize: '15px' }}>クラスタ所属の目安</h3>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '7px' }}>
+            <strong style={{ fontSize: '24px', color: membership?.type === '典型型' ? '#2563eb' : '#7c3aed' }}>{membership?.confidence}%</strong>
+            <strong>{membership?.type}</strong>
+          </div>
+          <div style={{ height: '8px', overflow: 'hidden', borderRadius: '999px', background: '#e2e8f0' }}><span style={{ display: 'block', width: `${membership?.confidence || 0}%`, height: '100%', background: membership?.type === '典型型' ? '#2563eb' : '#7c3aed' }} /></div>
+          <p style={{ margin: '9px 0 0', color: '#64748b', fontSize: '11px', lineHeight: 1.6 }}>
+            {membership?.type === '典型型'
+              ? '所属クラスタの中心に比較的近く、このタイプの特徴が明確です。'
+              : `別タイプ「${clusterIdentities[membership?.nearestOther?.clusterId]?.name || '近隣クラスタ'}」にも近い、複数の特徴を持つチームです。`}
+            この数値は所属中心と隣接中心までの距離から求めた相対的な目安です。
+          </p>
+        </section>
+
+        <section style={{ padding: '15px', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '7px', color: '#0f172a' }}>
+          <h3 style={{ margin: '0 0 5px', fontSize: '15px' }}>同じタイプ内での個性</h3>
+          <p style={{ margin: '0 0 9px', color: '#64748b', fontSize: '11px' }}>同じクラスタの平均と比べ、特に差が大きい項目です。</p>
+          {selectedDifferences.map(feature => <div key={feature.key} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', padding: '7px 0', borderTop: '1px solid #e2e8f0', fontSize: '12px' }}>
+            <span>{feature.label}</span>
+            <strong style={{ color: feature.difference >= 0 ? '#2563eb' : '#dc2626' }}>{feature.difference >= 0 ? '同型平均より高い' : '同型平均より低い'}（{feature.difference >= 0 ? '+' : ''}{feature.difference.toFixed(1)}σ）</strong>
+          </div>)}
+        </section>
+
+        <section style={{ padding: '15px', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '7px', color: '#0f172a' }}>
+          <h3 style={{ margin: '0 0 5px', fontSize: '15px' }}>{canonicalTeamName(selected.team_name)}に似ているチーム</h3>
+          <p style={{ margin: '0 0 5px', color: '#64748b', fontSize: '11px' }}>同じタイプ内で、全特徴の距離が近い順です。</p>
           {similar.map((team, index) => (
             <button
               key={team.team_name}
               type="button"
               onClick={() => selectTeamAndFocusChart(team.team_name)}
-              style={{ display: 'block', width: '100%', padding: '8px 4px', border: 0, borderTop: index ? '1px solid #1e293b' : 0, background: 'transparent', color: '#f8fafc', cursor: 'pointer', textAlign: 'left', fontSize: '12px' }}
+              style={{ display: 'block', width: '100%', padding: '9px 3px', border: 0, borderTop: '1px solid #e2e8f0', background: 'transparent', color: '#0f172a', cursor: 'pointer', textAlign: 'left', fontSize: '12px' }}
             >
-              <strong>{index + 1}. {canonicalTeamName(team.team_name)}</strong> <span style={{ color: '#94a3b8' }}>（{team.league}）</span>
-              <div style={{ color: '#94a3b8', marginTop: '2px' }}>似ている点：{team.shared.join('・')}</div>
+              <strong>{index + 1}. {canonicalTeamName(team.team_name)}</strong> <span style={{ color: '#64748b' }}>（{team.league}）</span>
+              <div style={{ marginTop: '3px', color: '#2563eb' }}>似ている理由：{team.shared.map(item => `${item.label}（${item.selectedValue} / ${item.teamValue}）`).join('、')}</div>
+              <div style={{ marginTop: '2px', color: '#64748b' }}>主な違い：{team.different.map(item => `${item.label}（${item.selectedValue} / ${item.teamValue}）`).join('、')}</div>
             </button>
           ))}
-        </div>
+        </section>
       </div> : <div style={{ marginTop: '12px', padding: '13px', border: '1px solid #cbd5e1', borderRadius: '7px', background: '#f8fafc', color: '#475569', fontSize: '12px' }}>
         地図上の点、検索結果、または選択欄から気になるチームを選んでください。
       </div>}
