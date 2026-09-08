@@ -221,7 +221,10 @@ def main():
         "periods": periods,
     })
     atomic_write_json(args.output, output)
-    print(f"完了: {len(all_teams)}チームをプレースタイルで分類しました")
+    print(
+        f"完了: 全期間{output['team_count']}チーム、"
+        f"期間別{len(periods)}パターンをプレースタイルで分類しました"
+    )
 
 
 if __name__ == "__main__":
