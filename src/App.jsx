@@ -378,7 +378,7 @@ function MainApp() {
     <div className="site-theme light-theme" style={{ padding: '30px', backgroundColor: '#0f172a', color: '#f8fafc', minHeight: '100vh', fontFamily: 'sans-serif' }}>
       <div style={{ marginBottom: '20px', borderBottom: '1px solid #334155', paddingBottom: '15px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
-          <h1 style={{ margin: 0, fontSize: '22px', color: '#38bdf8' }}>サッカー・プレースタイルマップ</h1>
+          <h1 style={{ margin: 0, fontSize: '22px', color: '#38bdf8' }}>Soccer Playing Style Map</h1>
           <button
             type="button"
             aria-label="このサイトの使い方"
@@ -944,7 +944,7 @@ function MainApp() {
       </div>}
 
       <footer style={{ marginTop: '28px', paddingTop: '18px', borderTop: '1px solid #334155', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '12px', color: '#94a3b8', fontSize: '12px' }}>
-        <span>© 2026 サッカー・プレースタイルマップ</span>
+        <span>© 2026 Soccer Playing Style Map</span>
         <nav aria-label="法的情報" style={{ display: 'flex', gap: '16px' }}>
           <a href="/privacy-policy.html" onClick={(event) => { event.preventDefault(); setLegalModal('privacy'); }} style={{ color: '#7dd3fc' }}>プライバシーポリシー</a>
           <a href="/terms.html" onClick={(event) => { event.preventDefault(); setLegalModal('terms'); }} style={{ color: '#7dd3fc' }}>利用規約</a>

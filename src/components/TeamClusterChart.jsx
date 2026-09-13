@@ -9,6 +9,26 @@ import { isMatchLocked } from '../matchAvailability';
 // J1 uses Tableau colors; the eight-cluster European model uses D3 schemeAccent.
 const J1_COLORS = ['#38bdf8', '#4ade80', '#fbbf24', '#f87171', '#c084fc', '#2dd4bf', '#f472b6', '#a3e635'];
 const EUROPE_COLORS = ['#7fc97f', '#beaed4', '#fdc086', '#ffff99', '#386cb0', '#f0027f', '#bf5b17', '#666666'];
+// Only broadly recognizable reference clubs belong here. This list is used for
+// familiarity; the statistically typical team is calculated separately.
+const FAMOUS_TEAM_PRIORITY = [
+  'Real Madrid', 'Barcelona', 'Manchester City', 'Manchester United', 'Liverpool',
+  'Arsenal', 'Chelsea', 'Bayern Munich', 'Paris Saint-Germain', 'Juventus',
+  'AC Milan', 'Inter Milan', 'Borussia Dortmund', 'Atletico Madrid', 'Tottenham',
+  'Napoli', 'Roma', 'Bayer Leverkusen',
+  '浦和レッズ', '鹿島アントラーズ',
+  '川崎フロンターレ', '横浜Ｆ・マリノス', 'ヴィッセル神戸', 'サンフレッチェ広島',
+  'ガンバ大阪', '名古屋グランパス', 'ＦＣ東京', 'セレッソ大阪',
+];
+const FAMOUS_TEAM_ALIASES = {
+  'Manchester Utd': 'Manchester United', 'Man United': 'Manchester United',
+  'Manchester City FC': 'Manchester City', 'Paris SG': 'Paris Saint-Germain',
+  'Paris Saint Germain': 'Paris Saint-Germain', PSG: 'Paris Saint-Germain',
+  Inter: 'Inter Milan', Internazionale: 'Inter Milan', Milan: 'AC Milan',
+  Dortmund: 'Borussia Dortmund', 'Bayern München': 'Bayern Munich',
+  Atletico: 'Atletico Madrid', 'Atlético Madrid': 'Atletico Madrid',
+  Leverkusen: 'Bayer Leverkusen', 'Yokohama F. Marinos': '横浜Ｆ・マリノス',
+};
 const FEATURE_DEFINITIONS = [
   { key: 'avg_shots', label: '平均シュート数', high: 'シュートが多い', low: 'シュートが少ない', format: value => `${value.toFixed(1)}本` },
   { key: 'avg_corner_kicks', label: '平均CK数', high: 'CKが多い', low: 'CKが少ない', format: value => `${value.toFixed(1)}本` },
@@ -140,6 +160,47 @@ function withinClusterDifferences(selected, clusterTeams, stats, definitions) {
   }).sort((a, b) => Math.abs(b.difference) - Math.abs(a.difference)).slice(0, 4);
 }
 
+function famousTeamExamples(clusterTeams, stats, definitions, limit = 3) {
+  if (!clusterTeams.length) return [];
+  const centroid = Object.fromEntries(definitions.map(feature => [
+    feature.key,
+    clusterTeams.reduce((sum, team) => sum + zScore(team, feature.key, stats), 0) / clusterTeams.length,
+  ]));
+  return clusterTeams
+    .map(team => {
+      const displayName = canonicalTeamName(team.team_name);
+      const referenceName = FAMOUS_TEAM_ALIASES[displayName] || displayName;
+      const priority = FAMOUS_TEAM_PRIORITY.indexOf(referenceName);
+      const distance = Math.sqrt(definitions.reduce((sum, feature) => {
+        const difference = zScore(team, feature.key, stats) - centroid[feature.key];
+        return sum + difference ** 2;
+      }, 0));
+      return { ...team, displayName, priority, distance };
+    })
+    .filter(team => team.priority >= 0)
+    // Fame is the primary criterion. Distance only chooses the clearer example
+    // when candidates have the same recognition priority.
+    .sort((a, b) => a.priority - b.priority || a.distance - b.distance)
+    .slice(0, limit);
+}
+
+function representativeTeam(clusterTeams, stats, definitions) {
+  if (!clusterTeams.length) return null;
+  const centroid = Object.fromEntries(definitions.map(feature => [
+    feature.key,
+    clusterTeams.reduce((sum, team) => sum + zScore(team, feature.key, stats), 0) / clusterTeams.length,
+  ]));
+  return clusterTeams
+    .map(team => ({
+      team,
+      distance: Math.sqrt(definitions.reduce((sum, feature) => {
+        const difference = zScore(team, feature.key, stats) - centroid[feature.key];
+        return sum + difference ** 2;
+      }, 0)),
+    }))
+    .sort((a, b) => a.distance - b.distance)[0]?.team || null;
+}
+
 function ClusterTooltip({ active, payload, definitions }) {
   if (!active || !payload?.[0]?.payload) return null;
   const team = payload[0].payload;
@@ -208,6 +269,14 @@ export default function TeamClusterChart({ onTeamSelect }) {
   const clusterHeatmap = Object.fromEntries(clusterIds.map(clusterId => {
     const clusterTeams = modelTeams.filter(team => team.cluster_id === clusterId);
     return [clusterId, clusterFeatureAverages(clusterTeams, stats, definitions)];
+  }));
+  const clusterFamousTeams = Object.fromEntries(clusterIds.map(clusterId => {
+    const clusterTeams = modelTeams.filter(team => team.cluster_id === clusterId);
+    return [clusterId, famousTeamExamples(clusterTeams, stats, definitions)];
+  }));
+  const clusterRepresentativeTeams = Object.fromEntries(clusterIds.map(clusterId => {
+    const clusterTeams = modelTeams.filter(team => team.cluster_id === clusterId);
+    return [clusterId, representativeTeam(clusterTeams, stats, definitions)];
   }));
   const selectedClusterTeams = selected ? modelTeams.filter(team => team.cluster_id === selected.cluster_id) : [];
   const membership = selected ? clusterMembership(selected, modelTeams, stats, definitions) : null;
@@ -358,6 +427,28 @@ export default function TeamClusterChart({ onTeamSelect }) {
           <button key={clusterId} onClick={() => setSelectedCluster(current => current === clusterId ? null : clusterId)} style={{ padding: '5px 10px', borderRadius: '999px', border: `1px solid ${colors[clusterId % colors.length]}`, background: selectedCluster === clusterId ? colors[clusterId % colors.length] : 'transparent', color: selectedCluster === clusterId ? '#0f172a' : '#cbd5e1', cursor: 'pointer', fontSize: '11px' }}>{clusterIdentities[clusterId]?.name}</button>
         ))}
       </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '7px', marginBottom: '12px' }}>
+        {clusterIds.map(clusterId => (
+          <button
+            key={`famous-${clusterId}`}
+            type="button"
+            onClick={() => setSelectedCluster(current => current === clusterId ? null : clusterId)}
+            style={{ padding: '9px 11px', border: `1px solid ${colors[clusterId % colors.length]}`, borderRadius: '7px', background: '#fff', color: '#0f172a', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <strong style={{ display: 'block', marginBottom: '4px', fontSize: '11px' }}>{clusterIdentities[clusterId]?.name}</strong>
+            <span style={{ display: 'block', color: '#64748b', fontSize: '10px' }}>有名チーム：</span>
+            <span style={{ display: 'block', marginBottom: '5px', fontSize: '11px', fontWeight: 700 }}>
+              {clusterFamousTeams[clusterId]?.length
+                ? clusterFamousTeams[clusterId].map(team => team.displayName).join('、')
+                : '該当なし'}
+            </span>
+            <span style={{ display: 'block', color: '#64748b', fontSize: '10px' }}>プレースタイルの典型チーム：</span>
+            <span style={{ display: 'block', fontSize: '11px', fontWeight: 700 }}>
+              {canonicalTeamName(clusterRepresentativeTeams[clusterId]?.team_name) || '該当なし'}
+            </span>
+          </button>
+        ))}
+      </div>
       <div
         ref={chartRef}
         onPointerDown={startPan}
@@ -459,6 +550,13 @@ export default function TeamClusterChart({ onTeamSelect }) {
           <p style={{ margin: '0 0 12px', color: '#475569', fontSize: '12px', lineHeight: 1.7 }}>{clusterIdentities[activeCluster]?.description}</p>
           <div style={{ padding: '10px', borderRadius: '6px', background: '#eff6ff', color: '#1e3a8a', fontSize: '12px', lineHeight: 1.6 }}>
             <strong>このタイプの典型チーム：</strong>{canonicalTeamName(membership?.representative?.team_name || selected.team_name)}
+          </div>
+          <div style={{ marginTop: '8px', padding: '10px', border: '1px solid #bfdbfe', borderRadius: '6px', background: '#fff', color: '#0f172a', fontSize: '12px', lineHeight: 1.6 }}>
+            <strong style={{ color: '#2563eb' }}>同じ分類の有名チーム：</strong>
+            {clusterFamousTeams[selected.cluster_id]?.length
+              ? clusterFamousTeams[selected.cluster_id].map(team => team.displayName).join('、')
+              : '該当する代表例はありません'}
+            <div style={{ marginTop: '3px', color: '#64748b', fontSize: '10px' }}>同じ色の分類に属するチームから、知名度を優先して表示しています。</div>
           </div>
         </section>
 
